@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mqtt-presence:
+      build: .
+      image: mqtt-presence:latest
+      container_name: mqtt-presence
+      ports:
+        - "8000:8000"
+      volumes:
+        - ./config/:/config
+        #- ./log/:/log
+      #privileged: true
