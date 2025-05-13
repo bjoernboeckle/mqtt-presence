@@ -22,7 +22,7 @@ Run:
 
     mqtt-presence 
 
-or using conle ui (testing purposes)
+or using console ui (testing purposes)
 
     mqtt-presence --ui console
 
