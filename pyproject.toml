@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqtt-presence"
-version = "0.1.2"
+version = "0.1.4"
 description = "A Python application for MQTT presence detection"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Björn Böckle", email = "bjoern@boeckle-net.de" }]
 dependencies = [
-    "paho-mqtt>=1.5.0",
+    "paho-mqtt>=2.0.0",
     "cryptography>=3.4.0",
     "requests",
     "flask",

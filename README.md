@@ -4,7 +4,7 @@ This application connects to an mqtt broker and publishes an online state.
 This state can be used for instance by homeassitant to detect if a PC is stil running.
 
 Additional a reboot and shutdown command are available, to reboot, shutdown the system via mqtt.
-Both is onl ypossible in case the app is running with sudo rights.
+Both is only possible in case the app is running with sudo rights.
 
 In case homeassistant is not requiered it can also be disabled.
 

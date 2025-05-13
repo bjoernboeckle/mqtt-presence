@@ -36,14 +36,14 @@ class Tools:
     def shutdown():
         system = platform.system()
         if system == "Windows": os.system("shutdown /s /t 0")
-        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown now")
+        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown -h now")
 
 
     @staticmethod
     def reboot():
         system = platform.system()
         if system == "Windows": os.system("shutdown /r /t 0")
-        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown reboot")
+        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown -r now")
 
 
     @staticmethod
