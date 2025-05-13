@@ -67,12 +67,17 @@ class MQTTClient:
             self.remove_old_discovery()
             if (self.config().mqtt.homeassistant.enabled): self.publish_discovery()
         else:
-            reason = rc.name if hasattr(rc, "name") else str(rc)
-            logger.error(f"🔴 Connection to  MQTT broker failed: {reason} (rc={rc.value if hasattr(rc, 'value') else rc})")
+            if (rc.value != 0):
+                reason = rc.name if hasattr(rc, "name") else str(rc)
+                logger.error(f"🔴 Connection to  MQTT broker failed: {reason} (rc={rc.value if hasattr(rc, 'value') else rc})")
+            else:
+                logger.info("🔴 Connection closed")
+                
 
 
     def on_disconnect(self, client, userdata, flags, rc, properties=None):
-        logger.info("🔴 Connection closed")
+        reason = rc.name if hasattr(rc, "name") else str(rc)
+        logger.error(f"🔴 Connection to  MQTT broker closed: {reason} (rc={rc.value if hasattr(rc, 'value') else rc})")        
 
 
     def on_message(self, client, userdata, msg):
@@ -90,7 +95,7 @@ class MQTTClient:
 
 
     def getTopic(self):    
-        return f"{self.appState.appConfig.app.mqtt.client_id}/{self.appState.config.mqtt.broker.prefix}"
+        return f"{self.appState.config.mqtt.broker.prefix}"
 
 
     def get_status_topic(self):
@@ -111,7 +116,7 @@ class MQTTClient:
 
     def remove_old_discovery(self):
         discovery_prefix = self.config().mqtt.homeassistant.discovery_prefix
-        node_id = f"{self.appState.appConfig.app.mqtt.client_id}_{self.appState.config.mqtt.broker.prefix}"
+        node_id = self.appState.config.mqtt.broker.prefix.replace("/", "_")
        
 
         for comp, keys in [
@@ -126,7 +131,7 @@ class MQTTClient:
 
     def publish_discovery(self):
         discovery_prefix = self.config().mqtt.homeassistant.discovery_prefix
-        node_id = f"{self.appState.appConfig.app.mqtt.client_id}_{self.appState.config.mqtt.broker.prefix}"
+        node_id = self.appState.config.mqtt.broker.prefix.replace("/", "_")
 
         device_info = {
             "identifiers": [node_id],

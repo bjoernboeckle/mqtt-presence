@@ -38,25 +38,33 @@ class Config_Handler:
 
 
 
+    def checkYamlConfig(self, config: AppConfiguration):
+        if ( Tools.is_NoneOrEmpty(config.app.mqtt.client_id)): config.app.mqtt.client_id =  f"mqtt-presence_{Tools.getPCName()}"
+        config.app.mqtt.client_id = Tools.sanitize_mqtt_topic(config.app.mqtt.client_id)
+
+
+
     # Load YAML file as AppConfiguration
     def load_config_yaml(self) -> AppConfiguration:
+        config = None
         if os.path.exists(self.configFiles.yamlFile):
             with open(self.configFiles.yamlFile, "r") as f:
                 config = self._from_dict(AppConfiguration, yaml.safe_load(f))
+            self.checkYamlConfig(config)                
             logger.info(f"✅ Configuration loaded from: {self.configFiles.yamlFile}")
-            return config
         else:
             logger.info(f"⚠️ No configuration file found in: {self.configFiles.yamlFile}. Create default.")
             config = AppConfiguration()
+            self.checkYamlConfig(config)
             with open(self.configFiles.yamlFile, "w") as f_out:
                 yaml.dump(self._to_dict(config), f_out)
             logger.info(f"📝 Default configuration written to: {self.configFiles.yamlFile}")
-            return config
+        return config
 
 
     def checkConfig(self, config: Configuration):
         if ( Tools.is_NoneOrEmpty(config.mqtt.homeassistant.device_name)): config.mqtt.homeassistant.device_name = Tools.getPCName()
-        if ( Tools.is_NoneOrEmpty(config.mqtt.broker.prefix)): config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(config.mqtt.homeassistant.device_name)
+        if ( Tools.is_NoneOrEmpty(config.mqtt.broker.prefix)): config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(f"mqtt-presence/{config.mqtt.homeassistant.device_name}")
 
 
     # Load config file as Configuration

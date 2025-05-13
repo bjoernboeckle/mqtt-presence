@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class MqttAppConfig:
-    client_id: str = "mqtt-presence"
+    client_id: str = ""
 
 @dataclass
 class WebServerAppConfig:

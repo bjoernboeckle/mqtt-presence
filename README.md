@@ -60,7 +60,7 @@ Configuration and application data is created at first startup and placed in dir
     app:
     disableShutdown: false
     mqtt:
-        client_id: mqtt-presence
+        client_id: mqtt-presence_PCName
     webServer:
         host: 0.0.0.0
         port: 8000
