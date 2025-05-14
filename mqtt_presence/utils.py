@@ -1,7 +1,7 @@
 import re, os, sys, platform, socket
 from platformdirs import user_config_dir, user_log_dir, user_cache_dir
 from pathlib import Path
-
+from mqtt_presence.version import __version__
 
 class Tools:
     APP_NAME = "mqtt-presence"
@@ -71,7 +71,7 @@ class Tools:
                 data = tomllib.load(f)
             return data["project"]["version"]
         except:
-            return "Unknown"
+            return __version__
 
     @staticmethod
     def get_config_path(app_name: str, filename: str = "config.yaml") -> Path:

@@ -15,7 +15,8 @@ class ConsoleUI:
 
 
         def menu():
-            print(f"\n====== {Tools.APP_NAME.replace("-", " ").title()} {self.mqttAPP.version} – Menu ==========================")
+            title = Tools.APP_NAME.replace("-", " ").title()
+            print(f"\n====== {title} {self.mqttAPP.version} – Menu ==========================")
             status()
             print("=============================")
             print("1. Refresh state")
