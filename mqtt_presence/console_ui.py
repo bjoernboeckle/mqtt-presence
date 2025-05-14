@@ -1,12 +1,8 @@
-import threading
+from mqtt_presence.utils import Tools
 
 class ConsoleUI:
-    def __init__(self, appState):
-        self.appState = appState
-        self.thread = threading.Thread(target=self.runUI, daemon=True)
-
-    def start(self):
-        self.thread.start()
+    def __init__(self, mqttAPP):
+        self.mqttAPP = mqttAPP
 
     def stop(self):
         pass
@@ -14,12 +10,12 @@ class ConsoleUI:
     def runUI(self):
         def status():
             print(f"State")  
-            print(f"  Host:       {self.appState.config.mqtt.broker.host}")
-            print(f"  Connection: {'online 🟢' if self.appState.mqttClient.is_connected() else 'offline 🔴'}")
+            print(f"  Host:       {self.mqttAPP.config.mqtt.broker.host}")
+            print(f"  Connection: {'online 🟢' if self.mqttAPP.mqttClient.is_connected() else 'offline 🔴'}")
 
 
         def menu():
-            print("\n====== MQTT Presence – Menu ==========================")
+            print(f"\n====== {Tools.APP_NAME.replace("-", " ").title()} {self.mqttAPP.version} – Menu ==========================")
             status()
             print("=============================")
             print("1. Refresh state")
@@ -29,19 +25,19 @@ class ConsoleUI:
             print("q. Exit")
             print("============================")
 
-        while self.appState.should_run:
+        while self.mqttAPP.should_run:
             menu()
             choice = input("Eingabe: ").strip().lower()
             if choice == "1":
                 status()
             elif choice == "2":
-                self.appState.shutdown()
+                self.mqttAPP.shutdown()
             elif choice == "3":
-                self.appState.reboot()
+                self.mqttAPP.reboot()
             elif choice == "4":
-                self.appState.restart();
+                self.mqttAPP.restart();
             elif choice == "q":
-                self.appState.exitApp()
+                self.mqttAPP.exitApp()
             else:
                 print("❓ Invalid input")
 

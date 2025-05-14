@@ -8,14 +8,16 @@ version = "0.1.5"
 description = "A Python application for MQTT presence detection"
 readme = "README.md"
 license = "Apache-2.0"
-authors = [{ name = "Björn Böckle", email = "bjoern@boeckle-net.de" }]
+authors = [{ name = "Bjoern Boeckle", email = "bjoern@boeckle-net.de" }]
 dependencies = [
     "paho-mqtt>=2.0.0",
     "cryptography>=3.4.0",
     "requests",
     "flask",
     "pyyaml",
-    "waitress"
+    "waitress",
+    "tomllib",
+    "platformdirs"
 ]
 requires-python = ">=3.6"
 

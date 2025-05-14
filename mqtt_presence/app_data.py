@@ -1,15 +1,16 @@
 from dataclasses import dataclass, field
+from mqtt_presence.utils import Tools
 
-SECRET_KEY_FILE = "config/secret.key"
-CONFIG_DATA_FILE = "config/config.json"
-CONFIG_YAML_FILE = "config/config.yaml"
+SECRET_KEY_FILE = "secret.key"
+CONFIG_DATA_FILE = "config.json"
+CONFIG_YAML_FILE = "config.yaml"
 
 
 @dataclass
 class ConfigFiles:
-    secretFile: str = SECRET_KEY_FILE
-    configFile: str = CONFIG_DATA_FILE
-    yamlFile: str = CONFIG_YAML_FILE
+    secretFile: str = Tools.get_config_path(Tools.APP_NAME, SECRET_KEY_FILE)
+    configFile: str = Tools.get_config_path(Tools.APP_NAME,CONFIG_DATA_FILE)
+    yamlFile: str = Tools.get_config_path(Tools.APP_NAME,CONFIG_YAML_FILE)
 
 
 

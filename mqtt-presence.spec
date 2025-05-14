@@ -8,7 +8,7 @@ datas = [
 ]
 
 a = Analysis(
-    ['mqtt_presence\\main.py'],
+    ['mqtt_presence/main.py'],
     pathex=['/path/to/mqtt-presence'],
     binaries=[],
     datas=datas,

@@ -1,12 +1,10 @@
 from mqtt_presence.mqtt_client import MQTTClient
 from mqtt_presence.config_handler import Config_Handler
-from mqtt_presence.web_ui import WebUI
-from mqtt_presence.console_ui import ConsoleUI
 from mqtt_presence.app_data import Configuration, ConfigFiles
 from mqtt_presence.utils import Tools
 
 
-import time
+import platform, sys
 import logging
 logger = logging.getLogger(__name__)
 
@@ -31,16 +29,16 @@ class MQTTPresenceApp():
     def __init__(self, configFile = ConfigFiles()):
         # set singleton!
         #AppStateSingleton.init(self)
+        self.version = Tools.get_version_from_pyproject("pyproject.toml")
+
 
         self.config_handler = Config_Handler(configFile)
         self.should_run = True
         
         # load config
         self.loadConfig()
-
         self.mqttClient: MQTTClient = MQTTClient(self)
-        self.consoleUI: ConsoleUI = None
-        self.webUI: WebUI = None
+
 
     def loadConfig(self):
         self.config = self.config_handler.load_config()
@@ -51,33 +49,20 @@ class MQTTPresenceApp():
         self.config_handler.save_config(config)
         self.restart()
 
-    def runConsoleUI(self):
-        # Start Console UI 
-        self.consoleUI: ConsoleUI = ConsoleUI(self)
-        self.consoleUI.runUI()
-
-    def runWebUI(self):
-        # start Webui
-        self.webUI = WebUI(self)
-        self.webUI.runUI()
 
     def start(self):
         #show platform
-        Tools.logPlatform()        
+        self.logPlatform()        
         self.mqttClient.start()
 
 
     def restart(self):
         self.config = self.config_handler.load_config()
-        self.mqttClient.start()
+        self.mqttClient.stop()
 
     def exitApp(self):
         self.should_run = False
         self.mqttClient.stop()
-        if (self.consoleUI is not None): self.consoleUI.stop()
-        if (self.webUI is not None): self.webUI.stop()
-        #time.sleep(1)
-
 
 
     def shutdown(self):
@@ -93,3 +78,21 @@ class MQTTPresenceApp():
             Tools.reboot()
         else:
             logger.info("Shutdown disabled!")                
+    
+    @staticmethod
+    def logPlatform():
+        system = platform.system()
+        machine = platform.machine()
+        
+        if system == "Windows":
+            logger.info("🪟 Running on Windows")
+        elif system == "Linux":
+            if "arm" in machine or "aarch64" in machine:
+                logger.info("🍓 Running on Raspberry Pi (likely)")
+            else:
+                logger.info("🐧 Running on generic Linux")
+        elif system == "Darwin":
+            logger.info("🍏 Running on macOS")
+        else:
+            logger.warning(f"Unknown system: {system}")
+            sys.exit(1)

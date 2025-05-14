@@ -34,7 +34,6 @@ class MQTTClient:
             "reboot": mqtt_command("Reboot pc", self.appState.reboot),
         }
 
-       
 
     def start(self):
         self.thread.start()
@@ -44,7 +43,7 @@ class MQTTClient:
             while self.appState.should_run:
                 # mqtt starten
                 if (not self.is_connected()):
-                    self.start()
+                    self.connect()
                 time.sleep(5)
         finally:
             self.stop()        
@@ -193,7 +192,7 @@ class MQTTClient:
             # "Last Will"
             self.client.will_set(self.get_status_topic(), payload="offline", retain=True)
 
-    def start(self):           
+    def connect(self):           
         with self.lock:
             try:
                 logger.info(f"🚪 Starting MQTT for {self.appState.appConfig.app.mqtt.client_id} on {self.config().mqtt.broker.host}:{self.config().mqtt.broker.port}")
@@ -211,8 +210,8 @@ class MQTTClient:
     def stop(self):
         with self.lock:        
             if (self.client is not None):
-                logger.info("🚪 Stopping mqtt...")
                 if (self.is_connected()):
+                    logger.info("🚪 Stopping mqtt...")
                     self.publish_status("offline")
                 self.client.loop_stop()
                 self.client.disconnect()

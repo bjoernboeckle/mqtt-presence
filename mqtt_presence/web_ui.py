@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 class WebUI:
 
-    def __init__(self, appState):
+    def __init__(self, mqttAPP):
         template_folder = Tools.resource_path("templates")
         self.app = Flask(__name__, template_folder=template_folder)
-        self.appState = appState
+        self.mqttAPP = mqttAPP
         self.setup_routes()
 
 
@@ -24,9 +24,9 @@ class WebUI:
     def runUI(self):
         # use waitress or flask self run
         if Tools.is_debugger_active():
-            self.app.run(host=self.appState.appConfig.app.webServer.host, port=self.appState.appConfig.app.webServer.port)
+            self.app.run(host=self.mqttAPP.appConfig.app.webServer.host, port=self.mqttAPP.appConfig.app.webServer.port)
         else:
-            serve(self.app, host=self.appState.appConfig.app.webServer.host, port=self.appState.appConfig.app.webServer.port)
+            serve(self.app, host=self.mqttAPP.appConfig.app.webServer.host, port=self.mqttAPP.appConfig.app.webServer.port)
 
 
 
@@ -34,7 +34,7 @@ class WebUI:
         @self.app.route("/", methods=["GET", "POST"])
         def index():
             if request.method == "POST":
-                new_config: Configuration = copy.deepcopy(self.appState.config)
+                new_config: Configuration = copy.deepcopy(self.mqttAPP.config)
                 # raspberry pi
                 #new_config.raspi
                 #new_config["enable_raspberrypi"] = request.form.get("enable_raspberrypi", "off") == "on"  # ergibt True oder False
@@ -49,27 +49,29 @@ class WebUI:
                 password = request.form.get("password")
                 if password:
                     #new_config.mqtt.broker.password = request.form.get("password")
-                    new_config.mqtt.broker.encrypted_password =  self.appState.config_handler.get_encrypt_password(password)
+                    new_config.mqtt.broker.encrypted_password =  self.mqttAPP.config_handler.get_encrypt_password(password)
                 new_config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(request.form.get("prefix"))
                 
                 #homeassistant
                 new_config.mqtt.homeassistant.enabled = request.form.get("enable_HomeAssistant", "off") == "on"  #  True or False
-                new_config.mqtt.homeassistant.device_name = request.form.get("device_name", self.appState.config.mqtt.homeassistant.device_name)
-                new_config.mqtt.homeassistant.discovery_prefix = request.form.get("discovery_prefix", self.appState.config.mqtt.homeassistant.discovery_prefix)
+                new_config.mqtt.homeassistant.device_name = request.form.get("device_name", self.mqttAPP.config.mqtt.homeassistant.device_name)
+                new_config.mqtt.homeassistant.discovery_prefix = request.form.get("discovery_prefix", self.mqttAPP.config.mqtt.homeassistant.discovery_prefix)
                 logger.info("⚙️ Konfiguration aktualisiert....")
-                self.appState.updateNewConfig(new_config)
-                self.appState.restart();
+                self.mqttAPP.updateNewConfig(new_config)
+                self.mqttAPP.restart();
 
             return render_template("index.html", **{
+                "appName": Tools.APP_NAME.replace("-", " ").title(),
+                "version": self.mqttAPP.version,
                 #MQTT
-                "host": self.appState.config.mqtt.broker.host,
-                "username": self.appState.config.mqtt.broker.username,
-                "prefix": self.appState.config.mqtt.broker.prefix,
+                "host": self.mqttAPP.config.mqtt.broker.host,
+                "username": self.mqttAPP.config.mqtt.broker.username,
+                "prefix": self.mqttAPP.config.mqtt.broker.prefix,
 
                 #Homeassistant
-                "enable_HomeAssistant": self.appState.config.mqtt.homeassistant.enabled,
-                "discovery_prefix": self.appState.config.mqtt.homeassistant.discovery_prefix,
-                "device_name": self.appState.config.mqtt.homeassistant.device_name,
+                "enable_HomeAssistant": self.mqttAPP.config.mqtt.homeassistant.enabled,
+                "discovery_prefix": self.mqttAPP.config.mqtt.homeassistant.discovery_prefix,
+                "device_name": self.mqttAPP.config.mqtt.homeassistant.device_name,
                 #raspberrypi
                 #"enable_raspberrypi": self.config_handler.config.get("enable_raspberrypi"),
                 #"gpio_led":  int(self.config_handler.config.get("gpio_led")),
@@ -80,8 +82,8 @@ class WebUI:
         @self.app.route("/status")
         def status():
             return jsonify({
-                "mqtt_status": "Online" if self.appState.mqttClient.is_connected() else "Offline",
-                "client_id": self.appState.appConfig.app.mqtt.client_id,
+                "mqtt_status": "Online" if self.mqttAPP.mqttClient.is_connected() else "Offline",
+                "client_id": self.mqttAPP.appConfig.app.mqtt.client_id,
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })
 
