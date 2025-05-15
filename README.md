@@ -1,164 +1,191 @@
+
 # mqtt_presence
 
-This application connects to an mqtt broker and publishes its online state.
-This state can be used for instance by homeassitant to detect if a PC is stil running and perform a shutdown before turning power off.
 
-The app provides via mqtt:
-    - Online state
-    - Shutdown command
-    - Restart command
+[![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+<img src="logo.png" alt="mqtt_presence logo" style="width:300px;">
+
+**mqtt_presence** is a lightweight Python-based presence indicator for MQTT systems.  
+Originally designed for Raspberry Pi environments, it now supports Windows, Linux, and macOS systems alike.  
+It reports the online status of a device (like a PC) and receives shutdown or restart commands.  
+It's especially useful in smart home environments such as [Home Assistant](https://www.home-assistant.io/).
+
+---
 
 
-The mqtt state/command is also published for homeassitant auto discovery, which can be disabled if not required.
 
+## ✨ Features
 
-## Start / Install
+- Publishes online state to MQTT
+- Receives shutdown and restart commands from MQTT
+- Supports Home Assistant MQTT discovery (optional)
+- Works on Windows, Linux, and macOS
+- Includes Web UI and Console UI options
+- Configuration via YAML and JSON
 
+---
 
-### As module in python:
+## 🚀 Getting Started
+
+### 📦 Installation
+
+#### Windows
+
 Install:
 
-    pip install mqtt-presence
+```powershell
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.ps1 | iex
+```
 
-Start/Run:
+Uninstall:
 
-    mqtt-presence 
+```powershell
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.ps1 | iex
+```
 
-    # or using console ui (testing purposes) # 
+#### Linux
 
-    mqtt-presence --ui console
+Install:
 
-    # Or use python module: #
+```bash
+curl -sSL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.sh | bash
+```
 
-    python -m mqtt_presence.main
+Uninstall:
 
+```bash
+curl -sSL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.sh | bash
+```
 
-### As binary
-Download and run executable created by Installer
+#### As Python Package
 
-    mqtt-presence.exe
+Install via pip:
 
+```bash
+pip install mqtt-presence
+```
 
-### Command line parameters
+Run:
 
-    mqtt-presence.exe --ui webui      # Starts web ui (default)
-    mqtt-presence.exe --ui console    # Use a console UI
+```bash
+mqtt-presence
+```
 
+With console UI:
 
-### Start Container
-TODO: Image not yet published.
+```bash
+mqtt-presence --ui console
+```
 
-        docker-compose up -d
+As Python module:
 
-        docker run -d -p 5000:5000 --name mqtt_presence mqtt_presence
-        
-        If  GPIO is required  (only  Raspberry Pi):
-        docker run --privileged -d -p 5000:5000 --name mqtt_presence mqtt_presence
+```bash
+python -m mqtt_presence.main
+```
 
+#### As Executable
 
+Download and run the executable:
 
-## Configuration
+```bash
+mqtt-presence.exe
+```
 
-Configuration and application data is created at first startup and placed inside the config direcories.
+---
 
+## ⚙️ Command Line Options
 
-### Application configuration options (config.yaml):
-    
-    app:
-        disableShutdown: false            # true disables real shutdown/restart for testing purpeses
-    mqtt:
-        client_id: mqtt-presence_PCName   # mqtt client ID, should not be changed
-    webServer:
-        host: 0.0.0.0                     # host/port for web settings page
-        port: 8000
+```bash
+mqtt-presence.exe --ui webui      # Starts the web UI (default)
+mqtt-presence.exe --ui console    # Starts the console UI
+```
 
-After changeing parameters, the app need to be restarted.
+---
 
+## 🛠 Configuration
 
-### Application data (config.json)
+Configuration files are created on first start.
 
-Application data can be modified using the web ui. After saving new values the new settings are applied immedeiatly.
-Existing config.json will be overwritten, so manual editing is not recommended.
+### `config.yaml` (App Settings)
 
-## Directories
+```yaml
+app:
+  disableShutdown: false         # Set to true to disable shutdown for testing
+mqtt:
+  client_id: mqtt-presence_PC    # MQTT client ID (should be unique)
+webServer:
+  host: 0.0.0.0                  # Host for web UI
+  port: 8000                     # Port for web UI
+```
 
-### Configuration files (config.yaml, config.json, secret,key)
+Changes require restart.
 
-| OS          | Place of configuration                                 | Examples                                                            |
-| ----------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
-| **Windows** | `%APPDATA%\<App-Name>\config.yaml`                     | `C:\Users\User\AppData\Roaming\mqtt_presence\config.yaml`           |
-| **Linux**   | `~/.config/<App-Name>/config.yaml`                     | `/home/user/.config/mqtt_presence/config.yaml`                      |
-| **macOS**   | `~/Library/Application Support/<App-Name>/config.yaml` | `/Users/user/Library/Application Support/mqtt_presence/config.yaml` |
+### `config.json` (Runtime State)
 
+Edited via the web UI. Manual changes are overwritten.
 
+---
 
+## 📁 Directory Structure
 
-### Log file
+### Configuration Files
 
-Logs are placed depending on operating systems in log directory:
+| OS          | Path                                                  |
+|-------------|-------------------------------------------------------|
+| **Windows** | `%APPDATA%\mqtt_presence\config.yaml`              |
+| **Linux**   | `~/.config/mqtt_presence/config.yaml`                |
+| **macOS**   | `~/Library/Application Support/mqtt_presence/`       |
 
-| OS             | Place of configuration            | Examples                                                      |
-| -------------- | --------------------------------- | ------------------------------------------------------------- |
-| **Windows**    | `%LOCALAPPDATA%\<App-Name>\Logs\` | `C:\Users\<User>\AppData\Local\mqtt_presence\Logs\app.log`    |
-| **Linux**      | `$XDG_STATE_HOME/<app-name>/`     | `/home/user/.local/state/mqtt_presence/app.log`               |
-| *(Fallback)*   | `$XDG_CACHE_HOME/log/<app-name>/` | `/home/user/.cache/log/mqtt_presence/app.log` *(if required)* |
-| **macOS**      | `~/Library/Logs/<App-Name>/`      | `/Users/<User>/Library/Logs/mqtt_presence/app.log`            |
+### Log Files
 
+| OS          | Path                                                  |
+|-------------|-------------------------------------------------------|
+| **Windows** | `%LOCALAPPDATA%\mqtt_presence\Logs\app.log`       |
+| **Linux**   | `~/.local/state/mqtt_presence/app.log`               |
+| **macOS**   | `~/Library/Logs/mqtt_presence/app.log`               |
 
+### Cache
 
+| OS          | Path                                                    |
+|-------------|---------------------------------------------------------|
+| **Windows** | `%LOCALAPPDATA%\mqtt_presence\Cache\status.cache`   |
+| **Linux**   | `~/.cache/mqtt_presence/status.cache`                  |
+| **macOS**   | `~/Library/Caches/mqtt_presence/status.cache`          |
 
-### Cache files
+---
 
-Temp files are placed depending operating system in cache:
+## 📦 Build and Deploy
 
-| OS             | Place of configuration             | Examples                                                         |
-| -------------- | ---------------------------------- | ---------------------------------------------------------------- |
-| **Windows**    | `%LOCALAPPDATA%\<App-Name>\Cache\` | `C:\Users\<User>\AppData\Local\mqtt_presence\Cache\status.cache` |
-| **Linux**      | `$XDG_CACHE_HOME/<app-name>/`      | `/home/user/.cache/mqtt_presence/status.cache`                   |
-| **macOS**      | `~/Library/Caches/<App-Name>/`     | `/Users/<User>/Library/Caches/mqtt_presence/status.cache`        |
+### Python Package
 
+```bash
+pip install --upgrade build
+python -m build
 
+pip install --upgrade twine
+twine upload dist/*
+```
 
+### Executable (PyInstaller)
 
-# Create deployments
+With spec:
 
-## Package
-
-    # build
-    pip install --upgrade build
-    python -m build
-
-    #upload
-    pip install --upgrade twine
-    twine upload dist/*
-
-## Exe Installer
-
-
-    python -m PyInstaller mqtt-presence.spec
+```bash
+python -m PyInstaller mqtt-presence.spec
+```
 
 Without spec:
 
-    pyinstaller --onefile --name mqtt-presence mqtt_presence/main.py
-    python -m PyInstaller --onefile --name mqtt-presence mqtt_presence/main.py
+```bash
+python -m PyInstaller --onefile --name mqtt-presence mqtt_presence/main.py
+```
 
+---
 
+## 🧠 License & Credits
 
-## Container
-
-TODO:
-
-### Build container:
-    docker compose build
-    docker compose up --build
-
-
-### Delete image/existing container
-    docker container rm mqtt-presence
-    docker image rm mqtt-presence
-
-
-### Save/load image:
-    docker save -o mqtt-presence.tar mqtt-presence
-    docker load -i ./mqtt-presence.tar
+Apache License. Developed by [Bjoern Boeckle](https://github.com/bjoernboeckle).  
+Special thanks to the Home Assistant community.
 
