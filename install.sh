@@ -42,4 +42,5 @@ EOF
 
 echo "[5/5] Enabling and starting service..."
 sudo systemctl daemon-reload
-sudo system
+sudo systemctl enable "$SERVICE_NAME"
+sudo systemctl restart "$SERVICE_NAME"
