@@ -87,3 +87,16 @@ class WebUI:
                 "client_id": self.mqtt_app.app_config.app.mqtt.client_id,
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })
+
+
+        @self.app.route('/shutdown', methods=['POST'])
+        def shutdown():
+            #self.mqtt_app.shutdwon()
+            logger.info("shutdwon....")
+            return '', 204
+
+        @self.app.route('/restart', methods=['POST'])
+        def restart():
+            #self.mqtt_app.reboot()
+            logger.info("reboot....")
+            return '', 204

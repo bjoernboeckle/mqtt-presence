@@ -26,7 +26,7 @@ class ConfigHandler:
     def _load_key(self):
         if not os.path.exists(self.config_files.secret_file):
             return self._generate_key()
-        with open(self.config_files.secret_file, "rb", encoding="utf-8") as f:
+        with open(self.config_files.secret_file, "rb") as f:
             return f.read()
 
     def _generate_key(self):
