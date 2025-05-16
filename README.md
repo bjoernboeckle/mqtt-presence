@@ -41,13 +41,13 @@ Install / uninstall need to run with admin rights.
 #### Install:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
 ```
 
 #### Uninstall:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/uninstall.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
 ```
 
 ### Linux
@@ -55,14 +55,14 @@ iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/ins
 #### Install:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/install.sh?$(date +%s)" | bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh?$(date +%s)" | bash
 ```
 
 
 #### Uninstall:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/uninstall.sh?$(date +%s)" | bash -s -- --yes
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh?$(date +%s)" | bash -s -- --yes
 ```
 
 ### As Python Package
