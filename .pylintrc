@@ -1,0 +1,46 @@
+[MASTER]
+# Verzeichnisse oder Dateien, die ignoriert werden sollen
+ignore=tests,build,dist
+
+# Pfade, die als zusätzliche Quellen berücksichtigt werden sollen
+init-hook='import sys; sys.path.append("mqtt_presence")'
+
+[MESSAGES CONTROL]
+# Schalte bestimmte Warnungen aus
+disable=
+    C0114,  # Missing module docstring
+    C0115,  # Missing class docstring
+    C0116,  # Missing function or method docstring
+    R0903,  # Too few public methods
+    R0913,  # Too many arguments
+    R0914,  # Too many local variables
+    R0915,  # Too many statements
+    W0511,  # TODO found
+
+[REPORTS]
+# Kein Score am Ende ausgeben
+score=no
+
+[FORMAT]
+# Maximale Zeilenlänge
+max-line-length=200
+
+[DESIGN]
+# Erlaube mehr Argumente in Funktionen
+max-args=7
+max-locals=20
+max-returns=6
+max-branches=15
+max-statements=50
+
+[TYPECHECK]
+# Erweiterte Typprüfungen erlauben
+#ignore-missing-imports=yes
+
+[LOGGING]
+# Logging-Funktionen erkennen
+logging-modules=logging
+
+[REFACTORING]
+# Komplexitätsgrenzen erhöhen
+max-nested-blocks=5

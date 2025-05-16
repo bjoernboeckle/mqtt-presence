@@ -1,22 +1,22 @@
 from mqtt_presence.utils import Tools
 
 class ConsoleUI:
-    def __init__(self, mqttAPP):
-        self.mqttAPP = mqttAPP
+    def __init__(self, mqtt_app):
+        self.mqtt_app = mqtt_app
 
     def stop(self):
         pass
 
-    def runUI(self):
+    def run_ui(self):
         def status():
-            print(f"State")  
-            print(f"  Host:       {self.mqttAPP.config.mqtt.broker.host}")
-            print(f"  Connection: {'online 🟢' if self.mqttAPP.mqttClient.is_connected() else 'offline 🔴'}")
+            print("State")
+            print(f"  Host:       {self.mqtt_app.config.mqtt.broker.host}")
+            print(f"  Connection: {'online 🟢' if self.mqtt_app.mqtt_client.is_connected() else 'offline 🔴'}")
 
 
         def menu():
             title = Tools.APP_NAME.replace("-", " ").title()
-            print(f"\n====== {title} {self.mqttAPP.version} – Menu ==========================")
+            print(f"\n====== {title} {self.mqtt_app.version} – Menu ==========================")
             status()
             print("=============================")
             print("1. Refresh state")
@@ -26,19 +26,18 @@ class ConsoleUI:
             print("q. Exit")
             print("============================")
 
-        while self.mqttAPP.should_run:
+        while self.mqtt_app.should_run:
             menu()
             choice = input("Eingabe: ").strip().lower()
             if choice == "1":
                 status()
             elif choice == "2":
-                self.mqttAPP.shutdown()
+                self.mqtt_app.shutdown()
             elif choice == "3":
-                self.mqttAPP.reboot()
+                self.mqtt_app.reboot()
             elif choice == "4":
-                self.mqttAPP.restart();
+                self.mqtt_app.restart()
             elif choice == "q":
-                self.mqttAPP.exitApp()
+                self.mqtt_app.exit_app()
             else:
                 print("❓ Invalid input")
-

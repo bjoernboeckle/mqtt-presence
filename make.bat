@@ -7,5 +7,5 @@ IF "%1"=="build" (
     del /Q /F mqtt_presence\version.py 2>nul
     rmdir /S /Q dist build *.egg-info 2>nul
 ) ELSE (
-    echo Usage: make.bat [build|clean]
+    echo "Usage: make.bat [build|clean]"
 )
