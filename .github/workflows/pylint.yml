@@ -23,6 +23,8 @@ jobs:
         # Install pytest separately to run tests
         pip install pytest
         pip install pylint
+        pip install toml
+        python -m scripts/pre_build.py
     
     - name: Analysing the code with pylint
       run: |
