@@ -33,6 +33,8 @@ It's especially useful in smart home environments such as [Home Assistant](https
 
 ### Windows
 
+Install / uninstall need to run with admin rights.
+
 #### Install:
 
 ```powershell
