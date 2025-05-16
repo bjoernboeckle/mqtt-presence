@@ -24,11 +24,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install build tools
+
+      - name: ↑ Install dependencies
         run: |
           python -m pip install --upgrade pip build setuptools wheel
-          pip install pytest pylint toml
           python scripts/pre_build.py
+          pip install pytest pylint toml
+          pip install .
           
 
       - name: Build Python package
