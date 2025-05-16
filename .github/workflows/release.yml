@@ -39,14 +39,14 @@ jobs:
       - name: Analysing the code with pylint
         run: |
           pip install .
-          pylint $(git ls-files '*.py')
+          python -m pylint $(git ls-files '*.py')
 
 
       - name: Run tests
         shell: pwsh
         run: |
           if (Test-Path -Path tests -PathType Container) {
-            pytest tests
+            python -m pytest tests
           } else {
             Write-Output "No tests directory found."
           }
@@ -75,7 +75,7 @@ jobs:
   upload-to-PyPi:
     runs-on: ubuntu-latest
     needs: build-and-publish
-    
+
     steps:
       - name: ✨ Checkout repo
         uses: actions/checkout@v4
