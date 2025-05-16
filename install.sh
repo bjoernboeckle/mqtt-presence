@@ -14,15 +14,14 @@ sudo apt install -y python3 python3-pip python3-venv
 
 echo "[2/5] Creating virtual environment..."
 sudo mkdir -p "$INSTALL_DIR"
-sudo chown "$USER" "$INSTALL_DIR"
-python3 -m venv "$VENV_DIR"
+sudo python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 echo "[3/5] Installing mqtt-presence..."
 pip install --upgrade pip
 pip install mqtt-presence
 
-echo "[4/5] Setting up systemd service..."
+echo "[4/5] Setting up systemd service (as root)..."
 sudo tee "$SYSTEMD_SERVICE_PATH" > /dev/null <<EOF
 [Unit]
 Description=MQTT Presence Service
@@ -33,7 +32,6 @@ Type=simple
 ExecStart=$VENV_DIR/bin/mqtt-presence
 WorkingDirectory=$INSTALL_DIR
 Restart=on-failure
-User=$USER
 Environment=PYTHONUNBUFFERED=1
 
 [Install]

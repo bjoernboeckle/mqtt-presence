@@ -8,8 +8,14 @@ SYSTEMD_SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 CONFIG_PATH="$HOME/.config/$SERVICE_NAME"
 LOG_PATH="$HOME/.local/state/$SERVICE_NAME"
 
-echo "⚠️  This will remove the service '$SERVICE_NAME', including all related files and configurations."
-read -p "Are you sure? (yes/[no]): " CONFIRM
+# Optional: auto-confirmation
+if [[ "$1" == "--yes" || "$UNATTENDED" == "1" ]]; then
+  CONFIRM="yes"
+else
+  echo "⚠️  This will remove the service '$SERVICE_NAME', including all related files and configurations."
+  read -p "Are you sure? (yes/[no]): " CONFIRM
+fi
+
 if [[ "$CONFIRM" != "yes" ]]; then
   echo "Aborted."
   exit 1

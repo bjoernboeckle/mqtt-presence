@@ -31,35 +31,36 @@ It's especially useful in smart home environments such as [Home Assistant](https
 
 ### 📦 Installation
 
-#### Windows
+### Windows
 
-Install:
+#### Install:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.ps1 | iex
 ```
 
-Uninstall:
+#### Uninstall:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.ps1 | iex
 ```
 
-#### Linux
+### Linux
 
-Install:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.sh | bash
-```
-
-Uninstall:
+#### Install:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.sh | bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.sh?$(date +%s)" | bash
 ```
 
-#### As Python Package
+
+#### Uninstall:
+
+```bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.sh?$(date +%s)" | bash -s -- --yes
+```
+
+### As Python Package
 
 Install via pip:
 
