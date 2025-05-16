@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -16,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
+      - name: ✨ Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: ⚖️ Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -29,15 +28,25 @@ jobs:
           python -m pip install --upgrade pip build setuptools wheel
           pip install pytest pylint toml
           python scripts/pre_build.py
-        
-
-      - name: ↑ Install requirements
-        run: |
           pip install .
+
 
       - name: Build Python package
         run: |
           python -m build
+
+      - name: Analysing the code with pylint
+        run: |
+          pylint $(git ls-files '*.py')
+
+      - name: Run tests
+        run: |
+          if [ -d tests ]; then
+            pytest tests
+          else
+            echo "No tests directory found."
+          fi
+
   
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
