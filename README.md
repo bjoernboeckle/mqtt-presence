@@ -4,12 +4,13 @@
 
 [![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build](https://github.com/bjoernboeckle/mqtt-presence/actions/workflows/python.yml/badge.svg)](https://github.com/bjoernboeckle/mqtt-presence/actions)
+[![Build](https://github.com/bjoernboeckle/mqtt-presence/actions/workflows/build.yml/badge.svg)](https://github.com/bjoernboeckle/mqtt-presence/actions)
 
 
-<img src="logo.png" alt="mqtt_presence logo" style="width:300px;">
 
-**mqtt_presence** is a lightweight Python-based presence indicator for MQTT systems.  
+<img src="docs/images/logo.png" alt="mqtt_presence logo" style="width:128px;">
+
+**mqtt-presence** is a lightweight Python-based presence indicator for MQTT systems.  
 Originally designed for Raspberry Pi environments, it now supports Windows, Linux, and macOS systems alike.  
 It reports the online status of a device (like a PC) and receives shutdown or restart commands.  
 It's especially useful in smart home environments such as [Home Assistant](https://www.home-assistant.io/).
@@ -40,13 +41,13 @@ Install / uninstall need to run with admin rights.
 #### Install:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/install.ps1 | iex
 ```
 
 #### Uninstall:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/uninstall.ps1 | iex
 ```
 
 ### Linux
@@ -54,14 +55,14 @@ iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uni
 #### Install:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install.sh?$(date +%s)" | bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/install.sh?$(date +%s)" | bash
 ```
 
 
 #### Uninstall:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/uninstall.sh?$(date +%s)" | bash -s -- --yes
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/install/uninstall.sh?$(date +%s)" | bash -s -- --yes
 ```
 
 ### As Python Package
@@ -111,9 +112,15 @@ mqtt-presence.exe --ui console    # Starts the console UI
 
 ---
 
-## WebUI
+## 📟 WebUI
 
 The web ui can be opened by ip adress and default port 8000.
+
+    Example: http://localhost:8000
+
+
+<img src="docs/images/mqtt-presence-webui.png" alt="mqtt_presence logo" style="width:800px;">
+
 
 ---
 

@@ -9,6 +9,7 @@ description = "Lightweight MQTT-based presence detection with shutdown support"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Bjoern Boeckle", email = "bjoern@boeckle-net.de" }]
+keywords = ["mqtt", "presence", "shutdown", "home assistant", "smart home", "mqtt discovery", "mqtt-client", "mqtt-online", "mqtt online state"]
 dependencies = [
     "paho-mqtt>=2.0.0",
     "cryptography>=3.4.0",
