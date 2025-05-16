@@ -43,12 +43,14 @@ jobs:
 
 
       - name: Run tests
+        shell: pwsh
         run: |
-          if [ -d tests ]; then
+          if (Test-Path -Path tests -PathType Container) {
             pytest tests
-          else
-            echo "No tests directory found."
-          fi
+          } else {
+            Write-Output "No tests directory found."
+          }
+          
 
       - name: Install PyInstaller
         run: |
