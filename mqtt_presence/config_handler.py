@@ -34,7 +34,7 @@ class ConfigHandler:
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path, exist_ok=True)
         key = Fernet.generate_key()
-        with open(self.config_files.secret_file, "wb", encoding="utf-8") as f:
+        with open(self.config_files.secret_file, "wb") as f:
             f.write(key)
         return key
 
