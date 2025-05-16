@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-and-publish:
     name: Build and Upload to TestPyPI
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: ✨ Checkout repo
@@ -50,7 +50,26 @@ jobs:
             echo "No tests directory found."
           fi
 
+      - name: Install PyInstaller
+        run: |
+          pip install pyinstaller              
+
+      - name: Build .exe with PyInstaller
+        run: pyinstaller mqtt-presence.spec          
   
+
+      - name: Rename executable with version
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"        
+
+      - name: Upload .exe to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/mqtt-presence-*.exe
+
+
+
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -64,35 +83,3 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
-
-  build-exe:
-    name: Build Windows Executable
-    runs-on: windows-latest
-    needs: build-and-publish  # warte auf PyPI-Job
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install PyInstaller
-        run: |
-          pip install .
-          pip install pyinstaller          
-
-      - name: Build .exe with PyInstaller
-        run: pyinstaller mqtt-presence.spec
-
-      - name: Rename executable with version
-        run: |
-          $tag = "${{ github.ref_name }}"
-          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"        
-
-      - name: Upload .exe to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/mqtt-presence-*.exe
