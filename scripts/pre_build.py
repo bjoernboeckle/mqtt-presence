@@ -1,8 +1,12 @@
 # scripts/pre_build.py
 
+import sys
+import io
 from pathlib import Path
 
 import toml
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Pfade
 pyproject_file = Path("pyproject.toml")
