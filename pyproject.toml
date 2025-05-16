@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqtt-presence"
-version = "0.2.1"
+version = "0.2.2"
 description = "Lightweight MQTT-based presence detection with shutdown support"
 readme = "README.md"
 license = "Apache-2.0"
