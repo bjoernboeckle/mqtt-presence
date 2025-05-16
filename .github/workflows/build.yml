@@ -26,6 +26,10 @@ jobs:
           pip install pytest pylint toml
           python scripts/pre_build.py
 
+      - name: Build Python package
+        run: |
+          python -m build
+
       - name: Analysing the code with pylint
         run: |
           pylint $(git ls-files '*.py')
