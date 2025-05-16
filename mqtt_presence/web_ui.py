@@ -91,8 +91,8 @@ class WebUI:
 
         @self.app.route('/shutdown', methods=['POST'])
         def shutdown():
-            logger.info("shutdwon....")
-            self.mqtt_app.shutdwon()
+            logger.info("shutdown....")
+            self.mqtt_app.shutdown()
             return '', 204
 
         @self.app.route('/restart', methods=['POST'])
