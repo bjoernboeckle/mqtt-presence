@@ -1,5 +1,5 @@
 
-# mqtt_presence
+# mqtt-presence
 
 
 [![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)
@@ -185,7 +185,7 @@ Edited via the web UI. Manual changes are overwritten.
 
 ```bash
 pip install --upgrade build
-python -m build
+make build
 
 pip install --upgrade twine
 twine upload dist/*

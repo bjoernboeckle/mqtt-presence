@@ -2,7 +2,7 @@ from mqtt_presence.mqtt_client import MQTTClient
 from mqtt_presence.config_handler import Config_Handler
 from mqtt_presence.app_data import Configuration, ConfigFiles
 from mqtt_presence.utils import Tools
-
+from mqtt_presence.version import __version__
 
 import platform, sys
 import logging
@@ -29,7 +29,7 @@ class MQTTPresenceApp():
     def __init__(self, configFile = ConfigFiles()):
         # set singleton!
         #AppStateSingleton.init(self)
-        self.version = Tools.get_version_from_pyproject("pyproject.toml")
+        self.version = __version__
 
 
         self.config_handler = Config_Handler(configFile)
