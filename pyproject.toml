@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqtt-presence"
-version = "0.1.7"
-description = "A Python application for MQTT presence detection"
+version = "0.1.8"
+description = "Lightweight MQTT-based presence detection with shutdown support"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Bjoern Boeckle", email = "bjoern@boeckle-net.de" }]
@@ -28,3 +28,8 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]

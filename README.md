@@ -4,6 +4,8 @@
 
 [![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build](https://github.com/bjoernboeckle/mqtt-presence/actions/workflows/python.yml/badge.svg)](https://github.com/bjoernboeckle/mqtt-presence/actions)
+
 
 <img src="logo.png" alt="mqtt_presence logo" style="width:300px;">
 
@@ -92,6 +94,8 @@ python -m mqtt_presence.main
 
 Download and run the executable:
 
+https://github.com/bjoernboeckle/mqtt-presence/releases
+
 ```bash
 mqtt-presence.exe
 ```
@@ -106,6 +110,13 @@ mqtt-presence.exe --ui console    # Starts the console UI
 ```
 
 ---
+
+## WebUI
+
+The web ui can be opened by ip adress and default port 8000.
+
+---
+
 
 ## 🛠 Configuration
 
@@ -156,6 +167,8 @@ Edited via the web UI. Manual changes are overwritten.
 | **Windows** | `%LOCALAPPDATA%\mqtt_presence\Cache\status.cache`   |
 | **Linux**   | `~/.cache/mqtt_presence/status.cache`                  |
 | **macOS**   | `~/Library/Caches/mqtt_presence/status.cache`          |
+
+
 
 ---
 
