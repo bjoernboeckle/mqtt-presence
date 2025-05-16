@@ -1,7 +1,8 @@
 # scripts/pre_build.py
 
-import toml
 from pathlib import Path
+
+import toml
 
 # Pfade
 pyproject_file = Path("pyproject.toml")

@@ -4,6 +4,4 @@ import unittest
 
 class TestDummy(unittest.TestCase):
     def test_basic(self):
-        self.assertTrue(True)
-
-        
+        self.assertTrue(True) # pylint: disable=redundant-unittest-assert
