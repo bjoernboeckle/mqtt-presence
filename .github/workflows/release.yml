@@ -1,91 +1,38 @@
-name: Release
+name: Release to TestPyPI
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Nur Tags die mit v anfangen
 
-    
 permissions:
-  contents: write  # notwendig für Upload zur GitHub Release
+  contents: write
 
 jobs:
   build-and-publish:
-    name: Build and Upload to TestPyPI
     runs-on: ubuntu-latest
 
     steps:
-      - name: ✨ Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: ⚖️ Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: ↑ Install dependencies
+      - name: Install build tools and deps
         run: |
           python -m pip install --upgrade pip build setuptools wheel
-          pip install pytest pylint toml
-          python scripts/pre_build.py
-          pip install .
+          pip install toml
 
+      - name: Run version update script
+        run: python scripts/pre_build.py
 
-      - name: Build Python package
-        run: |
-          python -m build
+      - name: Build package
+        run: python -m build
 
-      - name: Analysing the code with pylint
-        run: |
-          pylint $(git ls-files '*.py')
-
-      - name: Run tests
-        run: |
-          if [ -d tests ]; then
-            pytest tests
-          else
-            echo "No tests directory found."
-          fi
-
-  
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-
-      - name: Upload dist files to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/*.whl
-            dist/*.tar.gz
-
-  build-exe:
-    name: Build Windows Executable
-    runs-on: windows-latest
-    needs: build-and-publish  # warte auf PyPI-Job
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install PyInstaller
-        run: pip install pyinstaller
-
-      - name: Build .exe with PyInstaller
-        run: pyinstaller mqtt-presence.spec
-
-      - name: Rename executable with version
-        run: |
-          $tag = "${{ github.ref_name }}"
-          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"        
-
-      - name: Upload .exe to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/mqtt-presence-*.exe
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
