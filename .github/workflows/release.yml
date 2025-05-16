@@ -80,7 +80,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install PyInstaller
-        run: pip install pyinstaller
+        run: |
+          pip install .
+          pip install pyinstaller          
 
       - name: Build .exe with PyInstaller
         run: pyinstaller mqtt-presence.spec
