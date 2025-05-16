@@ -22,7 +22,7 @@ sudo $VENV_DIR/bin/pip install --upgrade pip
 sudo $VENV_DIR/bin/pip install --upgrade mqtt-presence
 
 echo "[4/5] Creating/updating systemd service..."
-SERVICE_CONTENT="[Unit]"
+SERVICE_CONTENT="[Unit]
 Description=MQTT Presence Service
 After=network.target
 
@@ -35,7 +35,7 @@ Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target
-EOF
+"
 
 # Optional: nur schreiben, wenn Inhalt sich ändert
 echo "$SERVICE_CONTENT" | sudo tee "$SYSTEMD_SERVICE_PATH" > /dev/null
