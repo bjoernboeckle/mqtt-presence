@@ -19,14 +19,9 @@ jobs:
 
     - name: ↑ Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        # Install your package and dependencies in editable mode
-        pip install . 
-        # Install pytest, pylint, toml and create version.py
-        pip install pytest
-        pip install pylint
-        pip install toml
-        python scripts/pre_build.py
+        python -m pip install --upgrade pip build setuptools wheel
+        pip install pytest pylint toml
+        python scripts/pre_build.py        
     
     - name: Analysing the code with pylint
       run: |
