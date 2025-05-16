@@ -1,22 +1,30 @@
-import re, os, sys, platform, socket
-from platformdirs import user_config_dir, user_log_dir, user_cache_dir
+import os
+import platform
+import re
+import socket
+import sys
+import logging
+
 from pathlib import Path
-from mqtt_presence.version import __version__
+from platformdirs import user_cache_dir, user_config_dir, user_log_dir
+
+logger = logging.getLogger(__name__)
 
 class Tools:
     APP_NAME = "mqtt-presence"
-    
+
     @staticmethod
     def is_debugger_active():
         try:
             return sys.gettrace() is not None or os.getenv("DEBUG") == "1"
-        except:
-            return "Unknown"
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Fehler beim Prüfen des Debuggers: %s", e)
+        return False
 
 
     @staticmethod
-    def is_NoneOrEmpty(value) -> bool:
-        return value is None or (isinstance(value, str) and value.strip() == "")    
+    def is_none_or_empty(value) -> bool:
+        return value is None or (isinstance(value, str) and value.strip() == "")
 
 
     @staticmethod
@@ -26,12 +34,12 @@ class Tools:
         return sanitized.lower()
 
     @staticmethod
-    def getPCName() -> str:
+    def get_pc_name() -> str:
         return socket.gethostname()
 
 
     @staticmethod
-    def exitApplication():
+    def exit_application():
         #os.kill(os.getpid(), signal.SIGINT)
         #os._exit(0)
         sys.exit()
@@ -40,15 +48,19 @@ class Tools:
     @staticmethod
     def shutdown():
         system = platform.system()
-        if system == "Windows": os.system("shutdown /s /t 0")
-        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown -h now")
+        if system == "Windows":
+            os.system("shutdown /s /t 0")
+        elif system in ["Linux", "Darwin"]:
+            os.system("sudo shutdown -h now")
 
 
     @staticmethod
     def reboot():
         system = platform.system()
-        if system == "Windows": os.system("shutdown /r /t 0")
-        elif system in ["Linux", "Darwin"]: os.system("sudo shutdown -r now")
+        if system == "Windows":
+            os.system("shutdown /r /t 0")
+        elif system in ["Linux", "Darwin"]:
+            os.system("sudo shutdown -r now")
 
 
 
@@ -57,21 +69,12 @@ class Tools:
     def resource_path(relative_path):
         try:
             # PyInstaller i _MEIPASS  temp Dir
-            base_path = sys._MEIPASS  
+            base_path = sys._MEIPASS    # pylint: disable=protected-access
         except AttributeError:
             base_path = os.path.abspath(os.path.dirname(__file__))  # Normale Mode
-        
+
         return os.path.join(base_path, relative_path)
-    
-    @staticmethod
-    def get_version_from_pyproject(pyproject_path: str | Path) -> str:
-        try:
-            import tomllib
-            with open(pyproject_path, "rb") as f:
-                data = tomllib.load(f)
-            return data["project"]["version"]
-        except:
-            return __version__
+
 
     @staticmethod
     def get_config_path(app_name: str, filename: str = "config.yaml") -> Path:
@@ -99,4 +102,4 @@ class Tools:
         """
         cache_dir = Path(user_cache_dir(app_name))
         cache_dir.mkdir(parents=True, exist_ok=True)
-        return cache_dir / filename if filename else cache_dir    
+        return cache_dir / filename if filename else cache_dir

@@ -1,12 +1,12 @@
+import argparse
+import signal
+import sys
+import logging
+
 from mqtt_presence.mqtt_presence_app import MQTTPresenceApp#, MQTTPresenceAppSingleton
 from mqtt_presence.utils import Tools
 from mqtt_presence.web_ui import WebUI
 from mqtt_presence.console_ui import ConsoleUI
-
-
-import argparse
-import signal, sys
-import logging
 
 # setup logging
 logFile = Tools.get_log_path(Tools.APP_NAME, "mqtt_presence.log")
@@ -36,7 +36,7 @@ parser.add_argument(
 )
 
 # Positional argument for selecting the UI (defaults to 'webUI')
-#parser.add_argument('ui_positional', 
+#parser.add_argument('ui_positional',
 #    nargs='?',  # Makes it optional
 #    choices=['webUI', 'console', 'none'],
 #    help="Select the UI (same as --ui option)."
@@ -44,33 +44,38 @@ parser.add_argument(
 
 
 def main():
-    def stop(signum, frame):
+    def stop(_signum, _frame):
         logger.info("🚪 Stop signal recived, exiting...")
-        if (mqttAPP is not None): mqttAPP.exitApp()
-        if (ui is not None): ui.stop()
-        Tools.exitApplication()
+        if mqtt_app is not None:
+            mqtt_app.exit_app()
+        if ui is not None:
+            ui.stop()
+        Tools.exit_application()
 
 
-    mqttAPP: MQTTPresenceApp = MQTTPresenceApp()
+    mqtt_app: MQTTPresenceApp = MQTTPresenceApp()
     ui = None
 
-    startUpMsg = f"🚀 mqtt-presence startup (Version: {mqttAPP.version})"
+    start_up_msg = f"🚀 mqtt-presence startup (Version: {mqtt_app.version})"
     logger.info("\n\n")
-    logger.info(startUpMsg)
+    logger.info(start_up_msg)
 
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
-    mqttAPP.start()
+    mqtt_app.start()
 
 
     # Parse arguments
-    args = parser.parse_args()    
-    logger.info(f"ℹ️  Selected UI: {args.ui}")        
-    if (args.ui=="webUI"): ui = WebUI(mqttAPP)
-    elif (args.ui=="console"): ui = ConsoleUI(mqttAPP)
-    
-    if (ui is not None): ui.runUI()
+    args = parser.parse_args()
+    logger.info("ℹ️  Selected UI: %s", args.ui)
+    if args.ui=="webUI":
+        ui = WebUI(mqtt_app)
+    elif args.ui=="console":
+        ui = ConsoleUI(mqtt_app)
+
+    if ui is not None:
+        ui.run_ui()
 
 
 if __name__ == "__main__":
