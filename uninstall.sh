@@ -5,8 +5,8 @@ set -e
 SERVICE_NAME="mqtt-presence"
 INSTALL_DIR="/opt/$SERVICE_NAME"
 SYSTEMD_SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
-CONFIG_PATH="$HOME/.config/$SERVICE_NAME"
-LOG_PATH="$HOME/.local/state/$SERVICE_NAME"
+CONFIG_PATH="/root/.config/$SERVICE_NAME"
+LOG_PATH="/root/.local/state/$SERVICE_NAME"
 
 # Optional: auto-confirmation
 if [[ "$1" == "--yes" || "$UNATTENDED" == "1" ]]; then
@@ -31,10 +31,10 @@ echo "[2/4] Removing installation..."
 sudo rm -rf "$INSTALL_DIR"
 
 echo "[3/4] Deleting configuration..."
-rm -rf "$CONFIG_PATH"
+sudo rm -rf "$CONFIG_PATH"
 
 echo "[4/4] Deleting logs..."
-rm -rf "$LOG_PATH"
+sudo rm -rf "$LOG_PATH"
 
 echo
 echo "✅ Uninstallation completed."
