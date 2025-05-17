@@ -34,16 +34,16 @@ class ConfigHandler:
 
         if not os.path.exists(self.secret_file):
             return self._generate_key()
-        with open(self.secret_file, "rb") as f:
-            return f.read()
+        with open(self.secret_file, "rb") as file_secret:
+            return file_secret.read()
 
     def _generate_key(self):
         dir_path = os.path.dirname(self.secret_file)
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path, exist_ok=True)
         key = Fernet.generate_key()
-        with open(self.secret_file, "wb") as f:
-            f.write(key)
+        with open(self.secret_file, "wb") as file_secret:
+            file_secret.write(key)
         return key
 
 
@@ -57,8 +57,8 @@ class ConfigHandler:
     def load_config_yaml(self) -> AppConfiguration:
         config = None
         if os.path.exists(self.yaml_file):
-            with open(self.yaml_file, "r", encoding="utf-8") as f:
-                config = self._from_dict(AppConfiguration, yaml.safe_load(f))
+            with open(self.yaml_file, "r", encoding="utf-8") as file_yaml:
+                config = self._from_dict(AppConfiguration, yaml.safe_load(file_yaml))
             self.check_yaml_config(config)
             logger.info("✅ Configuration loaded from: %s", self.yaml_file)
         else:
@@ -82,8 +82,8 @@ class ConfigHandler:
     def load_config(self) -> Configuration:
         config = None
         try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
-                raw_data = json.load(f)
+            with open(self.config_file, "r", encoding="utf-8") as file_config:
+                raw_data = json.load(file_config)
                 config = self._from_dict(Configuration, raw_data)
         except FileNotFoundError:
             logger.warning("⚠️ File '%s' not found – use defaults.", {self.config_file})

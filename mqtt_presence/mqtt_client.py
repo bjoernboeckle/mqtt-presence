@@ -59,7 +59,7 @@ class MQTTClient:
 
 
 
-    def on_connect(self, client, userdata, flags, rc, properties=None):  # pylint: disable=too-many-positional-arguments disable=unused-argument
+    def on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
         if self.client.is_connected():
             logger.info("🟢 Connected to MQTT broker")
             self.publish_status("online")
@@ -68,19 +68,19 @@ class MQTTClient:
             if self.config().mqtt.homeassistant.enabled:
                 self.publish_discovery()
         else:
-            if rc.value != 0:
-                reason = rc.name if hasattr(rc, "name") else str(rc)
-                logger.error("🔴 Connection to  MQTT broker failed: %s (rc=%s)", reason, rc.value if hasattr(rc, 'value') else rc)
+            if reason_code.value != 0:
+                reason = reason_code.name if hasattr(reason_code, "name") else str(reason_code)
+                logger.error("🔴 Connection to  MQTT broker failed: %s (rc=%s)", reason, reason_code.value if hasattr(reason_code, 'value') else reason_code)
             else:
                 logger.info("🔴 Connection closed")
 
 
-    def on_disconnect(self, client, userdata, flags, rc, properties=None): # pylint: disable=too-many-positional-arguments disable=unused-argument
-        reason = rc.name if hasattr(rc, "name") else str(rc)
-        logger.error("🔴 Connection to  MQTT broker closed: %s (rc=%s)", reason, rc.value if hasattr(rc, 'value') else rc)
+    def on_disconnect(self, _client, _userdata, _flags, reason_code, _properties=None):
+        reason = reason_code.name if hasattr(reason_code, "name") else str(reason_code)
+        logger.error("🔴 Connection to  MQTT broker closed: %s (rc=%s)", reason, reason_code.value if hasattr(reason_code, 'value') else reason_code)
 
 
-    def on_message(self, client, userdata, msg):  # pylint: disable=too-many-positional-arguments disable=unused-argument
+    def on_message(self, _client, _userdata, msg):
         payload = msg.payload.decode().strip().lower()
         logger.info("📩 Received command: %s → %s", msg.topic, payload)
 
