@@ -29,5 +29,8 @@ jobs:
         run: python scripts/pre_build.py
       
 
+      - name: 📥 Install package and dependencies
+        run: pip install .
+
       - name: 🧠 Analysing the code with pylint
         run: python -m pylint $(git ls-files '*.py')
