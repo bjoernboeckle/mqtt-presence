@@ -1,10 +1,12 @@
 ﻿@echo off
 setlocal
 
-IF "%1"=="build" (
+IF "%1"=="version" (
+    call :prebuild || goto :prebuild_failed
+) ELSE IF "%1"=="build" (
     call :prebuild || goto :prebuild_failed
     call :run_pylint || goto :pylint_failed
-    python -m build
+    python -m build    
 ) ELSE IF "%1"=="clean" (
     del /Q /F mqtt_presence\version.py 2>nul
     rmdir /S /Q dist build mqtt_presence.egg-info 2>nul
@@ -12,7 +14,7 @@ IF "%1"=="build" (
     call :prebuild || goto :prebuild_failed
     call :run_pylint || goto :pylint_failed
 ) ELSE (
-    echo Usage: make.bat [build|clean|pylint]
+    echo "Usage: make.bat [version|build|clean|pylint]"
 )
 
 

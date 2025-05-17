@@ -17,8 +17,8 @@ def main():
         logger.info("🚪 Stop signal recived, exiting...")
         if mqtt_app is not None:
             mqtt_app.exit_app()
-        if ui is not None:
-            ui.stop()
+        if user_interface is not None:
+            user_interface.stop()
         Tools.exit_application()
 
     # Parse arguments
@@ -27,7 +27,7 @@ def main():
     # set log directory
     Tools.setup_logger(args.log)
 
-    ui = None
+    user_interface = None
     mqtt_app: MQTTPresenceApp = MQTTPresenceApp(args.data)
 
     start_up_msg = f"🚀 mqtt-presence startup (Version: {mqtt_app.version})"
@@ -39,15 +39,15 @@ def main():
     mqtt_app.start()
 
 
-    logger.info("ℹ️  Selected UI: %s", args.ui)
+    logger.info("ℹ️  Selected user_interface: %s", args.user_interface)
 
-    if args.ui=="webUI":
-        ui = WebUI(mqtt_app)
-    elif args.ui=="console":
-        ui = ConsoleUI(mqtt_app)
+    if args.user_interface=="webuser_interface":
+        user_interface = WebUI(mqtt_app)
+    elif args.user_interface=="console":
+        user_interface = ConsoleUI(mqtt_app)
 
-    if ui is not None:
-        ui.run_ui()
+    if user_interface is not None:
+        user_interface.run_ui()
 
 
 if __name__ == "__main__":
