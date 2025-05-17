@@ -1,36 +1,35 @@
-[build-system]
-requires = ["setuptools>=77", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "mqtt-presence"
 version = "0.2.3"
 description = "Lightweight MQTT-based presence detection with shutdown support"
-readme = "README.md"
+authors = ["Bjoern Boeckle <bjoern@boeckle-net.de>"]
 license = "Apache-2.0"
-authors = [{ name = "Bjoern Boeckle", email = "bjoern@boeckle-net.de" }]
-keywords = ["mqtt", "presence", "shutdown", "home assistant", "smart home", "mqtt discovery", "mqtt-client", "mqtt-online", "mqtt online state"]
-dependencies = [
-    "paho-mqtt>=2.0.0",
-    "cryptography>=3.4.0",
-    "requests",
-    "flask",
-    "pyyaml",
-    "waitress",
-    "platformdirs"
+readme = "README.md"
+keywords = [
+  "mqtt", "presence", "shutdown", "home-assistant", "smart-home",
+  "mqtt-discovery", "mqtt-client", "mqtt-online", "mqtt-online-state"
 ]
-requires-python = ">=3.6"
+packages = [{ include = "mqtt_presence" }]
+include = [
+    { path = "mqtt_presence/templates", format = "sdist" }
+]
 
-[project.scripts]
+[tool.poetry.dependencies]
+python = "^3.11"
+paho-mqtt = ">=2.0.0"
+cryptography = ">=3.4.0"
+requests = "*"
+flask = "*"
+pyyaml = "*"
+waitress = "*"
+platformdirs = "*"
+
+[tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"
 
-[tool.setuptools]
-include-package-data = true
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
 
-[tool.setuptools.packages.find]
-where = ["."]
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = ["tests"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

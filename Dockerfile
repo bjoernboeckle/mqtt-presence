@@ -1,19 +1,24 @@
+# 1. Basis-Image mit Python 3.11
 FROM python:3.11-slim
 
+# 2. Arbeitsverzeichnis im Container
 WORKDIR /app
 
-# Copy metadata first
-COPY pyproject.toml .
-COPY LICENSE .
-COPY README.md .
+# 3. Poetry installieren (empfohlen von Poetry-Doku)
+RUN pip install poetry
 
-# Copy source
-COPY mqtt_presence/ mqtt_presence/
+# 4. Kopiere nur die notwendigen Dateien zuerst (für Cache)
+COPY pyproject.toml poetry.lock* /app/
 
-# Install build system and dependencies
-RUN pip install --upgrade pip setuptools wheel \
-    && pip install .
+# 5. Abhängigkeiten (inkl. dev) installieren
+RUN poetry config virtualenvs.create false \
+ && poetry install --no-interaction --no-ansi --with dev
 
+# 6. Projektcode kopieren
+COPY . /app
+
+# 7. Expose falls dein Service einen Port verwendet (optional)
 EXPOSE 8000
 
-CMD ["python", "-m", "mqtt_presence.main"]
+# 8. Standardkommando (hier startest du deinen Service)
+CMD ["poetry", "run", "mqtt-presence"]

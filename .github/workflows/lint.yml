@@ -1,4 +1,4 @@
-name: Test
+name: Linting
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: 🛠️ Continous integration
+    name: 🛠️ Linting
     runs-on: ubuntu-latest
 
     steps:
@@ -38,5 +38,3 @@ jobs:
       - name: 🧠 Run lint (pylint)
         run: poetry run pylint mqtt_presence
 
-      - name: 🧪 Run tests
-        run: poetry run pytest --maxfail=1 --disable-warnings -q

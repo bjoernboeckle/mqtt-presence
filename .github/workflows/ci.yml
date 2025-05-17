@@ -1,4 +1,4 @@
-name: Test
+name: Continous integration
 
 on:
   workflow_dispatch:

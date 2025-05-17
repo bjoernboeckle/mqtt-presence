@@ -11,19 +11,22 @@ def sanitize_version(version: str) -> str:
     """Remove leading 'v' if present (e.g. 'v1.2.3' -> '1.2.3')"""
     return version.lstrip('v')
 
+
 def update_version(pyproject_path: Path, new_version: str):
     version_clean = sanitize_version(new_version)
     print(f"📦 Updating version in {pyproject_path} to {version_clean}")
 
     data = toml.load(pyproject_path)
 
-    if "project" not in data or "version" not in data["project"]:
-        print("❌ [project] section or version missing in pyproject.toml")
+    # Für Poetry ist die Version unter [tool.poetry]
+    if "tool" not in data or "poetry" not in data["tool"] or "version" not in data["tool"]["poetry"]:
+        print("❌ [tool.poetry] section or version missing in pyproject.toml")
         sys.exit(1)
 
-    data["project"]["version"] = version_clean
+    data["tool"]["poetry"]["version"] = version_clean
     pyproject_path.write_text(toml.dumps(data), encoding="utf-8")
     print("✅ Version updated successfully.")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
