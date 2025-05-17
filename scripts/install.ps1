@@ -1,44 +1,85 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
+# Konfiguration
 $AppName = "mqtt-presence"
 $InstallDir = "$Env:ProgramData\$AppName"
 $VenvDir = "$InstallDir\venv"
 $Python = "python"
 $ExePath = "$VenvDir\Scripts\mqtt-presence.exe"
-$VbsLauncher = "$InstallDir\launch.vbs"
-$TaskName = "$AppName"
+$NssmPath = "$InstallDir\nssm.exe"
+$ServiceName = $AppName
+$NssmUrl = "https://nssm.cc/release/nssm-2.24.zip"
+$TempZip = "$env:TEMP\nssm.zip"
+$TempExtractDir = "$env:TEMP\nssm"
 
-# Stoppe existierenden Task, falls vorhanden
-if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
-    Write-Host "🛑 Stopping existing scheduled task '$TaskName'..."
-    Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-}
+Write-Host "🏁 Starting installation/update of '$AppName'..."
 
-Write-Host "[1/6] Creating installation directory at $InstallDir"
+# Installationsverzeichnis erstellen
+Write-Host "📁 Creating installation directory at $InstallDir..."
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
-Write-Host "[2/6] Creating virtual environment"
-& $Python -m venv "$VenvDir"
+# NSSM herunterladen und entpacken (falls nicht vorhanden)
+if (!(Test-Path $NssmPath)) {
+    Write-Host "⬇️  Downloading NSSM..."
+    Invoke-WebRequest -Uri $NssmUrl -OutFile $TempZip
 
-Write-Host "[3/6] Installing mqtt-presence"
+    Write-Host "📦 Extracting NSSM..."
+    Expand-Archive -Path $TempZip -DestinationPath $TempExtractDir -Force
+
+    $nssmExe = Get-ChildItem -Path $TempExtractDir -Recurse -Filter "nssm.exe" |
+        Where-Object { $_.FullName -like "*win64*" } |
+        Select-Object -First 1
+
+    if (!$nssmExe) {
+        Write-Host "❌ Failed to extract nssm.exe"
+        exit 1
+    }
+
+    Copy-Item $nssmExe.FullName -Destination $NssmPath -Force
+    Remove-Item -Recurse -Force $TempExtractDir
+    Remove-Item -Force $TempZip
+}
+
+# Virtuelle Umgebung erstellen
+if (!(Test-Path "$VenvDir\Scripts\Activate.ps1")) {
+    Write-Host "🐍 Creating virtual environment..."
+    & $Python -m venv "$VenvDir"
+}
+
+# Installation / Update von mqtt-presence
+Write-Host "⬆️  Installing or upgrading mqtt-presence..."
 & "$VenvDir\Scripts\pip.exe" install --upgrade pip
-& "$VenvDir\Scripts\pip.exe" install mqtt-presence
+& "$VenvDir\Scripts\pip.exe" install --upgrade mqtt-presence
 
-Write-Host "[4/6] Creating invisible launch wrapper (launch.vbs)"
-$VbsContent = @"
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run chr(34) & "$ExePath" & chr(34), 0
-"@
-Set-Content -Path $VbsLauncher -Value $VbsContent
+# Dienst stoppen, falls aktiv
+try {
+    $status = & $NssmPath status $ServiceName 2>$null
+    if ($status -and $status -match "SERVICE_RUNNING") {
+        Write-Host "🛑 Stopping existing service..."
+        & $NssmPath stop $ServiceName confirm | Out-Null
+        Start-Sleep -Seconds 2
+    }
+} catch {
+    Write-Host "Info: Service '$ServiceName' nicht gefunden oder nicht laufend."
+}
 
-Write-Host "[5/6] Creating scheduled task for autostart"
-$Action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$VbsLauncher`""
-$Trigger = New-ScheduledTaskTrigger -AtLogOn
-$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
-Register-ScheduledTask -Action $Action -Trigger $Trigger -Principal $Principal -TaskName $TaskName -Force
+# Dienst erstellen oder aktualisieren
+if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
+    Write-Host "🛠️  Creating new Windows service '$ServiceName'..."
+    & $NssmPath install $ServiceName $ExePath
+    & $NssmPath set $ServiceName AppDirectory $InstallDir
+    & $NssmPath set $ServiceName AppParameters "--data ./data --log ./log"
+    & $NssmPath set $ServiceName Start SERVICE_AUTO_START
+    & $NssmPath set $ServiceName AppExit Default Restart
+} else {
+    Write-Host "🔁 Updating existing Windows service '$ServiceName'..."
+    & $NssmPath set $ServiceName Application $ExePath
+    & $NssmPath set $ServiceName AppDirectory $InstallDir
+    & $NssmPath set $ServiceName AppParameters "--data ./data --log ./log"
+}
 
-Write-Host "[6/6] Launching mqtt-presence in the background..."
-Start-Process "wscript.exe" "`"$VbsLauncher`""
+# Dienst starten
+Write-Host "🚀 Starting service..."
+& $NssmPath start $ServiceName | Out-Null
 
-Write-Host "✅ Installation completed. Service is now running in the background."
+Write-Host "✅ Installation complete. Service is running as '$ServiceName'."

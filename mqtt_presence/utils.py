@@ -8,6 +8,9 @@ import logging
 from pathlib import Path
 from platformdirs import user_cache_dir, user_config_dir, user_log_dir
 
+LOG_FILE_NAME = "mqtt_presence.log"
+
+
 logger = logging.getLogger(__name__)
 
 class Tools:
@@ -77,6 +80,16 @@ class Tools:
 
 
     @staticmethod
+    def get_data_path(app_name: str) -> Path:
+        """
+        Returns the path to the configuration file and creates the directory if needed.
+        """
+        data_dir = Path(user_config_dir(app_name))
+        data_dir.mkdir(parents=True, exist_ok=True)
+        return data_dir
+
+
+    @staticmethod
     def get_config_path(app_name: str, filename: str = "config.yaml") -> Path:
         """
         Returns the path to the configuration file and creates the directory if needed.
@@ -103,3 +116,38 @@ class Tools:
         cache_dir = Path(user_cache_dir(app_name))
         cache_dir.mkdir(parents=True, exist_ok=True)
         return cache_dir / filename if filename else cache_dir
+
+    @staticmethod
+    def change_global_logfile(new_logfile_path):
+        root_logger = logging.getLogger()
+        Path(new_logfile_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # Alle FileHandler entfernen und schließen
+        for handler in root_logger.handlers[:]:
+            if isinstance(handler, logging.FileHandler):
+                root_logger.removeHandler(handler)
+                handler.close()
+
+        # Neuen FileHandler hinzufügen
+        new_file_handler = logging.FileHandler(new_logfile_path, mode='a', encoding='utf-8')
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        new_file_handler.setFormatter(formatter)
+        root_logger.addHandler(new_file_handler)
+
+
+    @staticmethod
+    def setup_logger(log_file):
+        if log_file is None:
+            file = Tools.get_log_path(Tools.APP_NAME, LOG_FILE_NAME)
+        else:
+            file = str(Path(log_file) / LOG_FILE_NAME)
+
+        Path(file).parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.StreamHandler(sys.stdout),
+                logging.FileHandler(file, mode='a', encoding='utf-8')
+            ]
+        )

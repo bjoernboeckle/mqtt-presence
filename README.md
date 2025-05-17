@@ -42,12 +42,24 @@ Install / uninstall need to run with admin rights.
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
+
+curl -sL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | powershell -NoProfile -ExecutionPolicy Bypass
+
+powershell -ExecutionPolicy Bypass -File install-mqtt-presence.ps1
+
 ```
+
 
 #### Uninstall:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
+
+curl -sL https://raw.githubusercontent.com/deinbenutzername/mqtt-presence-installer/main/uninstall.ps1 | powershell -NoProfile -ExecutionPolicy Bypass
+
+
+psexec -s powershell -ExecutionPolicy Bypass -File uninstall.ps1
+
 ```
 
 ### Linux

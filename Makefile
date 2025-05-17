@@ -3,7 +3,10 @@
 version:
 	python3 scripts/pre_build.py
 
-build: version
+pylint:
+	python -m pylint mqtt_presence
+
+build: version pylint
 	python3 -m build
 
 clean:

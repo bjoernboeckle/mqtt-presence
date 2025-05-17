@@ -1,20 +1,36 @@
+﻿$ErrorActionPreference = "Stop"
+
 $AppName = "mqtt-presence"
+$ServiceName = $AppName
+
+# NSSM Pfad (angenommen aus Installation)
 $InstallDir = "$Env:ProgramData\$AppName"
-$TaskName = $AppName
-$ConfigDir = "$Env:APPDATA\$AppName"
-$LogDir    = "$Env:LOCALAPPDATA\$AppName"
+$NssmPath = "$InstallDir\nssm.exe"
 
-Write-Host "[1/4] Stopping any running processes..."
-Get-Process mqtt-presence -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
-Write-Host "[2/4] Removing scheduled task..."
-Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+Write-Host "🛑 Stopping and removing service '$ServiceName' if exists..."
 
-Write-Host "[3/4] Deleting installation directory ($InstallDir)..."
-Remove-Item -Recurse -Force -Path "$InstallDir" -ErrorAction SilentlyContinue
+try {
+    if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+        if ($NssmPath -and (Test-Path $NssmPath)) {
+            & $NssmPath stop $ServiceName confirm | Out-Null
+            Start-Sleep -Seconds 2
+            & $NssmPath remove $ServiceName confirm | Out-Null
+        } else {
+            Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
+            sc.exe delete $ServiceName | Out-Null
+        }
+        Write-Host "✅ Service removed."
+    } else {
+        Write-Host "Info: Service '$ServiceName' not found."
+    }
+} catch {
+    Write-Warning "Error removing service: $_"
+}
 
-Write-Host "[4/4] Removing configuration and log data..."
-Remove-Item -Recurse -Force -Path "$ConfigDir" -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force -Path "$LogDir" -ErrorAction SilentlyContinue
+if (Test-Path $InstallDir) {
+    Write-Host "🗑️ Deleting installation directory: $InstallDir"
+    Remove-Item -Recurse -Force -Path $InstallDir -ErrorAction SilentlyContinue
+}
 
-Write-Host "Uninstallation completed."
+Write-Host "✅ Uninstallation complete."

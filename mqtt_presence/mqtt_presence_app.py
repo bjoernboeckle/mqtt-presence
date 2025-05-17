@@ -5,7 +5,7 @@ import logging
 
 from mqtt_presence.mqtt_client import MQTTClient
 from mqtt_presence.config_handler import ConfigHandler
-from mqtt_presence.app_data import Configuration, ConfigFiles
+from mqtt_presence.app_data import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import __version__
 
@@ -27,12 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class MQTTPresenceApp():
-    def __init__(self, config_file = ConfigFiles()):
+    def __init__(self, data_path: str = None):
         # set singleton!
         #AppStateSingleton.init(self)
         self.version = __version__
 
-        self.config_handler = ConfigHandler(config_file)
+        self.config_handler = ConfigHandler(data_path)
         self.should_run = True
 
         # load config
