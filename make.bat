@@ -6,7 +6,8 @@ IF "%1"=="version" (
 ) ELSE IF "%1"=="build" (
     call :prebuild || goto :prebuild_failed
     call :run_pylint || goto :pylint_failed
-    python -m build    
+    poetry run pytest tests
+    poetry build    
 ) ELSE IF "%1"=="clean" (
     del /Q /F mqtt_presence\version.py 2>nul
     rmdir /S /Q dist build mqtt_presence.egg-info 2>nul
@@ -33,9 +34,9 @@ exit /b 1
 
 :run_pylint
 echo Running pylint...
-python -m pylint mqtt_presence
+poetry run pylint mqtt_presence
 goto :eof
 
 :pylint_failed
-echo ❌ Pylint reported issues. Aborting.
+echo ❌ pytest reported issues. Aborting.
 exit /b 1
