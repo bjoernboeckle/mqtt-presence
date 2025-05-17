@@ -100,14 +100,14 @@ class ConfigHandler:
         def to_diff_dict(obj, default_obj):
             if is_dataclass(obj):
                 result = {}
-                for f in fields(obj):
-                    value = getattr(obj, f.name)
-                    default_value = getattr(default_obj, f.name)
+                for field in fields(obj):
+                    value = getattr(obj, field.name)
+                    default_value = getattr(default_obj, field.name)
 
                     # check recursiv for nested data
                     diff = to_diff_dict(value, default_value)
                     if diff != {}:
-                        result[f.name] = diff
+                        result[field.name] = diff
                 return result
             if isinstance(obj, list):
                 return obj if obj != default_obj else {}

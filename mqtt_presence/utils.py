@@ -20,8 +20,8 @@ class Tools:
     def is_debugger_active():
         try:
             return sys.gettrace() is not None or os.getenv("DEBUG") == "1"
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.warning("Fehler beim Prüfen des Debuggers: %s", e)
+        except Exception as exception:  # pylint: disable=broad-exception-caught
+            logger.warning("Fehler beim Prüfen des Debuggers: %s", exception)
         return False
 
 
