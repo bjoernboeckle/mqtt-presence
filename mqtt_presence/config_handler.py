@@ -122,8 +122,8 @@ class ConfigHandler:
         #create a dictionary, with differences
         diff_dict = to_diff_dict(config, default_config)
 
-        with open(self.config_file, "w", encoding="utf-8") as f:
-            json.dump(diff_dict, f, indent=2)
+        with open(self.config_file, "w", encoding="utf-8") as file:
+            json.dump(diff_dict, file, indent=2)
 
 
     def get_encrypt_password(self, plain_password):
@@ -147,31 +147,31 @@ class ConfigHandler:
         with support for default values and nested classes.
         """
         kwargs = {}
-        for f in fields(data_class):
-            value = data.get(f.name, MISSING)
+        for field in fields(data_class):
+            value = data.get(field.name, MISSING)
             if value is MISSING:
                 # Field not found in yaml
-                if f.default is not MISSING:
-                    kwargs[f.name] = f.default
-                elif f.default_factory is not MISSING:  # type: ignore
-                    kwargs[f.name] = f.default_factory()  # type: ignore
+                if field.default is not MISSING:
+                    kwargs[field.name] = field.default
+                elif field.default_factory is not MISSING:  # type: ignore
+                    kwargs[field.name] = field.default_factory()  # type: ignore
                 else:
-                    raise ValueError(f"Feld '{f.name}' fehlt in Daten und hat keinen Defaultwert.")
+                    raise ValueError(f"Feld '{field.name}' fehlt in Daten und hat keinen Defaultwert.")
             else:
                 # Value not set → check if nested dataclass
-                if is_dataclass(f.type) and isinstance(value, dict):
-                    kwargs[f.name] = self._from_dict(f.type, value)
+                if is_dataclass(field.type) and isinstance(value, dict):
+                    kwargs[field.name] = self._from_dict(field.type, value)
                 else:
-                    kwargs[f.name] = value
+                    kwargs[field.name] = value
 
         return data_class(**kwargs)
 
     def _to_dict(self, obj):
         if is_dataclass(obj):
-            return {f.name: self._to_dict(getattr(obj, f.name)) for f in fields(obj)}
+            return {field.name: self._to_dict(getattr(obj, field.name)) for field in fields(obj)}
         if isinstance(obj, list):
-            return [self._to_dict(v) for v in obj]
+            return [self._to_dict(value) for value in obj]
         if isinstance(obj, dict):
-            return {k: self._to_dict(v) for k, v in obj.items()}
+            return {k: self._to_dict(value) for k, value in obj.items()}
 
         return obj
