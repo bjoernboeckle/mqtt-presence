@@ -65,9 +65,9 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
 
-#      - name: 🚀 Publish to PyPI via Poetry
-#        env:
-#          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-#        run: poetry publish --no-interaction
+      - name: 🚀 Publish to PyPI via Poetry
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry publish --no-interaction
 
 
