@@ -40,13 +40,7 @@ jobs:
           poetry run pip install pyinstaller
 
       - name: 🧪 Run tests (if available)
-        shell: pwsh
-        run: |
-          if (Test-Path -Path tests -PathType Container) {
-            poetry run pytest tests
-          } else {
-            Write-Output "No tests directory found."
-          }
+        run: poetry run pytest tests
 
       - name: 🧠 Lint code
         run: poetry run pylint mqtt_presence
