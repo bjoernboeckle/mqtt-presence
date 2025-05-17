@@ -1,4 +1,4 @@
-name: Test workflow
+name: Create exe
 
 on:
   workflow_dispatch:
@@ -64,10 +64,10 @@ jobs:
         # Bildvorschlag: 🏗️ oder ![exe](https://img.icons8.com/ios-filled/50/windows8.png)
 
 
-      - name: Rename executable with version
-        run: |
-          $tag = "${{ github.ref_name }}"
-          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
+      #- name: Rename executable with version
+      #  run: |
+      #    $tag = "${{ github.ref_name }}"
+      #    Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
 
 
       #- name: 💾 🐍 📜 📁 Upload .exe to GitHub Release
