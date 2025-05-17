@@ -28,6 +28,8 @@ class ConfigHandler:
         self.yaml_file = str(self.data_path / CONFIG_YAML_FILE)
         self.fernet = Fernet(self._load_key())
 
+        logger.info("Data initialized in path: %s", data_path)
+
     def _load_key(self):
 
         if not os.path.exists(self.secret_file):
