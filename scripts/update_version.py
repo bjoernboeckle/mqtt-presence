@@ -30,5 +30,5 @@ if __name__ == "__main__":
         print("Usage: python scripts/update_version.py <new_version>")
         sys.exit(1)
 
-    version = sys.argv[1]
-    update_version(Path("pyproject.toml"), version)
+    ver = sys.argv[1]
+    update_version(Path("pyproject.toml"), ver)
