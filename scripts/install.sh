@@ -4,6 +4,8 @@ set -e
 
 SERVICE_NAME="mqtt-presence"
 INSTALL_DIR="/opt/$SERVICE_NAME"
+DATA_PATH="/etc/$SERVICE_NAME"
+LOG_PATH="/var/log/$SERVICE_NAME"
 VENV_DIR="$INSTALL_DIR/venv"
 SYSTEMD_SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 
@@ -28,7 +30,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$VENV_DIR/bin/mqtt-presence
+ExecStart=$VENV_DIR/bin/mqtt-presence --data $DATA_PATH --log $LOG_PATH
 WorkingDirectory=$INSTALL_DIR
 Restart=on-failure
 Environment=PYTHONUNBUFFERED=1
