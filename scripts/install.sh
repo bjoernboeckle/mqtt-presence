@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e  # stop in case of errors
 
 SERVICE_NAME="mqtt-presence"
 INSTALL_DIR="/opt/$SERVICE_NAME"
@@ -20,8 +20,9 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 echo "[3/5] Installing or upgrading mqtt-presence..."
-sudo $VENV_DIR/bin/pip install --upgrade pip
-sudo $VENV_DIR/bin/pip install --upgrade mqtt-presence
+sudo "$VENV_DIR/bin/pip" install --upgrade pip
+sudo "$VENV_DIR/bin/pip" install --upgrade mqtt-presence
+
 
 echo "[4/5] Creating/updating systemd service..."
 SERVICE_CONTENT="[Unit]
@@ -39,8 +40,13 @@ Environment=PYTHONUNBUFFERED=1
 WantedBy=multi-user.target
 "
 
-# Optional: nur schreiben, wenn Inhalt sich ändert
-echo "$SERVICE_CONTENT" | sudo tee "$SYSTEMD_SERVICE_PATH" > /dev/null
+# Schreibe Service-Datei nur wenn sich Inhalt ändert (optional)
+if [ ! -f "$SYSTEMD_SERVICE_PATH" ] || ! diff <(echo "$SERVICE_CONTENT") "$SYSTEMD_SERVICE_PATH" > /dev/null; then
+    echo "$SERVICE_CONTENT" | sudo tee "$SYSTEMD_SERVICE_PATH" > /dev/null
+    echo "Systemd service file created/updated."
+else
+    echo "Systemd service file unchanged."
+fi
 
 echo "[5/5] Enabling and starting service..."
 sudo systemctl daemon-reload

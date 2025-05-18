@@ -181,4 +181,4 @@ config.yaml
 config.json
 
 # Ignore generated version file
-mqtt_presence/version.py
+#mqtt_presence/version.py
