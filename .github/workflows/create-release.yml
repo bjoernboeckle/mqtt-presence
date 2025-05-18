@@ -79,17 +79,18 @@ jobs:
 
 
       - name: 🚀 Publish to PyPI or TestPyPI
+        shell: pwsh
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
           TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "$GITHUB_REF_NAME" == *a* ]]; then
-            echo "Detected 'a' in tag — uploading to TestPyPI"
-            export TWINE_PASSWORD=$TEST_PYPI_TOKEN
+          if ($env:GITHUB_REF_NAME -like '*a*') {
+            Write-Host "Detected 'a' in tag — uploading to TestPyPI"
+            $env:TWINE_PASSWORD = $env:TEST_PYPI_TOKEN
             twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl dist/*.tar.gz
-          else
-            echo "Uploading to PyPI"
-            export TWINE_PASSWORD=$PYPI_TOKEN
+          } else {
+            Write-Host "Uploading to PyPI"
+            $env:TWINE_PASSWORD = $env:PYPI_TOKEN
             twine upload dist/*.whl dist/*.tar.gz
-          fi       
+          }
