@@ -70,4 +70,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-          repository-url: ${{ startsWith(github.ref_name, 'v') && contains(github.ref_name, '-test') && 'https://test.pypi.org/legacy/' || '' }}
+          repository-url: ${{ startsWith(github.ref_name, 'v') && contains(github.ref_name, 'a') && 'https://test.pypi.org/legacy/' || '' }}
