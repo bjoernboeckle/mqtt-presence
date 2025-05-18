@@ -41,7 +41,7 @@ def main():
 
     logger.info("ℹ️  Selected user_interface: %s", args.ui)
 
-    if args.ui=="webuser_interface":
+    if args.ui=="ui":
         user_interface = WebUI(mqtt_app)
     elif args.ui=="console":
         user_interface = ConsoleUI(mqtt_app)
