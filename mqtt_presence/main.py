@@ -39,11 +39,11 @@ def main():
     mqtt_app.start()
 
 
-    logger.info("ℹ️  Selected user_interface: %s", args.user_interface)
+    logger.info("ℹ️  Selected user_interface: %s", args.ui)
 
-    if args.user_interface=="webuser_interface":
+    if args.ui=="webuser_interface":
         user_interface = WebUI(mqtt_app)
-    elif args.user_interface=="console":
+    elif args.ui=="console":
         user_interface = ConsoleUI(mqtt_app)
 
     if user_interface is not None:

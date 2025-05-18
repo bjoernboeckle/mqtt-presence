@@ -50,7 +50,7 @@ if (!(Test-Path "$VenvDir\Scripts\Activate.ps1")) {
 Write-Host "Installing or upgrading mqtt-presence..."
 & "$VenvDir\Scripts\pip.exe" install --upgrade pip
 
-& "$VenvDir\Scripts\pip.exe" install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple mqtt-presence
+& "$VenvDir\Scripts\pip.exe" install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple mqtt-presence==0.2.3a3
 #& "$VenvDir\Scripts\pip.exe" install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple mqtt-presence
 # & "$VenvDir\Scripts\pip.exe" install --upgrade mqtt-presence
 
