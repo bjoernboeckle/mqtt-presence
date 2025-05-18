@@ -1,9 +1,9 @@
 
 # mqtt-presence
 
-[![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)  
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  
-[![Build](https://github.com/bjoernboeckle/mqtt-presence/actions/workflows/build.yml/badge.svg)](https://github.com/bjoernboeckle/mqtt-presence/actions)
+[![PyPI version](https://badge.fury.io/py/mqtt-presence.svg)](https://badge.fury.io/py/mqtt-presence)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
+[![Build](https://github.com/bjoernboeckle/mqtt-presence/actions/workflows/ci.yml/badge.svg)](https://github.com/bjoernboeckle/mqtt-presence/actions)
 
 <img src="docs/images/logo.png" alt="mqtt_presence logo" width="128">
 
