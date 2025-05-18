@@ -42,11 +42,8 @@ Install / uninstall need to run with admin rights.
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
-
-curl -sL https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | powershell -NoProfile -ExecutionPolicy Bypass
-
-powershell -ExecutionPolicy Bypass -File install-mqtt-presence.ps1
-
+or
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1" -UseBasicParsing).Content
 ```
 
 
@@ -54,8 +51,9 @@ powershell -ExecutionPolicy Bypass -File install-mqtt-presence.ps1
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
-
-curl -sL https://raw.githubusercontent.com/deinbenutzername/mqtt-presence-installer/main/uninstall.ps1 | powershell -NoProfile -ExecutionPolicy Bypass
+or
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1" -UseBasicParsing).Content
+```
 
 
 psexec -s powershell -ExecutionPolicy Bypass -File uninstall.ps1

@@ -1,4 +1,4 @@
-name: Create Release and Publish to PyPI
+name: Create Release and Publish to PyPI (or Test PyPi)
 
 on:
   push:
@@ -65,9 +65,9 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
 
-#      - name: 🚀 Publish to PyPI via Poetry
-#        env:
-#          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-#        run: poetry publish --no-interaction
-
-
+      - name: 🚀 Publish to PyPI or TestPyPI via Trusted Publisher
+        if: startsWith(github.ref_name, 'v')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          repository-url: ${{ startsWith(github.ref_name, 'v') && contains(github.ref_name, '-test') && 'https://test.pypi.org/legacy/' || '' }}

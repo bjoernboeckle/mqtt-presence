@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference = "Stop"
 
-# Konfiguration
+# Configuration
 $AppName = "mqtt-presence"
 $InstallDir = "$Env:ProgramData\$AppName"
 $VenvDir = "$InstallDir\venv"
@@ -14,11 +14,11 @@ $TempExtractDir = "$env:TEMP\nssm"
 
 Write-Host "🏁 Starting installation/update of '$AppName'..."
 
-# Installationsverzeichnis erstellen
+# Create installation directory
 Write-Host "📁 Creating installation directory at $InstallDir..."
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
-# NSSM herunterladen und entpacken (falls nicht vorhanden)
+# Download and extract NSSM if not present
 if (!(Test-Path $NssmPath)) {
     Write-Host "⬇️  Downloading NSSM..."
     Invoke-WebRequest -Uri $NssmUrl -OutFile $TempZip
@@ -40,18 +40,18 @@ if (!(Test-Path $NssmPath)) {
     Remove-Item -Force $TempZip
 }
 
-# Virtuelle Umgebung erstellen
+# Create virtual environment if it doesn't exist
 if (!(Test-Path "$VenvDir\Scripts\Activate.ps1")) {
     Write-Host "🐍 Creating virtual environment..."
     & $Python -m venv "$VenvDir"
 }
 
-# Installation / Update von mqtt-presence
+# Install or upgrade mqtt-presence package
 Write-Host "⬆️  Installing or upgrading mqtt-presence..."
 & "$VenvDir\Scripts\pip.exe" install --upgrade pip
 & "$VenvDir\Scripts\pip.exe" install --upgrade mqtt-presence
 
-# Dienst stoppen, falls aktiv
+# Stop service if running
 try {
     $status = & $NssmPath status $ServiceName 2>$null
     if ($status -and $status -match "SERVICE_RUNNING") {
@@ -60,10 +60,10 @@ try {
         Start-Sleep -Seconds 2
     }
 } catch {
-    Write-Host "Info: Service '$ServiceName' nicht gefunden oder nicht laufend."
+    Write-Host "Info: Service '$ServiceName' not found or not running."
 }
 
-# Dienst erstellen oder aktualisieren
+# Create or update the Windows service
 if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
     Write-Host "🛠️  Creating new Windows service '$ServiceName'..."
     & $NssmPath install $ServiceName $ExePath
@@ -78,7 +78,7 @@ if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
     & $NssmPath set $ServiceName AppParameters "--data ./data --log ./log"
 }
 
-# Dienst starten
+# Start the service
 Write-Host "🚀 Starting service..."
 & $NssmPath start $ServiceName | Out-Null
 
