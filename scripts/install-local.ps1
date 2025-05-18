@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 # Konfiguration
 $AppName = "mqtt-presence"
@@ -13,15 +13,15 @@ $NssmUrl = "https://nssm.cc/release/nssm-2.24.zip"
 $TempZip = "$env:TEMP\nssm.zip"
 $TempExtractDir = "$env:TEMP\nssm"
 
-Write-Host "🏁 Starting local development installation of '$AppName'..."
+Write-Host "Starting local development installation of '$AppName'..."
 
 # Installationsverzeichnis vorbereiten
-Write-Host "📁 Creating or updating $InstallDir..."
+Write-Host "Creating or updating $InstallDir..."
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
 # NSSM herunterladen und entpacken
 if (!(Test-Path $NssmPath)) {
-    Write-Host "⬇️  Downloading NSSM..."
+    Write-Host "Downloading NSSM..."
     Invoke-WebRequest -Uri $NssmUrl -OutFile $TempZip
     Expand-Archive -Path $TempZip -DestinationPath $TempExtractDir -Force
 
@@ -30,7 +30,7 @@ if (!(Test-Path $NssmPath)) {
         Select-Object -First 1
 
     if (!$nssmExe) {
-        Write-Host "❌ Failed to extract nssm.exe"
+        Write-Host "Failed to extract nssm.exe"
         exit 1
     }
 
@@ -40,16 +40,16 @@ if (!(Test-Path $NssmPath)) {
 
 # Virtuelle Umgebung erstellen
 if (!(Test-Path "$VenvDir\Scripts\Activate.ps1")) {
-    Write-Host "🐍 Creating virtual environment..."
+    Write-Host "Creating virtual environment..."
     & $Python -m venv "$VenvDir"
 }
 
 # Lokalen Source-Code kopieren
-Write-Host "📁 Copying local mqtt-presence code to $InstallDir..."
+Write-Host "Copying local mqtt-presence code to $InstallDir..."
 Copy-Item -Path "$LocalSource\*" -Destination $InstallDir -Recurse -Force
 
 # Installation im editable/development-Modus
-Write-Host "⬆️  Installing mqtt-presence (editable) from local source..."
+Write-Host "Installing mqtt-presence (editable) from local source..."
 & "$VenvDir\Scripts\pip.exe" install --upgrade pip
 & "$VenvDir\Scripts\pip.exe" install -e "$InstallDir"
 
@@ -57,16 +57,16 @@ Write-Host "⬆️  Installing mqtt-presence (editable) from local source..."
 try {
     $status = & $NssmPath status $ServiceName 2>$null
     if ($status -and $status -match "SERVICE_RUNNING") {
-        Write-Host "🛑 Stopping existing service..."
+        Write-Host "Stopping existing service..."
         & $NssmPath stop $ServiceName confirm | Out-Null
         Start-Sleep -Seconds 2
     }
 } catch {
-    Write-Host "ℹ️  Service not found or not running."
+    Write-Host "Service not found or not running."
 }
 
 # Dienst (neu) registrieren
-Write-Host "🛠️  Registering service '$ServiceName'..."
+Write-Host "Registering service '$ServiceName'..."
 
 # Argumente für Konfiguration (z. B. Relativpfade unterhalb von ProgramData)
 $dataArg = "--data `"$InstallDir\data`""
@@ -87,4 +87,4 @@ if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
 Write-Host "🚀 Starting service..."
 & $NssmPath start $ServiceName | Out-Null
 
-Write-Host "✅ Service '$ServiceName' is now running from local code."
+Write-Host "Service '$ServiceName' is now running from local code."

@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 $AppName = "mqtt-presence"
 $ServiceName = $AppName
