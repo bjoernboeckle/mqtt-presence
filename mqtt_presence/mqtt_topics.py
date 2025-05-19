@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from mqtt_presence.utils import Tools
 from mqtt_presence.mqtt_topics_data import MqttBinarySensorData, MqttSensorStateData
-from mqtt_presence.mqtt_topics_psutil import MqttTopics_PsUtil
+from mqtt_presence.mqtt_topics_psutil import MqttTopicsPsUtil
 
 
 def test(time1):
@@ -27,7 +27,7 @@ __binary_sensors__ = {
 __sensors__ = {
     "cpu_freq": MqttTopic("CPU Frequency", unit = "MHz", icon = "sine-wave"),
     "memory_usage": MqttTopic("RAM Usage", unit = "%", icon = "memory"),
-    "cpu_load": MqttTopic("CPU Load (1 min avg)", unit = "%"),
+    "cpu_load": MqttTopic("CPU Load (1 min avg)", unit = "%", icon = "gauge"),
     "disk_usage_root": MqttTopic("Disk Usage", unit = "%", icon = "harddisk"),
     "disk_free_root": MqttTopic("Disk Free Space", unit = "GB", icon = "harddisk"),
     "net_bytes_sent": MqttTopic("Network Bytes Sent", unit = "B", icon = "network"),
@@ -54,18 +54,18 @@ class MqttTopics:
 
 
     def _update_sensor_data(self):
-        MqttTopics_PsUtil.update_sensors_data(self.sensors_data)
+        MqttTopicsPsUtil.update_sensors_data(self.sensors_data)
 
 
     def _update_binary_sensor_data(self):
-        self.status = "online"
+        self.binary_sensors_dats.status = "online"
 
 
     def update_data(self):
         self._update_binary_sensor_data()
         self._update_sensor_data()
 
-        
+
     def get_topics_by_group(self):
         return {
             "binary_sensor": self.binary_sensors,

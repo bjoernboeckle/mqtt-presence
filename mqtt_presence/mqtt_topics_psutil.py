@@ -4,7 +4,7 @@ import psutil
 from mqtt_topics_data import MqttSensorStateData
 
 
-class MqttTopics_PsUtil():
+class MqttTopicsPsUtil():
 
     @staticmethod
     def _get_cpu_freq():
@@ -12,7 +12,7 @@ class MqttTopics_PsUtil():
         if freq:
             return round(freq.current, 1)  # in MHz
         return None
-    
+
     @staticmethod
     def _get_memory_usage_percent():
         return psutil.virtual_memory().percent
@@ -49,21 +49,22 @@ class MqttTopics_PsUtil():
             temps = psutil.sensors_temperatures()
             if not temps:
                 return None
-            for name, entries in temps.items():
+            for _, entries in temps.items():
                 for entry in entries:
                     if entry.label in ("Package id 0", "", None):
                         return entry.current
         except AttributeError:
             return None
+        return None
 
 
-    staticmethod
+    @staticmethod
     def update_sensors_data(sensors_data: MqttSensorStateData):
-        sensors_data.cpu_freq = MqttTopics_PsUtil._get_cpu_freq()
-        sensors_data.memory_usage = MqttTopics_PsUtil._get_memory_usage_percent()
-        sensors_data.cpu_load = MqttTopics_PsUtil._get_memory_usage_percent()
-        sensors_data.disk_usage_root = MqttTopics_PsUtil._get_disk_usage_root_percent()
-        sensors_data.disk_free_root = MqttTopics_PsUtil._get_disk_free_root_gb()
-        sensors_data.net_bytes_sent = MqttTopics_PsUtil._get_net_bytes_sent()
-        sensors_data.net_bytes_recv = MqttTopics_PsUtil._get_net_bytes_recv()
-        sensors_data.cpu_temp = MqttTopics_PsUtil._get_cpu_temp_psutil()        
+        sensors_data.cpu_freq = MqttTopicsPsUtil._get_cpu_freq()
+        sensors_data.memory_usage = MqttTopicsPsUtil._get_memory_usage_percent()
+        sensors_data.cpu_load = MqttTopicsPsUtil._get_memory_usage_percent()
+        sensors_data.disk_usage_root = MqttTopicsPsUtil._get_disk_usage_root_percent()
+        sensors_data.disk_free_root = MqttTopicsPsUtil._get_disk_free_root_gb()
+        sensors_data.net_bytes_sent = MqttTopicsPsUtil._get_net_bytes_sent()
+        sensors_data.net_bytes_recv = MqttTopicsPsUtil._get_net_bytes_recv()
+        sensors_data.cpu_temp = MqttTopicsPsUtil._get_cpu_temp_psutil()

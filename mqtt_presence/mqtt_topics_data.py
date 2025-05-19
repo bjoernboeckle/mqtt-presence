@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+# pylint: disable=R0902
 @dataclass
 class MqttSensorStateData:
     cpu_freq: str = None
@@ -13,9 +14,11 @@ class MqttSensorStateData:
 
     def __getitem__(self, key):
         return getattr(self, key)
-    
+
     def __setitem__(self, key, value):
         setattr(self, key, value)
+# pylint: enable=R0902
+
 
 @dataclass
 class MqttBinarySensorData:
@@ -23,6 +26,6 @@ class MqttBinarySensorData:
 
     def __getitem__(self, key):
         return getattr(self, key)
-    
+
     def __setitem__(self, key, value):
         setattr(self, key, value)

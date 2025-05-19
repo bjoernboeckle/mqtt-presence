@@ -47,10 +47,10 @@ class MQTTClient:
     def _on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
         if self.client.is_connected():
             logger.info("🟢 Connected to MQTT broker")
+            #self._remove_old_discovery()  # TODO: Check seems not to work!
             self._publish_available("online")
             self._publish_mqtt_data(True)
             self._subscribe_topics()
-            #self._remove_old_discovery()  # TODO: Check seems not to work!
             if self._config().mqtt.homeassistant.enabled:
                 self._publish_discovery()
         else:
@@ -101,19 +101,21 @@ class MQTTClient:
 
 
     def _publish_mqtt_data(self, force: bool = False):
-        for sensor, mqtt_topic in self.mqtt_topics.sensors.items():
-            value = None
-            try:
-                value = self.mqtt_topics.sensors_data[sensor]
-                oldValue =  self.mqtt_topics.sensors_data_old[sensor]
-            except Exception as exception:      # pylint: disable=broad-exception-caught
-                logger.error("Failed to get sensor data %s: %s", sensor, exception)
-            if value is not None and (value != oldValue or force):
-                self.mqtt_topics.sensors_data[sensor] = value
-                self.mqtt_topics.sensors_data_old[sensor] = value
-                topic = f"{self._get_topic()}/{sensor}"
-                self.client.publish(topic, payload=str(value), retain=True)
-                logger.info("📡 Published sensor: %s = %s", sensor, value)
+        for component, topics in self.mqtt_topics.get_topics_by_group().items():
+            if component=="sensor":
+                for topic, mqtt_topic in topics.items():
+                    value = None
+                    try:
+                        value = self.mqtt_topics.sensors_data[topic]
+                        old_value =  self.mqtt_topics.sensors_data_old[topic]
+                    except Exception as exception:      # pylint: disable=broad-exception-caught
+                        logger.error("Failed to get sensor data %s: %s", topic, exception)
+                    if value is not None and (value != old_value or force):
+                        self.mqtt_topics.sensors_data[topic] = value
+                        self.mqtt_topics.sensors_data_old[topic] = value
+                        topic = f"{self._get_topic()}/{topic}"
+                        self.client.publish(topic, payload=str(value), retain=True)
+                        logger.info("📡 Published sensor: %s = %s", mqtt_topic.friendly_name, value)
 
 
 
@@ -131,10 +133,10 @@ class MQTTClient:
     def _add_dynamic_payload(self, payload, mqtt_topic: MqttTopic):
         if mqtt_topic.icon is not None:
             payload["icon"] = f"mdi:{mqtt_topic.icon}"
-        if mqtt_topic.unit is not None:                
+        if mqtt_topic.unit is not None:
             payload["unit_of_measurement"] = mqtt_topic.unit
-        
-    
+
+
     def _get_discovery_payload(self, topic, mqtt_topic: MqttTopic, component, node_id):
         topic = f"{self._get_topic()}/{topic}"
 
@@ -151,7 +153,7 @@ class MQTTClient:
                 "payload_not_available": "offline",
                 "unique_id": f"{node_id}_{topic}",
                 "device": device_info
-        } 
+        }
         self._add_dynamic_payload(payload, mqtt_topic)
 
         if component=="button":
@@ -161,10 +163,10 @@ class MQTTClient:
             payload["state_topic"] = topic
             payload["payload_on"] = "online"
             payload["payload_off"] = "offline"
-            payload["device_class"] = "connectivity"            
+            payload["device_class"] = "connectivity"
         elif component=="sensor":
             payload["state_topic"] = topic
-        return payload   
+        return payload
 
     def _publish_discovery(self):
         discovery_prefix = self._config().mqtt.homeassistant.discovery_prefix
@@ -172,10 +174,10 @@ class MQTTClient:
 
         for component, topics in self.mqtt_topics.get_topics_by_group().items():
             for topic, mqtt_topic in topics.items():
-                discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"           
+                discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
                 payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
                 self.client.publish(discovery_topic, json.dumps(payload), retain=True)
-                logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)                       
+                logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)
 
 
     def _create_client(self):
