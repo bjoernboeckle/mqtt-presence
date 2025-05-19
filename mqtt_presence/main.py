@@ -6,7 +6,7 @@ from mqtt_presence.utils import Tools
 from mqtt_presence.web_ui import WebUI
 from mqtt_presence.console_ui import ConsoleUI
 from mqtt_presence.parser import get_parser
-
+from mqtt_presence.version import NAME
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -22,15 +22,15 @@ def main():
         Tools.exit_application()
 
     # Parse arguments
-    args = get_parser().parse_args()
+    args = get_parser(NAME).parse_args()
 
     # set log directory
-    Tools.setup_logger(args.log)
+    Tools.setup_logger(NAME, args.log)
 
     user_interface = None
     mqtt_app: MQTTPresenceApp = MQTTPresenceApp(args.data)
 
-    start_up_msg = f"🚀 mqtt-presence startup (Version: {mqtt_app.version})"
+    start_up_msg = f"🚀 mqtt-presence startup (Version: {mqtt_app.VERSION})"
     logger.info("\n\n")
     logger.info(start_up_msg)
 

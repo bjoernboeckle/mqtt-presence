@@ -1,7 +1,5 @@
-.PHONY: version pylint test build clean all
+.PHONY: pylint test build clean all
 
-version:
-	python3 scripts/pre_build.py
 
 pylint:
 	poetry run pylint mqtt_presence
@@ -10,12 +8,12 @@ test:
 	poetry run pytest tests
 
 
-build: version test pylint
+build: test pylint
 	poetry build 
 
 
 clean:
-	rm -rf dist build *.egg-info mqtt_presence/version.py
+	rm -rf dist build *.egg-info
 
 
 all: clean build

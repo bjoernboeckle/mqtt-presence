@@ -1,1 +1,6 @@
-__version__ = "0.2.4"
+VERSION = "0.2.5"
+NAME = "mqtt-presence"
+DESCRIPTION = "Lightweight MQTT-based presence detection with shutdown support"
+REPOSITORY = "https://github.com/bjoernboeckle/mqtt-presence"
+DOCUMENTATION = "https://github.com/bjoernboeckle/mqtt-presence/wiki"
+AUTHORS = "['Bjoern Boeckle <bjoern@boeckle-net.de>']"

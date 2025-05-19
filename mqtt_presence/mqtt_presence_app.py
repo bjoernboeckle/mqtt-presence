@@ -7,7 +7,7 @@ from mqtt_presence.mqtt_client import MQTTClient
 from mqtt_presence.config_handler import ConfigHandler
 from mqtt_presence.app_data import Configuration
 from mqtt_presence.utils import Tools
-from mqtt_presence.version import __version__
+from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +27,15 @@ logger = logging.getLogger(__name__)
 
 
 class MQTTPresenceApp():
+    NAME = NAME
+    VERSION = VERSION
+    AUTHORS = AUTHORS
+    REPOSITORY = REPOSITORY
+    DESCRIPTION = DESCRIPTION
+
     def __init__(self, data_path: str = None):
         # set singleton!
         #AppStateSingleton.init(self)
-        self.version = __version__
 
         self.config_handler = ConfigHandler(data_path)
         self.should_run = True
@@ -51,16 +56,16 @@ class MQTTPresenceApp():
     def start(self):
         #show platform
         self.log_platform()
-        self.mqtt_client.start()
+        self.mqtt_client.start_mqtt()
 
 
     def restart(self):
         self.config = self.config_handler.load_config()
-        self.mqtt_client.stop()
+        self.mqtt_client.disconnect()
 
     def exit_app(self):
         self.should_run = False
-        self.mqtt_client.stop()
+        self.mqtt_client.disconnect()
 
 
     def shutdown(self):

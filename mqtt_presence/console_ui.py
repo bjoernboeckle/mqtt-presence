@@ -1,5 +1,3 @@
-from mqtt_presence.utils import Tools
-
 class ConsoleUI:
     def __init__(self, mqtt_app):
         self.mqtt_app = mqtt_app
@@ -15,8 +13,8 @@ class ConsoleUI:
 
 
         def menu():
-            title = Tools.APP_NAME.replace("-", " ").title()
-            print(f"\n====== {title} {self.mqtt_app.version} – Menu ==========================")
+            title = self.mqtt_app.NAME.replace("-", " ").title()
+            print(f"\n====== {title} {self.mqtt_app.VERSION} – Menu ==========================")
             status()
             print("=============================")
             print("1. Refresh state")

@@ -27,9 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry toml pathlib
 
-      - name: 📜 Run version update script
-        run: python scripts/pre_build.py          
-
       - name: 🕒 Install dependencies (including dev)
         run: poetry install --no-interaction --no-ansi --with dev
 

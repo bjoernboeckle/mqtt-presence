@@ -5,68 +5,54 @@ import logging
 
 import paho.mqtt.client as mqtt
 
+from mqtt_presence.mqtt_topics import MqttTopics, MqttTopic
+
 logger = logging.getLogger(__name__)
 
 
-class MqttCommand:
-    def __init__(self, friendly_name, action):
-        self.friendly_name = friendly_name
-        self.action = action
-
+# Binary sensor for availability
+AVAILABLE_SENSOR = "status"
 
 class MQTTClient:
-    # Binary sensor dictonary
-    STATUS_BINARY_SENSOR = "status"
-
     def __init__(self, mqtt_app):
         self.mqtt_app = mqtt_app
         self.client = None
         self.lock = threading.RLock()
         self.thread = threading.Thread(target=self._run_mqtt_loop, daemon=True)
 
-        # MQTT binary_sensors
-        self.__binary_sensors__ = {
-            self.STATUS_BINARY_SENSOR: MqttCommand("Online state", None),
-        }
-
-        # MQTT buttons
-        self.__buttons__ = {
-            "shutdown": MqttCommand("Shutdown pc", self.mqtt_app.shutdown),
-            "reboot": MqttCommand("Reboot pc", self.mqtt_app.reboot),
-        }
+        self.mqtt_topics = MqttTopics()
 
 
-    def start(self):
-        self.thread.start()
 
     def _run_mqtt_loop(self):
         try:
             while self.mqtt_app.should_run:
                 # mqtt starten
                 if not self.is_connected():
-                    self.connect()
+                    self._connect()
+                else:
+                    self.mqtt_topics.update_data()
+                    self._publish_mqtt_data()
                 time.sleep(5)
         finally:
-            self.stop()
+            self.disconnect()
 
 
-    def config(self):
+    def _config(self):
         return self.mqtt_app.config
 
 
-    def is_connected(self):
-        return False if self.client is None else self.client.is_connected()
 
 
-
-    def on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
+    def _on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
         if self.client.is_connected():
             logger.info("🟢 Connected to MQTT broker")
-            self.publish_status("online")
-            self.subscribe_topics()
-            self.remove_old_discovery()
-            if self.config().mqtt.homeassistant.enabled:
-                self.publish_discovery()
+            self._publish_available("online")
+            self._publish_mqtt_data(True)
+            self._subscribe_topics()
+            #self._remove_old_discovery()  # TODO: Check seems not to work!
+            if self._config().mqtt.homeassistant.enabled:
+                self._publish_discovery()
         else:
             if reason_code.value != 0:
                 reason = reason_code.name if hasattr(reason_code, "name") else str(reason_code)
@@ -75,148 +61,172 @@ class MQTTClient:
                 logger.info("🔴 Connection closed")
 
 
-    def on_disconnect(self, _client, _userdata, _flags, reason_code, _properties=None):
+    def _on_disconnect(self, _client, _userdata, _flags, reason_code, _properties=None):
         reason = reason_code.name if hasattr(reason_code, "name") else str(reason_code)
         logger.error("🔴 Connection to  MQTT broker closed: %s (rc=%s)", reason, reason_code.value if hasattr(reason_code, 'value') else reason_code)
 
 
-    def on_message(self, _client, _userdata, msg):
+    def _on_message(self, _client, _userdata, msg):
         payload = msg.payload.decode().strip().lower()
         logger.info("📩 Received command: %s → %s", msg.topic, payload)
 
-        topic = self.get_topic()
+        topic = self._get_topic()
         topic_without_prefix = msg.topic[len(topic)+1:] if msg.topic.startswith(topic) else topic
 
-        for button, mqtt_cmd in self.__buttons__.items():
+        for button, mqtt_topic in self.mqtt_topics.buttons.items():
             if topic_without_prefix == button:
-                mqtt_cmd.action()
+                mqtt_topic.action()
 
 
 
-    def get_topic(self):
+    def _get_topic(self):
         return f"{self.mqtt_app.config.mqtt.broker.prefix}"
 
 
-    def get_status_topic(self):
-        return f"{self.get_topic()}/{self.STATUS_BINARY_SENSOR}"
+    def _get_available_topic(self):
+        return f"{self._get_topic()}/{AVAILABLE_SENSOR}"
 
 
 
-    def subscribe_topics(self):
-        for button in self.__buttons__:
-            self.client.subscribe(f"{self.get_topic()}/{button}")
+    def _subscribe_topics(self):
+        for button in self.mqtt_topics.buttons:
+            self.client.subscribe(f"{self._get_topic()}/{button}")
 
 
-    def publish_status(self, state):
-        self.client.publish(self.get_status_topic(), payload=state, retain=True)
+    def _publish_available(self, state):
+        self.mqtt_topics.binary_sensors_dats[AVAILABLE_SENSOR] = state
+        self.client.publish(self._get_available_topic(), payload=state, retain=True)
         logger.info("📡 Status publisched: %s", state)
 
 
 
-    def remove_old_discovery(self):
-        discovery_prefix = self.config().mqtt.homeassistant.discovery_prefix
+    def _publish_mqtt_data(self, force: bool = False):
+        for sensor, mqtt_topic in self.mqtt_topics.sensors.items():
+            value = None
+            try:
+                value = self.mqtt_topics.sensors_data[sensor]
+                oldValue =  self.mqtt_topics.sensors_data_old[sensor]
+            except Exception as exception:      # pylint: disable=broad-exception-caught
+                logger.error("Failed to get sensor data %s: %s", sensor, exception)
+            if value is not None and (value != oldValue or force):
+                self.mqtt_topics.sensors_data[sensor] = value
+                self.mqtt_topics.sensors_data_old[sensor] = value
+                topic = f"{self._get_topic()}/{sensor}"
+                self.client.publish(topic, payload=str(value), retain=True)
+                logger.info("📡 Published sensor: %s = %s", sensor, value)
+
+
+
+    def _remove_old_discovery(self):
+        discovery_prefix = self._config().mqtt.homeassistant.discovery_prefix
         node_id = self.mqtt_app.config.mqtt.broker.prefix.replace("/", "_")
 
-
-        for comp, keys in [
-            ("button", self.__buttons__),
-            ("binary_sensor", self.__binary_sensors__)
-        ]:
-            for command in keys:
-                topic = f"{discovery_prefix}/{comp}/{node_id}/{command}/config"
+        for component, topics in self.mqtt_topics.get_topics_by_group().items():
+            for topic, mqtt_topic in topics.items():
+                topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
                 self.client.publish(topic, payload="", retain=True)
-                logger.info("🧹 Removed old discovery config: %s", topic)
+                logger.info("🧹 Removed old discovery config: %s - %s", topic, mqtt_topic.friendly_name)
 
 
-    def publish_discovery(self):
-        discovery_prefix = self.config().mqtt.homeassistant.discovery_prefix
-        node_id = self.mqtt_app.config.mqtt.broker.prefix.replace("/", "_")
+    def _add_dynamic_payload(self, payload, mqtt_topic: MqttTopic):
+        if mqtt_topic.icon is not None:
+            payload["icon"] = f"mdi:{mqtt_topic.icon}"
+        if mqtt_topic.unit is not None:                
+            payload["unit_of_measurement"] = mqtt_topic.unit
+        
+    
+    def _get_discovery_payload(self, topic, mqtt_topic: MqttTopic, component, node_id):
+        topic = f"{self._get_topic()}/{topic}"
 
         device_info = {
             "identifiers": [node_id],
-            "name": self.config().mqtt.homeassistant.device_name,
+            "name": self._config().mqtt.homeassistant.device_name,
             "manufacturer": "mqtt-presence",
             "model": "Presence Agent"
         }
-
-        # MQTT-Buttons für Shutdown und Reboot
-        for button, mqtt_cmd in self.__buttons__.items():
-            #topic = command_topic
-            topic = f"{self.get_topic()}/{button}"
-            discovery_topic = f"{discovery_prefix}/button/{node_id}/{button}/config"
-            payload = {
-                "name": mqtt_cmd.friendly_name,
-                "command_topic": topic,
-                "payload_press": "press",
-                "availability_topic": self.get_status_topic(),
+        payload = {
+                "name": mqtt_topic.friendly_name,
+                "availability_topic": self._get_available_topic(),
                 "payload_available": "online",
                 "payload_not_available": "offline",
-                "unique_id": f"{node_id}_{button}",
+                "unique_id": f"{node_id}_{topic}",
                 "device": device_info
-            }
-            self.client.publish(discovery_topic, json.dumps(payload), retain=True)
-            logger.info("🧠 Discovery published for button: %s", mqtt_cmd.friendly_name)
+        } 
+        self._add_dynamic_payload(payload, mqtt_topic)
 
-        # MQTT binary sensors
-        for binary_sensor, mqtt_cmd in self.__binary_sensors__.items():
-            topic = f"{self.get_topic()}/{binary_sensor}"
-            discovery_topic = f"{discovery_prefix}/binary_sensor/{node_id}/{binary_sensor}/config"
-            payload = {
-                "name": mqtt_cmd.friendly_name,
-                "state_topic": topic,
-                "payload_on": "online",
-                "payload_off": "offline",
-                "availability_topic": self.get_status_topic(),
-                "payload_available": "online",
-                "payload_not_available": "offline",
-                "device_class": "connectivity",
-                "unique_id": f"{node_id}_status",
-                "device": device_info
-            }
-            self.client.publish(discovery_topic, json.dumps(payload), retain=True)
-            logger.info("🧠 Discovery published for binary sensor %s", mqtt_cmd.friendly_name)
+        if component=="button":
+            payload["command_topic"] = topic
+            payload["payload_press"] = "press"
+        elif component=="binary_sensor":
+            payload["state_topic"] = topic
+            payload["payload_on"] = "online"
+            payload["payload_off"] = "offline"
+            payload["device_class"] = "connectivity"            
+        elif component=="sensor":
+            payload["state_topic"] = topic
+        return payload   
+
+    def _publish_discovery(self):
+        discovery_prefix = self._config().mqtt.homeassistant.discovery_prefix
+        node_id = self.mqtt_app.config.mqtt.broker.prefix.replace("/", "_")
+
+        for component, topics in self.mqtt_topics.get_topics_by_group().items():
+            for topic, mqtt_topic in topics.items():
+                discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"           
+                payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
+                self.client.publish(discovery_topic, json.dumps(payload), retain=True)
+                logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)                       
 
 
-    def create_client(self):
+    def _create_client(self):
         with self.lock:
             if self.client is not None:
-                self.stop()
+                self.disconnect()
             self.client = mqtt.Client(client_id=self.mqtt_app.app_config.app.mqtt.client_id, callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 
             # Callback-Methoden
-            self.client.on_connect = self.on_connect
-            self.client.on_message = self.on_message
-            self.client.on_disconnect = self.on_disconnect
+            self.client.on_connect = self._on_connect
+            self.client.on_message = self._on_message
+            self.client.on_disconnect = self._on_disconnect
             # Authentifizierung
             password = self.mqtt_app.config_handler.get_decrypt_password(self.mqtt_app.config.mqtt.broker.encrypted_password)
-            self.client.username_pw_set(self.config().mqtt.broker.username, password)
+            self.client.username_pw_set(self._config().mqtt.broker.username, password)
             # "Last Will"
-            self.client.will_set(self.get_status_topic(), payload="offline", retain=True)
+            self.client.will_set(self._get_available_topic(), payload="offline", retain=True)
 
-    def connect(self):
+
+    def _connect(self):
         with self.lock:
             try:
                 logger.info("🚪 Starting MQTT for %s on %s:%d",
                             self.mqtt_app.app_config.app.mqtt.client_id,
-                            self.config().mqtt.broker.host,
-                            self.config().mqtt.broker.port)
-                self.create_client()
+                            self._config().mqtt.broker.host,
+                            self._config().mqtt.broker.port)
+                self._create_client()
                 self.client.connect(
-                    self.config().mqtt.broker.host,
-                    self.config().mqtt.broker.port,
-                    self.config().mqtt.broker.keepalive
+                    self._config().mqtt.broker.host,
+                    self._config().mqtt.broker.port,
+                    self._config().mqtt.broker.keepalive
                 )
                 self.client.loop_start()
             except Exception: # pylint: disable=broad-exception-caught
                 logger.exception("Connection failed")
 
 
-    def stop(self):
+    def is_connected(self):
+        return False if self.client is None else self.client.is_connected()
+
+
+    def disconnect(self):
         with self.lock:
             if self.client is not None:
                 if self.is_connected():
                     logger.info("🚪 Stopping mqtt...")
-                    self.publish_status("offline")
+                    self._publish_available("offline")
                 self.client.loop_stop()
                 self.client.disconnect()
                 self.client = None
+
+
+    def start_mqtt(self):
+        self.thread.start()

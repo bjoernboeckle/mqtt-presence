@@ -1,36 +1,39 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "mqtt-presence"
-version = "0.2.4"
+version = "0.2.5"
 description = "Lightweight MQTT-based presence detection with shutdown support"
-authors = ["Bjoern Boeckle <bjoern@boeckle-net.de>"]
+authors = [ "Bjoern Boeckle <bjoern@boeckle-net.de>",]
 license = "Apache-2.0"
 readme = "README.md"
-keywords = [
-  "mqtt", "presence", "shutdown", "home-assistant", "smart-home",
-  "mqtt-discovery", "mqtt-client", "mqtt-online", "mqtt-online-state"
-]
-packages = [{ include = "mqtt_presence" }]
-include = [
-    { path = "mqtt_presence/templates", format = "sdist" }
-]
+repository = "https://github.com/bjoernboeckle/mqtt-presence"
+documentation = "https://github.com/bjoernboeckle/mqtt-presence/wiki"
+keywords = [ "mqtt", "presence", "shutdown", "home-assistant", "smart-home", "mqtt-discovery", "mqtt-client", "mqtt-online", "mqtt-online-state",]
+[[tool.poetry.packages]]
+include = "mqtt_presence"
+
+[[tool.poetry.include]]
+path = "mqtt_presence/templates"
+format = "sdist"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-paho-mqtt = ">=2.0.0"
-cryptography = ">=3.4.0"
+paho-mqtt = "*"
+cryptography = "*"
 requests = "*"
 flask = "*"
 pyyaml = "*"
 waitress = "*"
 platformdirs = "*"
+psutil = "*"
 
 [tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-pylint = "^2.17"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+pytest = "*"
+pylint = "*"
+toml = "*"

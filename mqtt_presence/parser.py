@@ -1,10 +1,8 @@
 import argparse
 
-from mqtt_presence.utils import Tools
-
-def get_parser():
+def get_parser(desc: str):
     # define Arguemnts
-    parser = argparse.ArgumentParser(description=Tools.APP_NAME)
+    parser = argparse.ArgumentParser(desc)
 
     # Optional argument for selecting the UI
     parser.add_argument(

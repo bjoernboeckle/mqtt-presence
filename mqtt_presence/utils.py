@@ -8,14 +8,13 @@ import logging
 from pathlib import Path
 from platformdirs import user_cache_dir, user_config_dir, user_log_dir
 
+
 LOG_FILE_NAME = "mqtt_presence.log"
 
 
 logger = logging.getLogger(__name__)
 
 class Tools:
-    APP_NAME = "mqtt-presence"
-
     @staticmethod
     def is_debugger_active():
         try:
@@ -136,9 +135,9 @@ class Tools:
 
 
     @staticmethod
-    def setup_logger(log_file):
+    def setup_logger(app_name, log_file):
         if log_file is None:
-            file = Tools.get_log_path(Tools.APP_NAME, LOG_FILE_NAME)
+            file = Tools.get_log_path(app_name, LOG_FILE_NAME)
         else:
             file = str(Path(log_file) / LOG_FILE_NAME)
 

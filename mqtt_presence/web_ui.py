@@ -62,8 +62,9 @@ class WebUI:
                 self.mqtt_app.restart()
 
             return render_template("index.html", **{
-                "appName": Tools.APP_NAME.replace("-", " ").title(),
-                "version": self.mqtt_app.version,
+                "appName": self.mqtt_app.NAME.replace("-", " ").title(),
+                "version": self.mqtt_app.VERSION,
+                "description": self.mqtt_app.DESCRIPTION,
                 #MQTT
                 "host": self.mqtt_app.config.mqtt.broker.host,
                 "username": self.mqtt_app.config.mqtt.broker.username,

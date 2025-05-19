@@ -11,6 +11,7 @@ from cryptography.fernet import Fernet
 from mqtt_presence.app_data import Configuration
 from mqtt_presence.app_config import AppConfiguration
 from mqtt_presence.utils import Tools
+from mqtt_presence.version import NAME
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ CONFIG_YAML_FILE = "config.yaml"
 
 class ConfigHandler:
     def __init__(self, data_path: str = None):
-        self.data_path = Path(data_path or Tools.get_data_path(Tools.APP_NAME))
+        self.data_path = Path(data_path or Tools.get_data_path(NAME))
         self.secret_file = str(self.data_path / SECRET_KEY_FILE)
         self.config_file = str(self.data_path / CONFIG_DATA_FILE)
         self.yaml_file = str(self.data_path / CONFIG_YAML_FILE)
