@@ -1,7 +1,7 @@
 
 import psutil
 
-from mqtt_topics_data import MqttSensorStateData
+from mqtt_presence.mqtt_topics.mqtt_topics_data import MqttSensorStateData
 
 
 class MqttTopicsPsUtil():

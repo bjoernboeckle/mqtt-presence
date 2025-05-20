@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 from mqtt_presence.utils import Tools
-from mqtt_presence.mqtt_topics_data import MqttBinarySensorData, MqttSensorStateData
-from mqtt_presence.mqtt_topics_psutil import MqttTopicsPsUtil
+from mqtt_presence.mqtt_topics.mqtt_topics_data import MqttBinarySensorData, MqttSensorStateData
+from mqtt_presence.mqtt_topics.mqtt_topics_psutil import MqttTopicsPsUtil
 
 
 def test(time1):

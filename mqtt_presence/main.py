@@ -4,7 +4,6 @@ import logging
 from mqtt_presence.mqtt_presence_app import MQTTPresenceApp#, MQTTPresenceAppSingleton
 from mqtt_presence.utils import Tools
 from mqtt_presence.web_ui import WebUI
-from mqtt_presence.console_ui import ConsoleUI
 from mqtt_presence.parser import get_parser
 from mqtt_presence.version import NAME
 
@@ -38,16 +37,8 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     mqtt_app.start()
 
-
-    logger.info("ℹ️  Selected user_interface: %s", args.ui)
-
-    if args.ui=="webUI":
-        user_interface = WebUI(mqtt_app)
-    elif args.ui=="console":
-        user_interface = ConsoleUI(mqtt_app)
-
-    if user_interface is not None:
-        user_interface.run_ui()
+    #logger.info("ℹ️  Selected user_interface: %s", args.ui)
+    WebUI(mqtt_app).run_ui()
 
 
 if __name__ == "__main__":

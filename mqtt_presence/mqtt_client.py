@@ -5,7 +5,7 @@ import logging
 
 import paho.mqtt.client as mqtt
 
-from mqtt_presence.mqtt_topics import MqttTopics, MqttTopic
+from mqtt_presence.mqtt_topics.mqtt_topics import MqttTopics, MqttTopic
 
 logger = logging.getLogger(__name__)
 

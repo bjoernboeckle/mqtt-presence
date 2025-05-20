@@ -5,13 +5,13 @@ def get_parser(desc: str):
     parser = argparse.ArgumentParser(desc)
 
     # Optional argument for selecting the UI
-    parser.add_argument(
-        '--ui', 
-        choices=['webUI', 'console'],  # Available options
-        default='webUI',  # Default value
-        type=str,  # Argument type
-        help="Select the UI: 'webUI' (default), 'console'."
-    )
+#    parser.add_argument(
+#        '--ui', 
+#        choices=['webUI', 'console'],  # Available options
+#        default='webUI',  # Default value
+#        type=str,  # Argument type
+#        help="Select the UI: 'webUI' (default)."
+    #)
 
     # Optional argument for selecting the config directory
     parser.add_argument(

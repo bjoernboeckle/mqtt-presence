@@ -8,6 +8,7 @@ from mqtt_presence.config_handler import ConfigHandler
 from mqtt_presence.app_data import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
+from mqtt_presence.raspberrypi.raspberrypi import RaspberryPiExtension
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class MQTTPresenceApp():
         self.app_config = self.config_handler.load_config_yaml()
 
         self.mqtt_client: MQTTClient = MQTTClient(self)
+        self.raspberrypi = RaspberryPiExtension(self)
 
 
 
@@ -55,47 +57,21 @@ class MQTTPresenceApp():
 
     def start(self):
         #show platform
-        self.log_platform()
+        Tools.log_platform()
         self.mqtt_client.start_mqtt()
+        self.raspberrypi.init_raspberrypi()
+
 
 
     def restart(self):
+        self.raspberrypi.exit_raspberrypi()
         self.config = self.config_handler.load_config()
         self.mqtt_client.disconnect()
+        self.raspberrypi.init_raspberrypi()
+
 
     def exit_app(self):
         self.should_run = False
         self.mqtt_client.disconnect()
+        self.raspberrypi.exit_raspberrypi()
 
-
-    def shutdown(self):
-        logger.info("🛑 Shutdown initiated...")
-        if not self.app_config.app.disableShutdown:
-            Tools.shutdown()
-        else:
-            logger.info("Shutdown disabled!")
-
-    def reboot(self):
-        logger.info("🔄 Reboot initiated...")
-        if not self.app_config.app.disableShutdown:
-            Tools.reboot()
-        else:
-            logger.info("Shutdown disabled!")
-
-    @staticmethod
-    def log_platform():
-        system = platform.system()
-        machine = platform.machine()
-
-        if system == "Windows":
-            logger.info("🪟 Running on Windows")
-        elif system == "Linux":
-            if "arm" in machine or "aarch64" in machine:
-                logger.info("🍓 Running on Raspberry Pi (likely)")
-            else:
-                logger.info("🐧 Running on generic Linux")
-        elif system == "Darwin":
-            logger.info("🍏 Running on macOS")
-        else:
-            logger.warning("Unknown system: %s", system)
-            sys.exit(1)

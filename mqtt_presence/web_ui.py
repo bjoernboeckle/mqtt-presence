@@ -93,11 +93,11 @@ class WebUI:
         @self.app.route('/shutdown', methods=['POST'])
         def shutdown():
             logger.info("shutdown....")
-            self.mqtt_app.shutdown()
+            Tools.shutdown()
             return '', 204
 
         @self.app.route('/restart', methods=['POST'])
         def restart():
             logger.info("reboot....")
-            self.mqtt_app.reboot()
+            Tools.reboot()
             return '', 204

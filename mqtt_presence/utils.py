@@ -49,6 +49,7 @@ class Tools:
 
     @staticmethod
     def shutdown():
+        logger.info("🛑 Shutdown initiated...")
         system = platform.system()
         if system == "Windows":
             os.system("shutdown /s /t 0")
@@ -58,12 +59,12 @@ class Tools:
 
     @staticmethod
     def reboot():
+        logger.info("🔄 Reboot initiated...")
         system = platform.system()
         if system == "Windows":
             os.system("shutdown /r /t 0")
         elif system in ["Linux", "Darwin"]:
             os.system("sudo shutdown -r now")
-
 
 
 
@@ -150,3 +151,22 @@ class Tools:
                 logging.FileHandler(file, mode='a', encoding='utf-8')
             ]
         )
+
+
+    @staticmethod
+    def log_platform():
+        system = platform.system()
+        machine = platform.machine()
+
+        if system == "Windows":
+            logger.info("🪟 Running on Windows")
+        elif system == "Linux":
+            if "arm" in machine or "aarch64" in machine:
+                logger.info("🍓 Running on Raspberry Pi (likely)")
+            else:
+                logger.info("🐧 Running on generic Linux")
+        elif system == "Darwin":
+            logger.info("🍏 Running on macOS")
+        else:
+            logger.warning("Unknown system: %s", system)
+            sys.exit(1)
