@@ -46,8 +46,11 @@ class MQTTPresenceApp():
         self.app_config = self.config_handler.load_config_yaml()
 
         self.mqtt_client: MQTTClient = MQTTClient(self)
-        self.raspberrypi = RaspberryPiExtension(self)
+        self.raspberrypi = RaspberryPiExtension()
 
+
+    def button_callback(self, gpio):
+        logger.info("GPIO: %s pressed", gpio.number)
 
 
     def update_new_config(self, config : Configuration):
@@ -67,7 +70,7 @@ class MQTTPresenceApp():
         self.raspberrypi.exit_raspberrypi()
         self.config = self.config_handler.load_config()
         self.mqtt_client.disconnect()
-        self.raspberrypi.init_raspberrypi()
+        self.raspberrypi.init_raspberrypi(self.config.raspberry_pi, self.button_callback)
 
 
     def exit_app(self):

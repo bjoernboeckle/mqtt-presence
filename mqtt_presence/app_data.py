@@ -39,16 +39,17 @@ class GpioMode(Enum):
 class Gpio:
     mode: GpioMode = GpioMode.NONE 
     number: int = -1
-    friendly_name = ""
+    friendly_name: str = ""
 
 @dataclass 
 class RaspberryPiSettings:
     enable_raspberrypi = False
+    simulated = None
     gpios: List[Gpio] = field(default_factory=list)
 
 
 @dataclass
 class Configuration:
     mqtt: Mqtt = field(default_factory=Mqtt)
-    raspberry_pi = field(default_factory=RaspberryPiSettings)
+    raspberry_pi: RaspberryPiSettings = field(default_factory=RaspberryPiSettings)
 

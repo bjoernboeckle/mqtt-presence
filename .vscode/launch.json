@@ -8,7 +8,8 @@
       "name": "🪛 Debug mqtt-presence",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/mqtt_presence/main.py",
+      //"program": "${workspaceFolder}/mqtt_presence/main.py",
+      "program": "${workspaceFolder}/mqtt_presence/raspi.py",
       "console": "integratedTerminal",
       "justMyCode": false,
       "env": {

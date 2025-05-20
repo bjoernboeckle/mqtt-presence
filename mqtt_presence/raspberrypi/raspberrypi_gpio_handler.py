@@ -1,29 +1,59 @@
 import logging
+from functools import partial
 
+from mqtt_presence.app_data import Gpio, GpioMode
 
-from mqtt_presence.app_data import RaspberryPiSettings, Gpio, GpioMode
-from mqtt_presence.mqtt_presence_app import MQTTPresenceApp
 
 logger = logging.getLogger(__name__)
 
 
-class GpioHandler:
-    def __init__(self, gpio):
-        self.gpio = None
-        self.gpio_zero = None
-    
-        from gpiozero import Button, LED, DigitalOutput, DigitalInput
+class GPioZeroSimulated():
+    def __init__(self):
+        self.when_pressed = None
 
-        if self.gpio.mode == GpioMode.INPUT:
-            gpio_zero = DigitalInput(gpio.number)
-        if gpio.mode == GpioMode.OUTPUT:
-            gpio_zero = DigitalOutput(gpio.number)
-        if gpio.mode == GpioMode.LED:
-            gpio_zero = LED(gpio.number)
-        if gpio.mode == GpioMode.BUTTON:
-            gpio_zero = Button(gpio.number)
-            gpio_zero.when_pressed  = self.on_press
+
+class GpioHandler:
+    def __init__(self, gpio : Gpio, button_callback, simulated=False):
+        self.gpio = gpio
+        self.gpio_zero = None
+        if simulated :
+            if self.gpio.mode == GpioMode.INPUT:
+                pass
+            elif gpio.mode == GpioMode.OUTPUT:
+                pass
+            elif gpio.mode == GpioMode.LED:
+                pass
+            elif gpio.mode == GpioMode.BUTTON:
+                self.gpio_zero = GPioZeroSimulated()
+                self.gpio_zero.when_pressed  = button_callback
+        else:
+            from gpiozero import Button, LED, DigitalOutput, DigitalInput
+
+            if self.gpio.mode == GpioMode.INPUT:
+                self.gpio_zero = DigitalInput(gpio.number)
+            elif gpio.mode == GpioMode.OUTPUT:
+                self.gpio_zero = DigitalOutput(gpio.number)
+            elif gpio.mode == GpioMode.LED:
+                self.gpio_zero = LED(gpio.number)
+            elif gpio.mode == GpioMode.BUTTON:
+                self.gpio_zero = Button(gpio.number)
+                self.gpio_zero.when_pressed  = partial(button_callback, gpio.number)
+
+
+    def simulate_button(self):
+        self.gpio_zero.when_pressed(self.gpio)
+
+    def set_led(self, state: bool):
+        if (self.gpio_zero is not None):
+            if state:
+                self.gpio_zero.on()
+            else:
+                self.gpio_zero.off()
+        else:
+            logger.info("GPIO %s not available, simualted %s", self.gpio.friendly_name, state)
+
 
     def close(self):
-        self.gpio_zero.close()
+        if (self.gpio_zero is not None):
+            self.gpio_zero.close()
 

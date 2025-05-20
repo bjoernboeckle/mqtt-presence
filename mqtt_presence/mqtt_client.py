@@ -20,7 +20,7 @@ class MQTTClient:
         self.lock = threading.RLock()
         self.thread = threading.Thread(target=self._run_mqtt_loop, daemon=True)
 
-        self.mqtt_topics = MqttTopics()
+        self.mqtt_topics = MqttTopics(mqtt_app)
 
 
 

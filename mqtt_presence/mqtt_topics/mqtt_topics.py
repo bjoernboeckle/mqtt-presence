@@ -43,7 +43,8 @@ __buttons__ = {
 
 
 class MqttTopics:
-    def __init__(self):
+    def __init__(self, mqtt_app):
+        self.mqtt_app = mqtt_app
         self.binary_sensors = __binary_sensors__
         self.sensors = __sensors__
         self.buttons = __buttons__
@@ -55,10 +56,12 @@ class MqttTopics:
 
     def _update_sensor_data(self):
         MqttTopicsPsUtil.update_sensors_data(self.sensors_data)
+        self.mqtt_app.raspberrypi.updade_sensors_data(self.sensors_data)
 
 
     def _update_binary_sensor_data(self):
         self.binary_sensors_dats.status = "online"
+        self.mqtt_app.raspberrypi.updade_sensors_data(self.binary_sensors_dats)
 
 
     def update_data(self):
