@@ -24,6 +24,7 @@ class WebUI:
 
     def run_ui(self):
         # use waitress or flask self run
+        logging.info("Starting web ui at %s:%s", self.mqtt_app.app_config.app.webServer.host, self.mqtt_app.app_config.app.webServer.port)
         if Tools.is_debugger_active():
             self.app.run(host=self.mqtt_app.app_config.app.webServer.host, port=self.mqtt_app.app_config.app.webServer.port)
         else:

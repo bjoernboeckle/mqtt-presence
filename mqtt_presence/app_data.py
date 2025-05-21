@@ -1,6 +1,4 @@
 from dataclasses import dataclass, field
-from typing import List
-from enum import Enum
 
 @dataclass
 class Broker:
@@ -26,29 +24,6 @@ class Mqtt:
 
 
 
-
-class GpioMode(Enum):
-    NONE = -1
-    INPUT = 0
-    OUTPUT = 1
-    LED = 2
-    BUTTON = 3
-
-
-@dataclass
-class Gpio:
-    mode: GpioMode = GpioMode.NONE
-    number: int = -1
-    friendly_name: str = ""
-
-@dataclass
-class RaspberryPiSettings:
-    enable_raspberrypi = False
-    simulated = None
-    gpios: List[Gpio] = field(default_factory=list)
-
-
 @dataclass
 class Configuration:
     mqtt: Mqtt = field(default_factory=Mqtt)
-    raspberry_pi: RaspberryPiSettings = field(default_factory=RaspberryPiSettings)

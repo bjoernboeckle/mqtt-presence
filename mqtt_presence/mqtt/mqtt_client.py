@@ -5,7 +5,8 @@ import logging
 
 import paho.mqtt.client as mqtt
 
-from mqtt_presence.mqtt_topics.mqtt_topics import MqttTopics, MqttTopic
+from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
+from mqtt_presence.devices.devices import Devices
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,29 @@ class MQTTClient:
         self.lock = threading.RLock()
         self.thread = threading.Thread(target=self._run_mqtt_loop, daemon=True)
 
-        self.mqtt_topics = MqttTopics(mqtt_app)
+        self.mqtt_topics = None
+        self.devices = Devices()
+
+
+    def _create_topics(self):
+        self.mqtt_topics.binary_sensors[AVAILABLE_SENSOR] = MqttTopic("Online state")
+        self.devices.create_topics(self.mqtt_topics, self._get_topic_prefix())
+
+    def _update_data(self):
+        self.mqtt_topics.data[AVAILABLE_SENSOR] = "online"
+        self.devices.update_data(self.mqtt_topics)
+
+
+    def _topic_callback(self, topic, function):
+        logger.info("callback: %s: %s", topic, function)
+        mqtt_topic = self.mqtt_topics.device_automations.get(topic)
+        publish_topic = f"{self._get_topic_prefix()}/{topic}/action"
+
+    
+        logger.info("Publish: %s: %s", publish_topic, function)
+        self.client.publish(publish_topic, payload=function, retain=True)
+
+
 
 
 
@@ -31,8 +54,9 @@ class MQTTClient:
                 if not self.is_connected():
                     self._connect()
                 else:
-                    self.mqtt_topics.update_data()
-                    self._publish_mqtt_data()
+                    if self.mqtt_topics is not None:
+                        self._update_data()
+                        self._publish_mqtt_data()
                 time.sleep(5)
         finally:
             self.disconnect()
@@ -47,6 +71,9 @@ class MQTTClient:
     def _on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
         if self.client.is_connected():
             logger.info("🟢 Connected to MQTT broker")
+            self.mqtt_topics = MqttTopics(self.mqtt_app)
+            self._create_topics()
+            self._update_data()
             #self._remove_old_discovery()  # TODO: Check seems not to work!
             self._publish_available("online")
             self._publish_mqtt_data(True)
@@ -69,32 +96,44 @@ class MQTTClient:
     def _on_message(self, _client, _userdata, msg):
         payload = msg.payload.decode().strip().lower()
         logger.info("📩 Received command: %s → %s", msg.topic, payload)
+        print(payload)
 
-        topic = self._get_topic()
+        topic = self._get_topic_prefix()
         topic_without_prefix = msg.topic[len(topic)+1:] if msg.topic.startswith(topic) else topic
 
         for button, mqtt_topic in self.mqtt_topics.buttons.items():
-            if topic_without_prefix == button:
-                mqtt_topic.action()
+            if topic_without_prefix == f"{button}/command":
+                mqtt_topic.action(payload)
+        
+        for switch, mqtt_topic in self.mqtt_topics.switches.items():
+            if topic_without_prefix == f"{switch}/command":
+                mqtt_topic.action(payload)
+
+        self._update_data()
+        self._publish_mqtt_data()
 
 
 
-    def _get_topic(self):
+    def _get_topic_prefix(self):
         return f"{self.mqtt_app.config.mqtt.broker.prefix}"
 
 
     def _get_available_topic(self):
-        return f"{self._get_topic()}/{AVAILABLE_SENSOR}"
+        return f"{self._get_topic_prefix()}/{AVAILABLE_SENSOR}/state"
 
 
 
     def _subscribe_topics(self):
         for button in self.mqtt_topics.buttons:
-            self.client.subscribe(f"{self._get_topic()}/{button}")
+            print(f"Subscriping: {self._get_topic_prefix()}/{button}/command")
+            self.client.subscribe(f"{self._get_topic_prefix()}/{button}/command")
+        for switch in self.mqtt_topics.switches:
+            print(f"Subscriping: {self._get_topic_prefix()}/{switch}/command")
+            self.client.subscribe(f"{self._get_topic_prefix()}/{switch}/command")
 
 
     def _publish_available(self, state):
-        self.mqtt_topics.binary_sensors_dats[AVAILABLE_SENSOR] = state
+        self.mqtt_topics.data[AVAILABLE_SENSOR] = state
         self.client.publish(self._get_available_topic(), payload=state, retain=True)
         logger.info("📡 Status publisched: %s", state)
 
@@ -102,20 +141,21 @@ class MQTTClient:
 
     def _publish_mqtt_data(self, force: bool = False):
         for component, topics in self.mqtt_topics.get_topics_by_group().items():
-            if component=="sensor":
-                for topic, mqtt_topic in topics.items():
+            for topic, mqtt_topic in topics.items():
+                if component=="sensor" or component=="switch":
                     value = None
                     try:
-                        value = self.mqtt_topics.sensors_data[topic]
-                        old_value =  self.mqtt_topics.sensors_data_old[topic]
+                        value = self.mqtt_topics.data.get(topic)
+                        old_value =  self.mqtt_topics.data_old.get(topic)
+
+                        if value is not None and (force or old_value is None or value != old_value):
+                            self.mqtt_topics.data[topic] = value
+                            self.mqtt_topics.data_old[topic] = value
+                            topic = f"{self._get_topic_prefix()}/{topic}/state"
+                            self.client.publish(topic, payload=str(value), retain=True)
+                            logger.info("📡 Published %s: %s = %s",component, mqtt_topic.friendly_name, value)
                     except Exception as exception:      # pylint: disable=broad-exception-caught
-                        logger.error("Failed to get sensor data %s: %s", topic, exception)
-                    if value is not None and (value != old_value or force):
-                        self.mqtt_topics.sensors_data[topic] = value
-                        self.mqtt_topics.sensors_data_old[topic] = value
-                        topic = f"{self._get_topic()}/{topic}"
-                        self.client.publish(topic, payload=str(value), retain=True)
-                        logger.info("📡 Published sensor: %s = %s", mqtt_topic.friendly_name, value)
+                        logger.error("Failed to get %s data %s: %s  (%s, %s)", component, topic, exception, value, old_value)
 
 
 
@@ -137,8 +177,8 @@ class MQTTClient:
             payload["unit_of_measurement"] = mqtt_topic.unit
 
 
-    def _get_discovery_payload(self, topic, mqtt_topic: MqttTopic, component, node_id):
-        topic = f"{self._get_topic()}/{topic}"
+    def _get_discovery_payload(self, raw_topic, mqtt_topic: MqttTopic, component, node_id):
+        topic = f"{self._get_topic_prefix()}/{raw_topic}"
 
         device_info = {
             "identifiers": [node_id],
@@ -151,21 +191,32 @@ class MQTTClient:
                 "availability_topic": self._get_available_topic(),
                 "payload_available": "online",
                 "payload_not_available": "offline",
-                "unique_id": f"{node_id}_{topic}",
+                "unique_id": f"{node_id}_{topic}_{mqtt_topic.subtype}",
                 "device": device_info
         }
         self._add_dynamic_payload(payload, mqtt_topic)
 
-        if component=="button":
-            payload["command_topic"] = topic
+        if component == "button":
+            payload["command_topic"] = f"{topic}/command"
             payload["payload_press"] = "press"
-        elif component=="binary_sensor":
-            payload["state_topic"] = topic
+        elif component == "switch":
+            payload["state_topic"] = f"{topic}/state"
+            payload["command_topic"] = f"{topic}/command"
+            payload["payload_off"] = "OFF"
+            payload["payload_on"] = "ON"
+        elif component == "binary_sensor":
+            payload["state_topic"] = f"{topic}/state"
             payload["payload_on"] = "online"
             payload["payload_off"] = "offline"
             payload["device_class"] = "connectivity"
-        elif component=="sensor":
-            payload["state_topic"] = topic
+        elif component == "sensor":
+            payload["state_topic"] = f"{topic}/state"
+        elif component == "device_automation":
+            payload["automation_type"] = "trigger"
+            payload["type"] = "button_short_press"
+            payload["subtype"] = raw_topic
+            payload["payload"] = mqtt_topic.subtype
+            payload["topic"] = f"{topic}/action"
         return payload
 
     def _publish_discovery(self):
@@ -174,8 +225,12 @@ class MQTTClient:
 
         for component, topics in self.mqtt_topics.get_topics_by_group().items():
             for topic, mqtt_topic in topics.items():
+                #if mqtt_topic.subtype is not None:
+                #    discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}_{mqtt_topic.subtype}/config"
+                #else:
                 discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
                 payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
+                
                 self.client.publish(discovery_topic, json.dumps(payload), retain=True)
                 logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)
 
@@ -212,7 +267,8 @@ class MQTTClient:
                 )
                 self.client.loop_start()
             except Exception: # pylint: disable=broad-exception-caught
-                logger.exception("Connection failed")
+                #logger.exception("Connection failed")
+                pass
 
 
     def is_connected(self):
@@ -231,4 +287,5 @@ class MQTTClient:
 
 
     def start_mqtt(self):
+        self.devices.init(self._topic_callback)
         self.thread.start()
