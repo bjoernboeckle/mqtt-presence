@@ -29,6 +29,9 @@ pyyaml = "*"
 waitress = "*"
 platformdirs = "*"
 psutil = "*"
+gpiozero = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
+rpi-lgpio = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
+"RPi.GPIO" = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
 
 [tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"
@@ -37,3 +40,4 @@ mqtt-presence = "mqtt_presence.main:main"
 pytest = "*"
 pylint = "*"
 toml = "*"
+

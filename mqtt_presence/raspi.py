@@ -1,9 +1,12 @@
+# pylint: skip-file
+
 import time
 
 from mqtt_presence.raspberrypi.raspberrypi import RaspberryPiExtension
 from mqtt_presence.raspberrypi.raspberrypi_gpio_handler import GpioHandler
 from mqtt_presence.app_data import RaspberryPiSettings, Gpio, GpioMode
 from mqtt_presence.app_data import Gpio
+from mqtt_presence.utils import Tools
 
 
 
@@ -12,8 +15,10 @@ settings.enable_raspberrypi = True
 settings.simulated = False
 settings.gpios.append(Gpio(GpioMode.LED, 19, friendly_name = "Red"))
 settings.gpios.append(Gpio(GpioMode.LED, 21, friendly_name = "Blue"))
-settings.gpios.append(Gpio(GpioMode.BUTTON, 27, friendly_name = "Powerdown"))
+settings.gpios.append(Gpio(GpioMode.BUTTON, 13, friendly_name = "Powerdown"))
 
+# set log directory
+Tools.setup_logger(__name__, "./log")
 
 
 def callback(gpio: Gpio):
@@ -22,13 +27,27 @@ def callback(gpio: Gpio):
 extension = RaspberryPiExtension()
 extension.init_raspberrypi(settings, callback)
 
-print("Wait-----")
-time.sleep(1)
+
+print(f"{len(extension.gpio_handlers)}")
+
+ledRed = extension.get_gpio_handler(settings.gpios[0])
+ledBlue = extension.get_gpio_handler(settings.gpios[1])
+btnPowerDown = extension.get_gpio_handler(settings.gpios[2])
+
+
+print(ledRed)
+print(btnPowerDown)
+
+#ledRed.set_led(1 if ledRed.get_led() == 0 else 0)
+#ledBlue.set_led(1 if ledBlue.get_led() == 0 else 0)
+
 print("Simulate button")
 
 
-handler = extension.get_gpio_handler(settings.gpios[2])
-handler.simulate_button()
+
+
+#handler = extension.get_gpio_handler(settings.gpios[2])
+#handler.simulate_button()
 
 print("Wait key")
 

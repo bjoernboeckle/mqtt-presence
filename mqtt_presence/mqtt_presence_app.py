@@ -1,7 +1,4 @@
-import platform
-import sys
 import logging
-
 
 from mqtt_presence.mqtt_client import MQTTClient
 from mqtt_presence.config_handler import ConfigHandler
@@ -55,6 +52,7 @@ class MQTTPresenceApp():
 
     def update_new_config(self, config : Configuration):
         self.config_handler.save_config(config)
+        self.config = config
         self.restart()
 
 
@@ -62,7 +60,7 @@ class MQTTPresenceApp():
         #show platform
         Tools.log_platform()
         self.mqtt_client.start_mqtt()
-        self.raspberrypi.init_raspberrypi()
+        self.raspberrypi.init_raspberrypi(self.config.raspberry_pi, self.button_callback)
 
 
 
@@ -77,4 +75,3 @@ class MQTTPresenceApp():
         self.should_run = False
         self.mqtt_client.disconnect()
         self.raspberrypi.exit_raspberrypi()
-

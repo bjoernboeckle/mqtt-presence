@@ -36,7 +36,7 @@ class RaspberryPiExtension:
                     self.gpio_handlers.append(gpio_handler)
           
         except Exception as e:
-            logger.info("🔴 Raspberrypi failed:", e)
+            logger.info("🔴 Raspberrypi failed: %s", e)
             self.gpio_handlers = []
 
 

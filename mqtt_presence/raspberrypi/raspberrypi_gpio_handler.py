@@ -27,12 +27,12 @@ class GpioHandler:
                 self.gpio_zero = GPioZeroSimulated()
                 self.gpio_zero.when_pressed  = button_callback
         else:
-            from gpiozero import Button, LED, DigitalOutput, DigitalInput
+            from gpiozero import Button, LED
 
             if self.gpio.mode == GpioMode.INPUT:
-                self.gpio_zero = DigitalInput(gpio.number)
+                pass    #self.gpio_zero = DigitalInput(gpio.number)
             elif gpio.mode == GpioMode.OUTPUT:
-                self.gpio_zero = DigitalOutput(gpio.number)
+                pass    #self.gpio_zero = DigitalOutput(gpio.number)
             elif gpio.mode == GpioMode.LED:
                 self.gpio_zero = LED(gpio.number)
             elif gpio.mode == GpioMode.BUTTON:
@@ -42,6 +42,14 @@ class GpioHandler:
 
     def simulate_button(self):
         self.gpio_zero.when_pressed(self.gpio)
+
+
+    def get_led(self):
+        if self.gpio_zero is not None:
+            return self.gpio_zero.value
+        return -1
+          
+
 
     def set_led(self, state: bool):
         if (self.gpio_zero is not None):

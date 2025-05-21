@@ -37,11 +37,11 @@ class GpioMode(Enum):
 
 @dataclass
 class Gpio:
-    mode: GpioMode = GpioMode.NONE 
+    mode: GpioMode = GpioMode.NONE
     number: int = -1
     friendly_name: str = ""
 
-@dataclass 
+@dataclass
 class RaspberryPiSettings:
     enable_raspberrypi = False
     simulated = None
@@ -52,4 +52,3 @@ class RaspberryPiSettings:
 class Configuration:
     mqtt: Mqtt = field(default_factory=Mqtt)
     raspberry_pi: RaspberryPiSettings = field(default_factory=RaspberryPiSettings)
-

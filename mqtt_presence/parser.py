@@ -6,7 +6,7 @@ def get_parser(desc: str):
 
     # Optional argument for selecting the UI
 #    parser.add_argument(
-#        '--ui', 
+#        '--ui',
 #        choices=['webUI', 'console'],  # Available options
 #        default='webUI',  # Default value
 #        type=str,  # Argument type
@@ -15,14 +15,14 @@ def get_parser(desc: str):
 
     # Optional argument for selecting the config directory
     parser.add_argument(
-        '--data', 
+        '--data',
         type=str,  # Argument type
         help="Set the data directory"
     )
 
     # Optional argument for selecting the log directory
     parser.add_argument(
-        '--log', 
+        '--log',
         type=str,  # Argument type
         help="Set the log directory"
     )
