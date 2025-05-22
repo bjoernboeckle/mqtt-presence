@@ -50,8 +50,7 @@ class Tools:
     @staticmethod
     def shutdown():
         logger.info("🛑 Shutdown initiated...")
-        return
-        system = platform.system() # pylint: disable=unreachable
+        system = platform.system()
         if system == "Windows":
             os.system("shutdown /s /t 0")
         elif system in ["Linux", "Darwin"]:
@@ -61,8 +60,7 @@ class Tools:
     @staticmethod
     def reboot():
         logger.info("🔄 Reboot initiated...")
-        return
-        system = platform.system() # pylint: disable=unreachable
+        system = platform.system()
         if system == "Windows":
             os.system("shutdown /r /t 0")
         elif system in ["Linux", "Darwin"]:
