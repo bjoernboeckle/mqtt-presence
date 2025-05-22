@@ -31,7 +31,7 @@ __buttons__ = {
 
 
 class PsUtil:
-    def __init__(self):
+    def __init__(self, config_path: str):
         pass
 
 
@@ -39,11 +39,11 @@ class PsUtil:
         pass
 
 
-    def init(self, _topic_action_callback):
+    def init(self, _action_callback):
         pass
 
 
-    def create_topics(self, mqtt_topics: MqttTopics, prefix):
+    def create_topics(self, mqtt_topics: MqttTopics):
         #mqtt_topics.binary_sensors.update()
         mqtt_topics.sensors.update(__sensors__)
         #mqtt_topics.buttons.update(__buttons__)

@@ -18,8 +18,8 @@ __buttons__ = {
 
 
 class Devices:
-    def __init__(self):    
-            self.devices = [ RaspberryPiDevice(), PsUtil()]
+    def __init__(self, config_path: str):    
+            self.devices = [ RaspberryPiDevice(config_path), PsUtil(config_path)]
 
 
     def init(self, topic_callback):
@@ -30,10 +30,10 @@ class Devices:
         for device in self.devices:
             device.exit()
 
-    def create_topics(self, mqtt_topics, prefix):
+    def create_topics(self, mqtt_topics):
         mqtt_topics.buttons.update(__buttons__)
         for device in self.devices:
-            device.create_topics(mqtt_topics, prefix)
+            device.create_topics(mqtt_topics)
 
 
     def update_data(self, mqtt_topics: MqttTopics):

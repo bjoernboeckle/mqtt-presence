@@ -6,7 +6,7 @@ import logging
 import paho.mqtt.client as mqtt
 
 from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
-from mqtt_presence.devices.devices import Devices
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,26 +19,23 @@ class MQTTClient:
         self.mqtt_app = mqtt_app
         self.client = None
         self.lock = threading.RLock()
-        self.thread = threading.Thread(target=self._run_mqtt_loop, daemon=True)
-
         self.mqtt_topics = None
-        self.devices = Devices()
+        self.thread = threading.Thread(target=self._run_mqtt_loop, daemon=True)        
 
 
     def _create_topics(self):
         self.mqtt_topics.binary_sensors[AVAILABLE_SENSOR] = MqttTopic("Online state")
-        self.devices.create_topics(self.mqtt_topics, self._get_topic_prefix())
+        self.mqtt_app.devices.create_topics(self.mqtt_topics)
 
     def _update_data(self):
         self.mqtt_topics.data[AVAILABLE_SENSOR] = "online"
-        self.devices.update_data(self.mqtt_topics)
+        self.mqtt_app.devices.update_data(self.mqtt_topics)
 
 
-    def _topic_action_callback(self, topic, function):
-        logger.info("callback: %s: %s", topic, function)
+    def handle_action_callback(self, topic, function):
         #mqtt_topic = self.mqtt_topics.device_automations.get(topic)
         publish_topic = f"{self._get_topic_prefix()}/{topic}/action"
-        logger.info("Publish: %s: %s", publish_topic, function)
+        logger.info("🚀 Publish: %s: %s", publish_topic, function)
         self.client.publish(publish_topic, payload=function, retain=True)
 
 
@@ -69,7 +66,7 @@ class MQTTClient:
     def _on_connect(self, _client, _userdata, _flags, reason_code, _properties=None):
         if self.client.is_connected():
             logger.info("🟢 Connected to MQTT broker")
-            self.mqtt_topics = MqttTopics(self.mqtt_app)
+            self.mqtt_topics = MqttTopics()
             self._create_topics()
             self._update_data()
             #self._remove_old_discovery()  # TODO: Check seems not to work!
@@ -94,8 +91,6 @@ class MQTTClient:
     def _on_message(self, _client, _userdata, msg):
         payload = msg.payload.decode().strip().lower()
         logger.info("📩 Received command: %s → %s", msg.topic, payload)
-        print(payload)
-
         topic = self._get_topic_prefix()
         topic_without_prefix = msg.topic[len(topic)+1:] if msg.topic.startswith(topic) else topic
 
@@ -122,12 +117,10 @@ class MQTTClient:
 
 
     def _subscribe_topics(self):
-        for button in self.mqtt_topics.buttons:
-            print(f"Subscriping: {self._get_topic_prefix()}/{button}/command")
-            self.client.subscribe(f"{self._get_topic_prefix()}/{button}/command")
-        for switch in self.mqtt_topics.switches:
-            print(f"Subscriping: {self._get_topic_prefix()}/{switch}/command")
-            self.client.subscribe(f"{self._get_topic_prefix()}/{switch}/command")
+        for component, topics in self.mqtt_topics.get_topics_by_group().items():
+            if component == "button" or component == "switch":
+                for topic, _ in topics.items():
+                    self.client.subscribe(f"{self._get_topic_prefix()}/{topic}/command")
 
 
     def _publish_available(self, state):
@@ -229,7 +222,7 @@ class MQTTClient:
                         payload["unique_id"] = f"{payload['unique_id']}_{action}"
                         payload["payload"] = action
                         self.client.publish(discovery_topic, json.dumps(payload), retain=True)
-                        logger.info("🧠   Action %s Discovery published for %s: %s", action, component, mqtt_topic.friendly_name)
+                        logger.info("🧠 Action %s Discovery published for %s: %s", action, component, mqtt_topic.friendly_name)
                 else:
                     discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
                     payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
@@ -289,5 +282,4 @@ class MQTTClient:
 
 
     def start_mqtt(self):
-        self.devices.init(self._topic_action_callback)
         self.thread.start()

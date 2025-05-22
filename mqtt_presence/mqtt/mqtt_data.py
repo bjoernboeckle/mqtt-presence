@@ -17,7 +17,7 @@ class MqttTopic:
 
 @dataclass 
 class MqttTopics:
-    def __init__(self, mqtt_app):
+    def __init__(self):
         self.binary_sensors: dict[str, MqttTopic] = {}
         self.sensors: dict[str, MqttTopic] = {}
         self.buttons: dict[str, MqttTopic] = {}

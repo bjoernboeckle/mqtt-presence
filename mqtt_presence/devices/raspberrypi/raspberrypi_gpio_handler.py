@@ -13,11 +13,11 @@ RELEASED = "released"
 HELD = "held"
 
 class GpioHandler:
-    def __init__(self, gpio : Gpio, topic_action_callback, simulated=False):
+    def __init__(self, gpio : Gpio, action_callback, simulated=False):
         self.gpio = gpio
         self.gpio_zero = None
         self.topic = f"gpio_{self.gpio.number}"
-        self._topic_action_callback = topic_action_callback
+        self._action_callback = action_callback
 
         try:
             from gpiozero import Button, LED
@@ -50,12 +50,11 @@ class GpioHandler:
 
 
     def _button_callback(self, topic, function):
-        self._topic_action_callback(topic, function)
+        self._action_callback(topic, function)
         command = self.get_button_function(function, self.gpio.button)
-        print(command)
         if (command is not None):
             if command ==  GpioButton_Function.REBOOT: Tools.reboot()
-            if command ==  GpioButton_Function.SHUTDOWN: Tools.shutdown()
+            elif command ==  GpioButton_Function.SHUTDOWN: Tools.shutdown()
 
 
     def get_led(self):
@@ -73,13 +72,12 @@ class GpioHandler:
 
 
 
-    def create_topic(self, mqtt_topics: MqttTopics, prefix):
+    def create_topic(self, mqtt_topics: MqttTopics):
         if self.gpio.mode == GpioMode.LED:
             mqtt_topics.switches[self.topic] = MqttTopic(f"Led {self.gpio.number}", action=partial(self.command, "switch"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
         elif self.gpio.mode == GpioMode.BUTTON:
-            print(f"Creating automation  -   gpio_{self.gpio.number}")
             mqtt_topics.device_automations[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", actions = [PRESSED, RELEASED, HELD])
 
 
@@ -90,7 +88,6 @@ class GpioHandler:
 
 
     def command(self, function, payload):
-        print(f"payload: {payload}   function: {function} ")
         if (self.gpio.mode == GpioMode.LED):
             if (function == "on"): self.set_led(1)
             elif (function == "off"): self.set_led(0)

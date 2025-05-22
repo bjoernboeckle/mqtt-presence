@@ -19,32 +19,31 @@ logger = logging.getLogger(__name__)
 DEFAULT_PASSWORD = "h7F$kP2!mA93X@vL"
 SECRET_KEY_FILE = "secret.key"
 CONFIG_DATA_FILE = "config.json"
-CONFIG_YAML_FILE = "config.yaml"
+CONFIG__yaml_file = "config.yaml"
 
 
 class ConfigHandler:
     def __init__(self, data_path: str = None):
         self.data_path = Path(data_path or Tools.get_data_path(NAME))
-        self.secret_file = str(self.data_path / SECRET_KEY_FILE)
-        self.config_file = str(self.data_path / CONFIG_DATA_FILE)
-        self.yaml_file = str(self.data_path / CONFIG_YAML_FILE)
-        self.fernet = Fernet(self._load_key())
+        self._secret_file = str(self.data_path / SECRET_KEY_FILE)
+        self._config_file = str(self.data_path / CONFIG_DATA_FILE)
+        self._yaml_file = str(self.data_path / CONFIG__yaml_file)
+        self._fernet = Fernet(self._load_key())
 
-        logger.info("Data initialized in path: %s", data_path)
+        logger.info("ℹ️  Data initialized in path: %s", self.data_path)
 
     def _load_key(self):
-
-        if not os.path.exists(self.secret_file):
+        if not os.path.exists(self._secret_file):
             return self._generate_key()
-        with open(self.secret_file, "rb") as file_secret:
+        with open(self._secret_file, "rb") as file_secret:
             return file_secret.read()
 
     def _generate_key(self):
-        dir_path = os.path.dirname(self.secret_file)
+        dir_path = os.path.dirname(self._secret_file)
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path, exist_ok=True)
         key = Fernet.generate_key()
-        with open(self.secret_file, "wb") as file_secret:
+        with open(self._secret_file, "wb") as file_secret:
             file_secret.write(key)
         return key
 
@@ -58,18 +57,18 @@ class ConfigHandler:
     # Load YAML file as AppConfiguration
     def load_config_yaml(self) -> AppConfiguration:
         config = None
-        if os.path.exists(self.yaml_file):
-            with open(self.yaml_file, "r", encoding="utf-8") as file_yaml:
+        if os.path.exists(self._yaml_file):
+            with open(self._yaml_file, "r", encoding="utf-8") as file_yaml:
                 config = self._from_dict(AppConfiguration, yaml.safe_load(file_yaml))
             self.check_yaml_config(config)
-            logger.info("✅ Configuration loaded from: %s", self.yaml_file)
+            logger.info("✅ Configuration loaded from: %s", self._yaml_file)
         else:
-            logger.info("⚠️ No configuration file found in: %s. Create default.", self.yaml_file)
+            logger.warning("⚠️ No configuration file found in: %s. Create default.", self._yaml_file)
             config = AppConfiguration()
             self.check_yaml_config(config)
-            with open(self.yaml_file, "w", encoding="utf-8") as f_out:
+            with open(self._yaml_file, "w", encoding="utf-8") as f_out:
                 yaml.dump(self._to_dict(config), f_out)
-            logger.info("📝 Default configuration written to: %s", self.yaml_file)
+            logger.info("📝 Default configuration written to: %s", self._yaml_file)
         return config
 
 
@@ -84,11 +83,11 @@ class ConfigHandler:
     def load_config(self) -> Configuration:
         config = None
         try:
-            with open(self.config_file, "r", encoding="utf-8") as file_config:
+            with open(self._config_file, "r", encoding="utf-8") as file_config:
                 raw_data = json.load(file_config)
                 config = self._from_dict(Configuration, raw_data)
         except FileNotFoundError:
-            logger.warning("⚠️ File '%s' not found – use defaults.", {self.config_file})
+            logger.warning("⚠️ File '%s' not found – use defaults.", {self._config_file})
             config = self._from_dict(Configuration, {})
             config.mqtt.broker.encrypted_password = self.get_encrypt_password(DEFAULT_PASSWORD)
 
@@ -124,7 +123,7 @@ class ConfigHandler:
         #create a dictionary, with differences
         diff_dict = to_diff_dict(config, default_config)
 
-        with open(self.config_file, "w", encoding="utf-8") as file:
+        with open(self._config_file, "w", encoding="utf-8") as file:
             json.dump(diff_dict, file, indent=2)
 
 
@@ -135,10 +134,10 @@ class ConfigHandler:
         return DEFAULT_PASSWORD if encrypted_password is None else self._decrypt(encrypted_password)
 
     def _encrypt(self, value):
-        return self.fernet.encrypt(value.encode()).decode()
+        return self._fernet.encrypt(value.encode()).decode()
 
     def _decrypt(self, value):
-        return self.fernet.decrypt(value.encode()).decode()
+        return self._fernet.decrypt(value.encode()).decode()
 
 
     # Typehelper for generic load
