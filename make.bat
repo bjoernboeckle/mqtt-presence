@@ -33,7 +33,7 @@ exit /b 1
 
 
 :run_pytest
-echo Running pylint...
+echo Running pytest...
 poetry run pytest tests
 goto :eof
 

@@ -1,7 +1,8 @@
 import os
 import yaml
 import pytest
-from mqtt_presence import RaspberryPiSettings, Gpio, GpioMode, RaspberryPiSettingsYaml
+from mqtt_presence.devices.raspberrypi.raspberrypi_settings_yaml import RaspberryPiSettingsYaml
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings, GpioMode, Gpio
 
 @pytest.fixture
 def sample_settings(tmp_path):

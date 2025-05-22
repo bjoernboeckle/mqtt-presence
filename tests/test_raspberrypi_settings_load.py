@@ -1,6 +1,6 @@
 import yaml
 import pytest
-from mqtt_presence import RaspberryPiSettingsYaml, GpioButton_Function
+from mqtt_presence.devices.raspberrypi.raspberrypi_settings_yaml import RaspberryPiSettingsYaml, GpioButton_Function
 
 @pytest.fixture
 def minimal_button_yaml(tmp_path):
