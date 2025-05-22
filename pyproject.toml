@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mqtt-presence"
-version = "0.2.4a1"
+version = "0.2.4"
 description = "Lightweight MQTT-based presence detection with shutdown support"
 authors = [ "Bjoern Boeckle <bjoern@boeckle-net.de>",]
 license = "Apache-2.0"
