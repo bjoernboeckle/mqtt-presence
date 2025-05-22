@@ -6,7 +6,7 @@ from mqtt_presence.config_handler import ConfigHandler
 from mqtt_presence.app_data import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
-        
+
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class MQTTPresenceApp():
         Tools.log_platform()
         self.devices.init(self._action_callback)
         self.mqtt_client.start_mqtt()
-        
+
 
 
 

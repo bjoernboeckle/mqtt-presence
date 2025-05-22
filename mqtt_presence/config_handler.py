@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_PASSWORD = "h7F$kP2!mA93X@vL"
 SECRET_KEY_FILE = "secret.key"
 CONFIG_DATA_FILE = "config.json"
-CONFIG__yaml_file = "config.yaml"
+CONFIG_YAML_FILE = "config.yaml"
 
 
 class ConfigHandler:
@@ -27,7 +27,7 @@ class ConfigHandler:
         self.data_path = Path(data_path or Tools.get_data_path(NAME))
         self._secret_file = str(self.data_path / SECRET_KEY_FILE)
         self._config_file = str(self.data_path / CONFIG_DATA_FILE)
-        self._yaml_file = str(self.data_path / CONFIG__yaml_file)
+        self._yaml_file = str(self.data_path / CONFIG_YAML_FILE)
         self._fernet = Fernet(self._load_key())
 
         logger.info("ℹ️  Data initialized in path: %s", self.data_path)
