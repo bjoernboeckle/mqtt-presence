@@ -34,12 +34,10 @@ class MQTTClient:
         self.devices.update_data(self.mqtt_topics)
 
 
-    def _topic_callback(self, topic, function):
+    def _topic_action_callback(self, topic, function):
         logger.info("callback: %s: %s", topic, function)
-        mqtt_topic = self.mqtt_topics.device_automations.get(topic)
+        #mqtt_topic = self.mqtt_topics.device_automations.get(topic)
         publish_topic = f"{self._get_topic_prefix()}/{topic}/action"
-
-    
         logger.info("Publish: %s: %s", publish_topic, function)
         self.client.publish(publish_topic, payload=function, retain=True)
 
@@ -191,7 +189,7 @@ class MQTTClient:
                 "availability_topic": self._get_available_topic(),
                 "payload_available": "online",
                 "payload_not_available": "offline",
-                "unique_id": f"{node_id}_{topic}_{mqtt_topic.subtype}",
+                "unique_id": f"{node_id}_{topic}",
                 "device": device_info
         }
         self._add_dynamic_payload(payload, mqtt_topic)
@@ -213,9 +211,6 @@ class MQTTClient:
             payload["state_topic"] = f"{topic}/state"
         elif component == "device_automation":
             payload["automation_type"] = "trigger"
-            payload["type"] = "button_short_press"
-            payload["subtype"] = raw_topic
-            payload["payload"] = mqtt_topic.subtype
             payload["topic"] = f"{topic}/action"
         return payload
 
@@ -225,14 +220,21 @@ class MQTTClient:
 
         for component, topics in self.mqtt_topics.get_topics_by_group().items():
             for topic, mqtt_topic in topics.items():
-                #if mqtt_topic.subtype is not None:
-                #    discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}_{mqtt_topic.subtype}/config"
-                #else:
-                discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
-                payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
-                
-                self.client.publish(discovery_topic, json.dumps(payload), retain=True)
-                logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)
+                if mqtt_topic.actions is not None:
+                    for action in mqtt_topic.actions:
+                        discovery_topic = f"{discovery_prefix}/{component}/{node_id}/action_{topic}_{action}/config"
+                        payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
+                        payload["type"] = "button_short_press"
+                        payload["subtype"] = f"{topic}_{action}"
+                        payload["unique_id"] = f"{payload['unique_id']}_{action}"
+                        payload["payload"] = action
+                        self.client.publish(discovery_topic, json.dumps(payload), retain=True)
+                        logger.info("🧠   Action %s Discovery published for %s: %s", action, component, mqtt_topic.friendly_name)
+                else:
+                    discovery_topic = f"{discovery_prefix}/{component}/{node_id}/{topic}/config"
+                    payload = self._get_discovery_payload(topic, mqtt_topic, component, node_id)
+                    self.client.publish(discovery_topic, json.dumps(payload), retain=True)
+                    logger.info("🧠 Discovery published for %s: %s", component, mqtt_topic.friendly_name)
 
 
     def _create_client(self):
@@ -287,5 +289,5 @@ class MQTTClient:
 
 
     def start_mqtt(self):
-        self.devices.init(self._topic_callback)
+        self.devices.init(self._topic_action_callback)
         self.thread.start()

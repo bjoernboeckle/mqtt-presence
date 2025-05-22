@@ -50,10 +50,8 @@ ledBlue.set_led(1 if ledBlue.get_led() == 0 else 0)
 
 
 
-#handler = extension.get_gpio_handler(settings.gpios[2])
-#handler.simulate_button()
-
 print("Wait key")
 
 while True:
     time.sleep(1)
+    

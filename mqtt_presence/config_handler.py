@@ -21,6 +21,7 @@ SECRET_KEY_FILE = "secret.key"
 CONFIG_DATA_FILE = "config.json"
 CONFIG_YAML_FILE = "config.yaml"
 
+
 class ConfigHandler:
     def __init__(self, data_path: str = None):
         self.data_path = Path(data_path or Tools.get_data_path(NAME))

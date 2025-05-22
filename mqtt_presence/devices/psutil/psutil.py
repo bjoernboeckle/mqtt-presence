@@ -39,7 +39,7 @@ class PsUtil:
         pass
 
 
-    def init(self, _topic_callback):
+    def init(self, _topic_action_callback):
         pass
 
 

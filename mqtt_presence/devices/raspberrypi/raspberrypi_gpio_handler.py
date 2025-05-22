@@ -1,59 +1,67 @@
 import logging
 from functools import partial
 
-from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioButton_Function
 from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
+from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
 
 
-class GPioZeroSimulated():
-    def __init__(self):
-        self.when_pressed = None
-
+PRESSED = "pressed"
+RELEASED = "released"
+HELD = "held"
 
 class GpioHandler:
-    def __init__(self, gpio : Gpio, topic_callback, simulated=False):
+    def __init__(self, gpio : Gpio, topic_action_callback, simulated=False):
         self.gpio = gpio
         self.gpio_zero = None
         self.topic = f"gpio_{self.gpio.number}"
-        if simulated :
-            if self.gpio.mode == GpioMode.INPUT:
-                pass
-            elif gpio.mode == GpioMode.OUTPUT:
-                pass
-            elif gpio.mode == GpioMode.LED:
-                pass
-            elif gpio.mode == GpioMode.BUTTON:
-                self.gpio_zero = GPioZeroSimulated()
-                self.gpio_zero.when_pressed  = partial(topic_callback, self.topic)
+        self._topic_action_callback = topic_action_callback
 
-        else:
+        try:
             from gpiozero import Button, LED
-
-            if self.gpio.mode == GpioMode.INPUT:
-                pass    #self.gpio_zero = DigitalInput(gpio.number)
-            elif gpio.mode == GpioMode.OUTPUT:
-                pass    #self.gpio_zero = DigitalOutput(gpio.number)
-            elif gpio.mode == GpioMode.LED:
+            if gpio.mode == GpioMode.LED:
                 self.gpio_zero = LED(gpio.number)
             elif gpio.mode == GpioMode.BUTTON:
                 button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
                 self.gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
-                self.gpio_zero.when_pressed  = partial(topic_callback, self.topic, "pressed")
-                self.gpio_zero.when_released  = partial(topic_callback, self.topic, "released")
-                self.gpio_zero.when_held  = partial(topic_callback, self.topic, "held")
+                self.gpio_zero.when_pressed  = partial(self._button_callback, self.topic, PRESSED)
+                self.gpio_zero.when_released  = partial(self._button_callback, self.topic, RELEASED)
+                self.gpio_zero.when_held  = partial(self._button_callback, self.topic, HELD)
+            else:
+                logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
+        except Exception as e:
+            logger.exception("🔴 Raspberry Pi failed")
 
 
-    def simulate_button(self):
-        self.gpio_zero.when_pressed(self.gpio)
+
+    def get_button_function(self, func, button: GpioButton):
+        if button is None:
+            return None
+        if button.function_held is not None and func == HELD:
+            return button.function_held
+        if button.function_released is not None and func == RELEASED:
+            return button.function_released
+        if button.function_pressed is not None and func == PRESSED:
+            return button.function_pressed
+        return None
+
+
+
+    def _button_callback(self, topic, function):
+        self._topic_action_callback(topic, function)
+        command = self.get_button_function(function, self.gpio.button)
+        print(command)
+        if (command is not None):
+            if command ==  GpioButton_Function.REBOOT: Tools.reboot()
+            if command ==  GpioButton_Function.SHUTDOWN: Tools.shutdown()
 
 
     def get_led(self):
         if self.gpio_zero is not None:
             return self.gpio_zero.value
         return -1
-          
 
 
     def set_led(self, state: int):
@@ -62,8 +70,6 @@ class GpioHandler:
                 self.gpio_zero.on()
             else:
                 self.gpio_zero.off()
-        else:
-            logger.info("GPIO %s not available, simualted %s", self.gpio.friendly_name, state)
 
 
 
@@ -72,12 +78,9 @@ class GpioHandler:
             mqtt_topics.switches[self.topic] = MqttTopic(f"Led {self.gpio.number}", action=partial(self.command, "switch"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
-            #mqtt_topics.switches[f"gpio_{self.gpio.number}_switch"] = MqttTopic(f"Switch Led {self.gpio.number}", action=partial(self.command, "switch"))
         elif self.gpio.mode == GpioMode.BUTTON:
             print(f"Creating automation  -   gpio_{self.gpio.number}")
-            mqtt_topics.device_automations[self.topic] = MqttTopic(f"Press", subtype = "pressed")
-            mqtt_topics.device_automations[f"{self.topic}_released"] = MqttTopic(f"released", subtype = "released")
-            mqtt_topics.device_automations[f"{self.topic}_held"] = MqttTopic(f"held", subtype = "held")
+            mqtt_topics.device_automations[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", actions = [PRESSED, RELEASED, HELD])
 
 
     def update_data(self, mqtt_topics: MqttTopics):
@@ -98,4 +101,3 @@ class GpioHandler:
     def close(self):
         if (self.gpio_zero is not None):
             self.gpio_zero.close()
-

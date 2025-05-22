@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from typing import List
 # pylint: disable=R0902
 # pylint: enable=R0902
 
@@ -7,12 +7,12 @@ from dataclasses import dataclass
 
 @dataclass
 class MqttTopic:
-    def __init__(self, friendly_name, action = None, unit = None, icon = None, subtype = None):
+    def __init__(self, friendly_name, action = None, unit = None, icon = None, actions: List[str] = None):
         self.friendly_name = friendly_name
         self.action = action
         self.unit = unit
         self.icon = icon
-        self.subtype = subtype
+        self.actions = actions
 
 
 @dataclass 

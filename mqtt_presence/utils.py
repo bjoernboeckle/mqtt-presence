@@ -50,6 +50,7 @@ class Tools:
     @staticmethod
     def shutdown():
         logger.info("🛑 Shutdown initiated...")
+        return
         system = platform.system()
         if system == "Windows":
             os.system("shutdown /s /t 0")
@@ -60,6 +61,7 @@ class Tools:
     @staticmethod
     def reboot():
         logger.info("🔄 Reboot initiated...")
+        return
         system = platform.system()
         if system == "Windows":
             os.system("shutdown /r /t 0")

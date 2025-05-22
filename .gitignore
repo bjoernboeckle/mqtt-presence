@@ -182,3 +182,4 @@ config.json
 
 # Ignore generated version file
 #mqtt_presence/version.py
+.lgd-nfy0

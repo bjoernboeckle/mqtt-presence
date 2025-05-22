@@ -24,6 +24,8 @@ class Mqtt:
 
 
 
+
 @dataclass
 class Configuration:
     mqtt: Mqtt = field(default_factory=Mqtt)
+

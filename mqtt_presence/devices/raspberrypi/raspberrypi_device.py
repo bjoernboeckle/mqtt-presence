@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 
-from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings,  Gpio, GpioMode
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings, Gpio, GpioButton, GpioMode, GpioButton_Function, RaspberryPiSettingsYaml
 from mqtt_presence.devices.raspberrypi.raspberrypi_gpio_handler import GpioHandler
 from mqtt_presence.mqtt.mqtt_data import MqttTopics
 
@@ -25,7 +25,7 @@ class RaspberryPiDevice:
 
 
     def init(self, topic_callback): #, settings: RaspberryPiSettings, topic_callback):
-        settings = self.get_test_config()
+        settings = self.get_test_config()    
         if (not settings.enable_raspberrypi):
             return
         
@@ -61,11 +61,21 @@ class RaspberryPiDevice:
 
 
 
-    def get_test_config(self):                
-        settings:RaspberryPiSettings = RaspberryPiSettings()
-        settings.enable_raspberrypi = True
-        settings.simulated = False
-        settings.gpios.append(Gpio(GpioMode.LED, 19, friendly_name = "Red"))
-        settings.gpios.append(Gpio(GpioMode.LED, 21, friendly_name = "Blue"))
-        settings.gpios.append(Gpio(GpioMode.BUTTON, 16, friendly_name = "Powerdown"))
-        return settings
+    def get_test_config(self):
+        #try:
+        #    return RaspberryPiSettingsYaml.load_raspberry_settings("raspi.yaml")
+        #except Exception as e:    
+            logger.exception("🔴 get_test_config failed")
+            settings:RaspberryPiSettings = RaspberryPiSettings()
+            settings.enable_raspberrypi = True
+            settings.simulated = False
+            settings.gpios.append(Gpio(GpioMode.LED, 19, friendly_name = "Red"))
+            settings.gpios.append(Gpio(GpioMode.LED, 21, friendly_name = "Blue"))
+            # Button
+            button = Gpio(GpioMode.BUTTON, 16, friendly_name = "Powerdown")
+            button.button = GpioButton()
+            button.button.bounce_s = 0.1
+            button.button.function_held = GpioButton_Function.SHUTDOWN
+            settings.gpios.append(button)
+            RaspberryPiSettingsYaml.save_raspberry_settings(settings, "raspi.yaml")
+            return settings
