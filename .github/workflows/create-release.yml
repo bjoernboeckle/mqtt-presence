@@ -30,8 +30,6 @@ jobs:
       - name: 📝 Update pyproject.toml version from tag
         run: python scripts/update_version.py ${{ github.ref_name }}
 
-      - name: 🕒 Run pre-build script
-        run:  python scripts/pre_build.py
 
       - name: 📦 Install dependencies (incl. build + pyinstaller)
         run: |

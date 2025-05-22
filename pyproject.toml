@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mqtt-presence"
-version = "0.2.5"
+version = "0.2.4a1"
 description = "Lightweight MQTT-based presence detection with shutdown support"
 authors = [ "Bjoern Boeckle <bjoern@boeckle-net.de>",]
 license = "Apache-2.0"
@@ -29,15 +29,23 @@ pyyaml = "*"
 waitress = "*"
 platformdirs = "*"
 psutil = "*"
-gpiozero = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
-rpi-lgpio = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
-"RPi.GPIO" = { version = "*", markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')" }
 
 [tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"
+
+[tool.poetry.dependencies.gpiozero]
+version = "*"
+markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')"
+
+[tool.poetry.dependencies.rpi-lgpio]
+version = "*"
+markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')"
+
+[tool.poetry.dependencies."RPi.GPIO"]
+version = "*"
+markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platform_machine == 'aarch64')"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
 pylint = "*"
 toml = "*"
-
