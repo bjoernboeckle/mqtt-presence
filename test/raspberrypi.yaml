@@ -1,0 +1,16 @@
+enable_raspberrypi: false
+simulated: false
+gpios:
+  - mode: LED
+    number: 19
+    friendly_name: Red
+  - mode: LED
+    number: 21
+    friendly_name: Blue
+  - mode: BUTTON
+    number: 16
+    friendly_name: Powerdown
+    button:
+      bounce_s: 0.1
+      pull_up: true
+      function_held: SHUTDOWN

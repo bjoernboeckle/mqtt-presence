@@ -1,8 +1,8 @@
 # pylint: skip-file
 
-from gpiozero import Button, LED
+#from gpiozero import Button, LED
 #from gpiozero.pins.rpigpio import RPiGPIOFactory
-from signal import pause
+#from signal import pause
 
 # Nutzt explizit RPi.GPIO statt automatisch
 #factory = RPiGPIOFactory()
@@ -13,6 +13,6 @@ from signal import pause
 
 #button.when_pressed = on_press
 
-LED(19).on()
+#LED(19).on()
 
-pause()
+#pause()

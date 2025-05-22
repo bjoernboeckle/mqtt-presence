@@ -8,11 +8,6 @@ from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
 logger = logging.getLogger(__name__)
 
 
-
-# MQTT binary_sensors
-__binary_sensors__ = {
-
-}
 # MQTT sensors
 __sensors__ = {
     "cpu_freq": MqttTopic("CPU Frequency", unit = "MHz", icon = "sine-wave"),
@@ -23,10 +18,6 @@ __sensors__ = {
     "net_bytes_sent": MqttTopic("Network Bytes Sent", unit = "B", icon = "network"),
     "net_bytes_recv": MqttTopic("Network Bytes Received", unit = "B", icon = "network"),
     "cpu_temp": MqttTopic("CPU Temperature", unit = "°C", icon = "thermometer")
-}
-# MQTT buttons
-__buttons__ = {
-    #"test": MqttTopic("Teste etwas", partial(test, 100)),
 }
 
 
@@ -44,9 +35,7 @@ class PsUtil:
 
 
     def create_topics(self, mqtt_topics: MqttTopics):
-        #mqtt_topics.binary_sensors.update()
         mqtt_topics.sensors.update(__sensors__)
-        #mqtt_topics.buttons.update(__buttons__)
 
 
     def update_data(self, mqtt_topics: MqttTopics):
