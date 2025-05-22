@@ -179,7 +179,9 @@ cython_debug/
 secret.key
 config.yaml
 config.json
+raspberrypi.yaml
 
 # Ignore generated version file
 #mqtt_presence/version.py
 .lgd-nfy0
+

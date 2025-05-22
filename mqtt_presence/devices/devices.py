@@ -8,10 +8,6 @@ from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
 
 logger = logging.getLogger(__name__)
 
-def test(_payload):
-    print("TESSSSSTTTTTTTTTTTTTTT")
-
-
 
 class Devices:
     def __init__(self, config_path: str):    
@@ -31,7 +27,7 @@ class Devices:
         device_buttons = {
             "shutdown": MqttTopic("Shutdown pc", action = partial(self._devcie_command, "shutdown")),
             "reboot": MqttTopic("Reboot pc", action = partial(self._devcie_command, "reboot")),
-            "test": MqttTopic("Teste button", action = partial(self._devcie_command, "test")),
+            #"test": MqttTopic("Teste button", action = partial(self._devcie_command, "test")),
         }
 
         mqtt_topics.buttons.update(device_buttons)
@@ -48,5 +44,5 @@ class Devices:
         logger.info("✏️  Device command: %s", payload)
         if ( function == "shutdown"): Tools.shutdown()
         elif ( function == "reboot"): Tools.reboot()
-        elif ( function == "test"): logger.info("🧪 Test command")
+        #elif ( function == "test"): logger.info("🧪 Test command")
         else: logger.warning("⚠️  Unknown Device command: %s", payload)
