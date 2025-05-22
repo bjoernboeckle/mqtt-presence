@@ -65,7 +65,7 @@ class RaspberryPiDevice:
         except Exception as e:    
             logger.exception("🔴 read_config failed, create default")
             settings:RaspberryPiSettings = RaspberryPiSettings()
-            settings.enable_raspberrypi = True
+            settings.enable_raspberrypi = False
             settings.simulated = False
             settings.gpios.append(Gpio(GpioMode.LED, 19, friendly_name = "Red"))
             settings.gpios.append(Gpio(GpioMode.LED, 21, friendly_name = "Blue"))
