@@ -3,7 +3,7 @@ from typing import List
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings, Gpio, GpioButton, GpioMode, GpioButton_Function
 from mqtt_presence.devices.raspberrypi.raspberrypi_gpio_handler import GpioHandler
-from mqtt_presence.mqtt.mqtt_data import MqttTopics
+from mqtt_presence.mqtt.mqtt_data import MqttTopic
 from mqtt_presence.devices.raspberrypi.raspberrypi_settings_yaml import RaspberryPiSettingsYaml
 
 logger = logging.getLogger(__name__)
@@ -44,14 +44,16 @@ class RaspberryPiDevice:
             self.gpio_handlers = []
 
 
-    def create_topics(self, mqtt_topics: MqttTopics):
+    def create_topics(self) -> dict[str, MqttTopic]:
+        result: dict[str, MqttTopic] = {}
         for gpio_handler in self.gpio_handlers:
-            gpio_handler.create_topic(mqtt_topics)
+            gpio_handler.create_topic(result)
+        return result
 
 
-    def update_data(self, mqtt_topics: MqttTopics):
+    def update_data(self, device_data: dict[str, str]):
         for gpio_handler in self.gpio_handlers:
-            gpio_handler.update_data(mqtt_topics)
+            gpio_handler.update_data(device_data)
 
 
     def get_gpio_handler(self, gpio_setting):
