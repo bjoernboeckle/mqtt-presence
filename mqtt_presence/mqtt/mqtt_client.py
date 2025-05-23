@@ -216,10 +216,10 @@ class MQTTClient:
                 component = mqtt_topic.homeassistant.type if mqtt_topic.homeassistant else None
                 if component is not None:
                     if mqtt_topic.homeassistant.actions is not None:
-                        for action in mqtt_topic.actions:
+                        for action in mqtt_topic.homeassistant.actions:
                             discovery_topic = f"{discovery_prefix}/{component.value}/{node_id}/action_{topic}_{action}/config"
                             payload = self._get_discovery_payload(topic, mqtt_topic, component.value, node_id)
-                            payload["type"] = "button_short_press"
+                            payload["type"] = action
                             payload["subtype"] = f"{topic}_{action}"
                             payload["unique_id"] = f"{payload['unique_id']}_{action}"
                             payload["payload"] = action

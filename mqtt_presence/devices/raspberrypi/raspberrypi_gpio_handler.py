@@ -8,9 +8,9 @@ from mqtt_presence.utils import Tools
 logger = logging.getLogger(__name__)
 
 
-PRESSED = "pressed"
-RELEASED = "released"
-HELD = "held"
+PRESSED = "button_short_press"
+RELEASED = "button_short_release"
+HELD = "button_long_press"
 
 class GpioHandler:
     def __init__(self, gpio : Gpio, action_callback, simulated=False):
@@ -77,7 +77,7 @@ class GpioHandler:
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
         elif self.gpio.mode == GpioMode.BUTTON:
-            mqtt_topics[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SWITCH, actions = [PRESSED, RELEASED, HELD]))
+            mqtt_topics[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
         
 
     def update_data(self, device_data: dict[str, str]):
