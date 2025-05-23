@@ -85,7 +85,7 @@ class WebUI:
         @self.app.route("/status")
         def status():
             return jsonify({
-                "mqtt_status": "Online" if self.mqtt_app.mqtt_client.is_connected() else "Offline",
+                "mqtt_status": "Online" if self.mqtt_app._mqtt_client.is_connected() else "Offline",
                 "client_id": self.mqtt_app.app_config.app.mqtt.client_id,
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })

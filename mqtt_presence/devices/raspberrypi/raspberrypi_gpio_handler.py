@@ -2,7 +2,7 @@ import logging
 from functools import partial
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioButton_Function
-from mqtt_presence.mqtt.mqtt_data import MqttTopics, MqttTopic
+from mqtt_presence.mqtt.mqtt_data import MqttTopic, MQTTHomeassistant, MQTTHomeassistantType
 from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
@@ -71,19 +71,18 @@ class GpioHandler:
                 self.gpio_zero.off()
 
 
-
-    def create_topic(self, mqtt_topics: MqttTopics):
+    def create_topic(self, mqtt_topics: dict[str, MqttTopic]):
         if self.gpio.mode == GpioMode.LED:
-            mqtt_topics.switches[self.topic] = MqttTopic(f"Led {self.gpio.number}", action=partial(self.command, "switch"))
+            mqtt_topics[self.topic] = MqttTopic(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SWITCH))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
         elif self.gpio.mode == GpioMode.BUTTON:
-            mqtt_topics.device_automations[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", actions = [PRESSED, RELEASED, HELD])
+            mqtt_topics[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SWITCH, actions = [PRESSED, RELEASED, HELD]))
+        
 
-
-    def update_data(self, mqtt_topics: MqttTopics):
+    def update_data(self, device_data: dict[str, str]):
         if self.gpio.mode == GpioMode.LED:
-            mqtt_topics.data[self.topic] = "OFF" if self.get_led() == 0 else "ON"
+            device_data[self.topic] = "OFF" if self.get_led() == 0 else "ON"
 
 
 
