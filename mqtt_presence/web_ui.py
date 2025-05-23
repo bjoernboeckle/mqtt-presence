@@ -51,7 +51,7 @@ class WebUI:
                 password = request.form.get("password")
                 if password:
                     #new_config.mqtt.broker.password = request.form.get("password")
-                    new_config.mqtt.broker.encrypted_password =  self.mqtt_app.config_handler.get_encrypt_password(password)
+                    new_config.mqtt.broker.encrypted_password = self.mqtt_app.get_config_handler().get_encrypt_password(password)
                 new_config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(request.form.get("prefix"))
 
                 #homeassistant
@@ -60,7 +60,7 @@ class WebUI:
                 new_config.mqtt.homeassistant.discovery_prefix = request.form.get("discovery_prefix", self.mqtt_app.config.mqtt.homeassistant.discovery_prefix)
                 logger.info("⚙️ Konfiguration aktualisiert....")
                 self.mqtt_app.update_new_config(new_config)
-                self.mqtt_app.restart()
+
 
             return render_template("index.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
@@ -85,7 +85,7 @@ class WebUI:
         @self.app.route("/status")
         def status():
             return jsonify({
-                "mqtt_status": "Online" if self.mqtt_app._mqtt_client.is_connected() else "Offline",
+                "mqtt_status": "Online" if self.mqtt_app.get_mqtt_client().is_connected() else "Offline",
                 "client_id": self.mqtt_app.app_config.app.mqtt.client_id,
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })

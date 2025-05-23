@@ -2,14 +2,12 @@ import logging
 import threading
 import time
 
-
 from mqtt_presence.mqtt.mqtt_client import MQTTClient
 from mqtt_presence.devices.devices import Devices
 from mqtt_presence.config_handler import ConfigHandler
 from mqtt_presence.app_data import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
-
 
 
 logger = logging.getLogger(__name__)
@@ -52,6 +50,12 @@ class MQTTPresenceApp():
         self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
 
 
+    def get_config_handler(self):
+        return self._config_handler
+
+    def get_mqtt_client(self):
+        return self._mqtt_client
+
     def update_new_config(self, config : Configuration):
         self._config_handler.save_config(config)
         self.config = config
@@ -66,7 +70,7 @@ class MQTTPresenceApp():
 
 
     def restart(self):
-        print("ReStart!!!")
+        logger.info("🔄 ReStarting...")
         self.config = self._config_handler.load_config()
         self._mqtt_client.disconnect()
 
@@ -102,17 +106,17 @@ class MQTTPresenceApp():
 
 
     def _run_app_loop(self):
+        should_cleanup: bool = False
         while self._should_run:
-            try:
-                # handle mqtt (auto)connection
-                if not self._mqtt_client.is_connected():
-                    password = self._config_handler.get_decrypt_password(self.config.mqtt.broker.encrypted_password)
-                    self._mqtt_client.connect(self.app_config.app.mqtt.client_id, self.config, password)
-                else:
-                    self._devices.update_data()
-                    self._mqtt_client.publish_mqtt_data(self._devices.data)
-                time.sleep(5)
-            except Exception as e:
-                self._mqtt_client.disconnect()
-            #finally:
-                #self.disconnect()
+            # handle mqtt (auto)connection
+            if not self._mqtt_client.is_connected():
+                should_cleanup = True
+                password = self._config_handler.get_decrypt_password(self.config.mqtt.broker.encrypted_password)
+                self._mqtt_client.connect(self.app_config.app.mqtt.client_id, self.config, password)
+            else:
+                if should_cleanup:
+                    self._mqtt_client.clean_discovery_topics(False)
+                    should_cleanup = False
+                self._devices.update_data()
+                self._mqtt_client.publish_mqtt_data(self._devices.data)
+            time.sleep(5)
