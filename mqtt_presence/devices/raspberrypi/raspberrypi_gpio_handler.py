@@ -13,7 +13,7 @@ RELEASED = "button_short_release"
 HELD = "button_long_press"
 
 class GpioHandler:
-    def __init__(self, gpio : Gpio, action_callback, simulated=False):
+    def __init__(self, gpio : Gpio, action_callback):
         self.gpio = gpio
         self.gpio_zero = None
         self.topic = f"gpio_{self.gpio.number}"
@@ -92,6 +92,7 @@ class GpioHandler:
             elif (function == "off"): self.set_led(0)
             elif (function == "switch"):
                 self.set_led(0 if payload == "off" else 1)
+                self._action_callback(None, function)
 
 
     def close(self):

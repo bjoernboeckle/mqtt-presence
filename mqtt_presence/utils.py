@@ -156,12 +156,11 @@ class Tools:
     @staticmethod
     def log_platform():
         system = platform.system()
-        machine = platform.machine()
 
         if system == "Windows":
             logger.info("🪟 Running on Windows")
         elif system == "Linux":
-            if "arm" in machine or "aarch64" in machine:
+            if Tools.is_rasppery_pi():
                 logger.info("🍓 Running on Raspberry Pi (likely)")
             else:
                 logger.info("🐧 Running on generic Linux")
@@ -170,3 +169,10 @@ class Tools:
         else:
             logger.warning("Unknown system: %s", system)
             sys.exit(1)
+
+
+    @staticmethod
+    def is_rasppery_pi():
+        system = platform.system()
+        machine = platform.machine()
+        return system == "Linux" and  "arm" in machine or "aarch64" in machine

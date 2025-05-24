@@ -177,9 +177,10 @@ cython_debug/
 
 # customized
 secret.key
-config.yaml
-config.json
 raspberrypi.yaml
+configuration.yaml
+password.key
+
 
 # Ignore generated version file
 #mqtt_presence/version.py

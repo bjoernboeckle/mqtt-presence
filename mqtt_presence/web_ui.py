@@ -5,7 +5,7 @@ from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
 from mqtt_presence.utils import Tools
-from mqtt_presence.app_data import Configuration
+from mqtt_presence.config.configuration import Configuration
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +24,11 @@ class WebUI:
 
     def run_ui(self):
         # use waitress or flask self run
-        logging.info("Starting web ui at %s:%s", self.mqtt_app.app_config.app.webServer.host, self.mqtt_app.app_config.app.webServer.port)
+        logging.info("Starting web ui at %s:%s", self.mqtt_app.config.webServer.host, self.mqtt_app.config.webServer.port)
         if Tools.is_debugger_active():
-            self.app.run(host=self.mqtt_app.app_config.app.webServer.host, port=self.mqtt_app.app_config.app.webServer.port)
+            self.app.run(host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
         else:
-            serve(self.app, host=self.mqtt_app.app_config.app.webServer.host, port=self.mqtt_app.app_config.app.webServer.port)
+            serve(self.app, host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
 
 
 
@@ -48,10 +48,7 @@ class WebUI:
                 # mqtt broker
                 new_config.mqtt.broker.host = request.form.get("host")
                 new_config.mqtt.broker.username = request.form.get("username")
-                password = request.form.get("password")
-                if password:
-                    #new_config.mqtt.broker.password = request.form.get("password")
-                    new_config.mqtt.broker.encrypted_password = self.mqtt_app.get_config_handler().get_encrypt_password(password)
+                new_password = request.form.get("password")
                 new_config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(request.form.get("prefix"))
 
                 #homeassistant
@@ -59,7 +56,7 @@ class WebUI:
                 new_config.mqtt.homeassistant.device_name = request.form.get("device_name", self.mqtt_app.config.mqtt.homeassistant.device_name)
                 new_config.mqtt.homeassistant.discovery_prefix = request.form.get("discovery_prefix", self.mqtt_app.config.mqtt.homeassistant.discovery_prefix)
                 logger.info("⚙️ Konfiguration aktualisiert....")
-                self.mqtt_app.update_new_config(new_config)
+                self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)
 
 
             return render_template("index.html", **{
@@ -86,7 +83,7 @@ class WebUI:
         def status():
             return jsonify({
                 "mqtt_status": "Online" if self.mqtt_app.get_mqtt_client().is_connected() else "Offline",
-                "client_id": self.mqtt_app.app_config.app.mqtt.client_id,
+                "client_id": self.mqtt_app.config.mqtt.broker.client_id,
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })
 
