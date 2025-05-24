@@ -18,7 +18,7 @@ RUN poetry config virtualenvs.create false \
 COPY . /app
 
 # 7. Expose falls dein Service einen Port verwendet (optional)
-EXPOSE 8000
+EXPOSE 8100
 
 # 8. Standardkommando (hier startest du deinen Service)
 CMD ["poetry", "run", "mqtt-presence"]

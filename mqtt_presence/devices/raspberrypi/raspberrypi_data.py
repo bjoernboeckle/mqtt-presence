@@ -1,16 +1,16 @@
+
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
-import yaml
-from dataclasses import dataclass, field, is_dataclass, asdict
+from typing import List, Optional
 
 
 class GpioMode(Enum):
-    LED = 0
-    BUTTON = 1
+    LED = "led"
+    BUTTON = "button"
 
 class GpioButton_Function(Enum):
-    SHUTDOWN = 0
-    REBOOT = 1
+    SHUTDOWN = "shutdown"
+    REBOOT = "reboot"
 
 
 @dataclass
@@ -25,15 +25,27 @@ class GpioButton:
 
 @dataclass
 class Gpio:
-    mode: GpioMode = None
-    number: int = None
+    mode: GpioMode = GpioMode.LED
+    number: int = 0
     friendly_name: str = ""
-    button: GpioButton = None
+    button: Optional[GpioButton] = None
 
 
 
 @dataclass
 class RaspberryPiSettings:
-    enable_raspberrypi: bool = False
-    simulated: bool = None
+    enable: bool = True
     gpios: List[Gpio] = field(default_factory=list)
+
+
+    @staticmethod
+    def get_default_raspberrypi_settings() -> 'RaspberryPiSettings':
+        return RaspberryPiSettings(
+            enable=True,
+            gpios=[
+                Gpio(mode=GpioMode.LED, number=19, friendly_name="Red"),
+                Gpio(mode=GpioMode.LED, number=21, friendly_name="Blue"),
+                Gpio(mode=GpioMode.BUTTON, number=16, friendly_name="Powerdown")
+                     #,button=GpioButton(function_held=GpioButton_Function.SHUTDOWN))
+            ]
+        )

@@ -1,11 +1,10 @@
 import logging
 import threading
-import time
 
 from mqtt_presence.mqtt.mqtt_client import MQTTClient
 from mqtt_presence.devices.devices import Devices
-from mqtt_presence.config_handler import ConfigHandler
-from mqtt_presence.app_data import Configuration
+from mqtt_presence.config.config_handler import ConfigHandler
+from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
 
@@ -27,9 +26,6 @@ logger = logging.getLogger(__name__)
 #        return cls._instance
 
 
-
-
-
 class MQTTPresenceApp():
     NAME = NAME
     VERSION = VERSION
@@ -42,11 +38,12 @@ class MQTTPresenceApp():
         #AppStateSingleton.init(self)
         self._config_handler = ConfigHandler(data_path)
         self._should_run = True
+        self._sleep_event = threading.Event()
         # load config
         self.config : Configuration = self._config_handler.load_config()
-        self.app_config = self._config_handler.load_config_yaml()
+
         self._mqtt_client: MQTTClient = MQTTClient(self._mqtt_callback)
-        self._devices = Devices(self._config_handler.data_path)
+        self._devices = Devices()
         self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
 
 
@@ -56,8 +53,8 @@ class MQTTPresenceApp():
     def get_mqtt_client(self):
         return self._mqtt_client
 
-    def update_new_config(self, config : Configuration):
-        self._config_handler.save_config(config)
+    def update_new_config(self, config : Configuration, password: str = None):
+        self._config_handler.save_config(config, password)
         self.config = config
         self.restart()
 
@@ -65,22 +62,24 @@ class MQTTPresenceApp():
     def start(self):
         #show platform
         Tools.log_platform()
-        self._devices.init(self._action_callback)
+        self._devices.init(self.config, self._action_callback)
         self._thread.start()
 
 
     def restart(self):
         logger.info("🔄 ReStarting...")
         self.config = self._config_handler.load_config()
+        self._devices.exit()
+        self._devices.init(self.config, self._action_callback)
         self._mqtt_client.disconnect()
+        self._sleep_event.set()
 
 
     def exit_app(self):
         self._should_run = False
+        self._sleep_event.set()
         self._mqtt_client.disconnect()
         self._devices.exit()
-
-
 
 
 
@@ -95,7 +94,9 @@ class MQTTPresenceApp():
 
     def _action_callback(self, topic: str, function: str):
         logger.info("🚪 Callback: %s: %s", topic, function)
-        self._mqtt_client.handle_action(topic, function)
+        if topic is not None:
+            self._mqtt_client.handle_action(topic, function)
+        self._sleep_event.set()
 
 
     def _mqtt_callback(self, function: str):
@@ -110,13 +111,16 @@ class MQTTPresenceApp():
         while self._should_run:
             # handle mqtt (auto)connection
             if not self._mqtt_client.is_connected():
-                should_cleanup = True
-                password = self._config_handler.get_decrypt_password(self.config.mqtt.broker.encrypted_password)
-                self._mqtt_client.connect(self.app_config.app.mqtt.client_id, self.config, password)
+                should_cleanup = self.config.mqtt.homeassistant and  self.config.mqtt.homeassistant.enableAutoCleanup
+                password = self._config_handler.get_password()
+                self._mqtt_client.connect(self.config, password)
             else:
                 if should_cleanup:
                     self._mqtt_client.clean_discovery_topics(False)
                     should_cleanup = False
                 self._devices.update_data()
                 self._mqtt_client.publish_mqtt_data(self._devices.data)
-            time.sleep(5)
+
+            self._sleep_event.wait(timeout=self.config.updateRate)      # Wait for the next update cycle
+            self._sleep_event.clear()                                   # Reset the event for the next cycle
+        logger.info("🔴 App main loop stopped")

@@ -4,9 +4,9 @@ import threading
 from typing import List
 import paho.mqtt.client as mqtt
 
-from mqtt_presence.app_data import Configuration
+from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.mqtt.mqtt_data import MqttTopic, MQTTHomeassistant, MQTTHomeassistantType
-
+from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
 
@@ -60,19 +60,21 @@ class MQTTClient:
                         logger.error("Failed to get %s data %s: %s  (%s, %s)", component.value, topic, exception, value, old_value)
 
 
-    def connect(self, client_id, config: Configuration, password: str):
+    def connect(self, config: Configuration, password: str):
         with self._lock:
             self._config = config
             # mqtt data
-            self._node_id = self._config.mqtt.broker.prefix.replace("/", "_")
+            self._node_id = self._config.mqtt.broker.client_id           #   self._config.mqtt.broker.prefix.replace("/", "_")
             self._discovery_prefix = self._config.mqtt.homeassistant.discovery_prefix
             self._topic_prefix = self._config.mqtt.broker.prefix            
+
             try:
                 logger.info("🚪 Starting MQTT for %s on %s:%d",
-                            client_id,
+                            self._node_id,
                             self._config.mqtt.broker.host,
                             self._config.mqtt.broker.port)
-                self._create_client(client_id, password)
+
+                self._create_client(self._node_id, password)
                 self._client.connect(
                     self._config.mqtt.broker.host,
                     self._config.mqtt.broker.port,
@@ -159,7 +161,7 @@ class MQTTClient:
         self._client.unsubscribe(f"homeassistant/+/{self._node_id}/+/config")
         
         # Remove all topics that are no longer in the list of actively published topics
-        for topic in self._existing_discovery_topics:
+        for topic in self._existing_discovery_topics or []:
             if clear_all or topic not in self._published_topics:
                 logger.info("🧹 Removing outdated discovery topic: %s", topic)
                 self._client.publish(topic, payload=None, retain=True)
