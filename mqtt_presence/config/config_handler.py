@@ -163,7 +163,7 @@ class ConfigHandler:
         :return: Default Configuration dataclass instance.
         """
         config = Configuration()
-        config.mqtt.broker.client_id = Tools.sanitize_mqtt_topic(f"{NAME}-{Tools.get_pc_name()}")
+        config.mqtt.broker.client_id = Tools.sanitize_mqtt_topic(f"{NAME}_{Tools.get_pc_name()}")
         config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(f"{NAME}/{Tools.get_pc_name()}")
         config.mqtt.homeassistant.device_name = Tools.get_pc_name()
 
