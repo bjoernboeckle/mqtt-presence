@@ -15,10 +15,15 @@ keywords = [ "mqtt", "presence", "shutdown", "home-assistant", "smart-home", "mq
 [[tool.poetry.packages]]
 include = "mqtt_presence"
 
+
 [[tool.poetry.include]]
 path = "mqtt_presence/templates"
+format = "sdist"
+
+[[tool.poetry.include]]
 path = "mqtt_presence/static"
 format = "sdist"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"

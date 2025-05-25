@@ -51,7 +51,7 @@ class MQTTPresenceApp():
 
     def get_mqtt_client(self):
         return self._mqtt_client
-    
+
     def get_devices(self):
         return self._devices
 
@@ -72,7 +72,7 @@ class MQTTPresenceApp():
 
     def restart(self):
         logger.info("🔄 ReStarting...")
-        self.stop()      
+        self.stop()
         self.start()
 
 
