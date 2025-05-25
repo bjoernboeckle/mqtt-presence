@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>MQTT Presence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .gpio-entry .form-control,
+        .gpio-entry .form-select {
+            margin-bottom: 0.5rem;
+        }
+        .gpio-button-settings {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #ccc;
+        }
+        .gpio-button-settings .form-label {
+            font-weight: 500;
+        }
+        .gpio-button-settings .row > div {
+            padding-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
+        <div class="mb-4 text-center">{{description}}</div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-3">State</h4>
+                <p>MQTT connection: <strong id="mqtt_status">Loading...</strong></p>
+                <p>Client ID: <strong id="client_id">Loading...</strong></p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Konfiguration</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">MQTT Einstellungen</h5>
+                        <div class="mb-3">
+                            <label class="form-label" for="host_mqtt">Broker/Host</label>
+                            <input class="form-control" type="text" id="host_mqtt">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="username">Benutzername</label>
+                            <input class="form-control" type="text" id="username">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="password">Passwort</label>
+                            <input class="form-control" type="password" id="password" placeholder="(leer = unverändert)">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="prefix">Prefix</label>
+                            <input class="form-control" type="text" id="prefix">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Webserver</h5>
+                        <div class="mb-3">
+                            <label class="form-label" for="host">Host</label>
+                            <input class="form-control" type="text" id="host">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="port">Port</label>
+                            <input class="form-control" type="number" id="port">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Home Assistant</h4>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="enable_homeassistant">
+                    <label class="form-check-label" for="enable_homeassistant">Home Assistant aktivieren</label>
+                </div>
+                <div id="homeassistant-section">
+                    <div class="mb-3">
+                        <label class="form-label" for="device_name">Gerätename</label>
+                        <input class="form-control" type="text" id="device_name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="discovery_prefix">Discovery Prefix</label>
+                        <input class="form-control" type="text" id="discovery_prefix">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enableAutoCleanup">
+                        <label class="form-check-label" for="enableAutoCleanup">Auto-Cleanup aktivieren</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Raspberry Pi GPIOs</h4>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="enable_raspberryPi">
+                    <label class="form-check-label" for="enable_raspberryPi">Raspberry Pi aktivieren</label>
+                </div>
+                <div id="raspberrypi-section">
+                    <div class="row fw-bold mb-2">
+                        <div class="col-md-2">Pin</div>
+                        <div class="col-md-3">Name</div>
+                        <div class="col-md-3">Funktion</div>
+                        <div class="col-md-4">Aktionen</div>
+                    </div>
+                    <div id="gpio-container"></div>
+                    <button class="btn btn-sm btn-outline-primary mt-3" onclick="addGpio()">➕ GPIO hinzufügen</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button class="btn btn-success" onclick="updateConfig()">💾 Speichern</button>
+        </div>
+    </div>
+
+    <script>
+        let gpioCounter = 0;
+        const functionOptions = ["", "shutdown", "reboot"];
+
+        function createFunctionSelect(className, selectedValue) {
+            let select = `<select class="form-select ${className}">`;
+            functionOptions.forEach(opt => {
+                const label = opt === "" ? "Keine" : opt.charAt(0).toUpperCase() + opt.slice(1);
+                select += `<option value="${opt}" ${opt === selectedValue ? "selected" : ""}>${label}</option>`;
+            });
+            select += "</select>";
+            return select;
+        }
+
+        function addGpio(mode = "led", number = "", friendlyName = "", settings = {}) {
+            let gpioContainer = document.getElementById("gpio-container");
+            let div = document.createElement("div");
+            div.classList.add("row", "gpio-entry", "mb-2", "align-items-start");
+            div.setAttribute("data-index", gpioCounter);
+
+            div.innerHTML = `
+                <div class="col-md-2">
+                    <input type="number" value="${number}" class="form-control gpio-number">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" value="${friendlyName}" class="form-control gpio-name">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select gpio-mode" onchange="toggleButtonSettings(this, ${gpioCounter})">
+                        <option value="led" ${mode === "led" ? "selected" : ""}>LED</option>
+                        <option value="button" ${mode === "button" ? "selected" : ""}>Button</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-sm btn-danger mb-2" onclick="removeGpio(${gpioCounter})">❌ Entfernen</button>
+                    <div class="gpio-button-settings" id="button-settings-${gpioCounter}" style="display: ${mode === 'button' ? 'block' : 'none'}">
+                        <div class="mb-2">
+                            <label class="form-label">Bounce (Sekunden)</label>
+                            <input type="number" class="form-control bounce-s" value="${settings.bounce_s || ''}">
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input pull-up" type="checkbox" ${settings.pull_up ? 'checked' : ''}>
+                            <label class="form-check-label">Pull-Up</label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">gedrückt</label>
+                                ${createFunctionSelect("function-pressed", settings.function_pressed)}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">losgelassen</label>
+                                ${createFunctionSelect("function-released", settings.function_released)}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">gehalten</label>
+                                ${createFunctionSelect("function-held", settings.function_held)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            gpioContainer.appendChild(div);
+            gpioCounter++;
+        }
+
+        function toggleButtonSettings(selectElement, index) {
+            const settingsDiv = document.getElementById(`button-settings-${index}`);
+            settingsDiv.style.display = selectElement.value === "button" ? "block" : "none";
+        }
+
+        function removeGpio(index) {
+            const entry = document.querySelector(`.gpio-entry[data-index='${index}']`);
+            if (entry) entry.remove();
+        }
+
+        function loadConfig(config) {
+            // Allgemeine Einstellungen
+            document.getElementById("host_mqtt").value = config.mqtt?.host || "";
+            document.getElementById("username").value = config.mqtt?.username || "";
+            document.getElementById("password").value = "";  // nie vorausfüllen
+            document.getElementById("prefix").value = config.mqtt?.prefix || "";
+
+            document.getElementById("host").value = config.web?.host || "";
+            document.getElementById("port").value = config.web?.port || "";
+
+            document.getElementById("enable_homeassistant").checked = config.homeassistant?.enabled || false;
+            document.getElementById("device_name").value = config.homeassistant?.device_name || "";
+            document.getElementById("discovery_prefix").value = config.homeassistant?.discovery_prefix || "";
+            document.getElementById("enableAutoCleanup").checked = config.homeassistant?.enableAutoCleanup || false;
+
+            document.getElementById("enable_raspberryPi").checked = config.raspberrypi?.enabled || false;
+
+            // GPIOs
+            document.getElementById("gpio-container").innerHTML = "";
+            gpioCounter = 0;
+            if (config.raspberrypi?.gpio) {
+                config.raspberrypi.gpio.forEach(gpio => {
+                    addGpio(
+                        gpio.mode || "led",
+                        gpio.number || "",
+                        gpio.name || "",
+                        gpio.settings || {}
+                    );
+                });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/config")
+                .then(response => response.json())
+                .then(data => loadConfig(data))
+                .catch(err => console.error("Fehler beim Laden der Konfiguration:", err));
+        });
+    </script>
+</body>
+</html>

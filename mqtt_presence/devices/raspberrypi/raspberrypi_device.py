@@ -25,7 +25,7 @@ class RaspberryPiDevice:
 
     def init(self, config: Configuration, topic_callback):
         settings: RaspberryPiSettings = config.devices.raspberryPi
-        if (not settings or settings.enable is False):
+        if (not settings or settings.enabled is False):
             return
         
         try:

@@ -1,11 +1,14 @@
 import copy
 import logging
 
+import json
+from dataclasses import asdict
 from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
 from mqtt_presence.utils import Tools
 from mqtt_presence.config.configuration import Configuration
+from mqtt_presence.config.config_handler import ConfigYamlHelper
 
 logger = logging.getLogger(__name__)
 
@@ -58,20 +61,21 @@ class WebUI:
                 logger.info("⚙️ Konfiguration aktualisiert....")
                 self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)
 
-
+            serializable = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config)
             return render_template("index.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
                 "description": self.mqtt_app.DESCRIPTION,
+                "configuration": serializable
                 #MQTT
-                "host": self.mqtt_app.config.mqtt.broker.host,
-                "username": self.mqtt_app.config.mqtt.broker.username,
-                "prefix": self.mqtt_app.config.mqtt.broker.prefix,
+                #"host": self.mqtt_app.config.mqtt.broker.host,
+                #"username": self.mqtt_app.config.mqtt.broker.username,
+                #"prefix": self.mqtt_app.config.mqtt.broker.prefix,
 
                 #Homeassistant
-                "enable_HomeAssistant": self.mqtt_app.config.mqtt.homeassistant.enabled,
-                "discovery_prefix": self.mqtt_app.config.mqtt.homeassistant.discovery_prefix,
-                "device_name": self.mqtt_app.config.mqtt.homeassistant.device_name,
+                #"enable_HomeAssistant": self.mqtt_app.config.mqtt.homeassistant.enabled,
+                #"discovery_prefix": self.mqtt_app.config.mqtt.homeassistant.discovery_prefix,
+                #"device_name": self.mqtt_app.config.mqtt.homeassistant.device_name,
                 #raspberrypi
                 #"enable_raspberrypi": self.config_handler.config.get("enable_raspberrypi"),
                 #"gpio_led":  int(self.config_handler.config.get("gpio_led")),
@@ -79,11 +83,13 @@ class WebUI:
             })
 
 
+
         @self.app.route("/status")
         def status():
             return jsonify({
-                "mqtt_status": "Online" if self.mqtt_app.get_mqtt_client().is_connected() else "Offline",
-                "client_id": self.mqtt_app.config.mqtt.broker.client_id,
+                #"mqtt_status": "Online" if self.mqtt_app.get_mqtt_client().is_connected() else "Offline",
+                #"client_id": self.mqtt_app.config.mqtt.broker.client_id,
+                "configuration:": ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config),
                 #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
             })
 

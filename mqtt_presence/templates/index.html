@@ -43,11 +43,11 @@
                         </div>-->
                         <div class="mb-3">
                             <label class="form-label">Broker/Host</label>
-                            <input type="text" class="form-control" name="host" value="{{ host }}" placeholder="MQTT Broker">
+                            <input type="text" class="form-control" name="host" value="{{ configuration.mqtt.broker.host }}" placeholder="MQTT Broker">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">User</label>
-                            <input type="text" class="form-control" name="username" value="{{ username }}" placeholder="MQTT User">
+                            <input type="text" class="form-control" name="username" value="{{ configuration.mqtt.broker.username }}" placeholder="MQTT User">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
@@ -55,7 +55,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Prefix</label>
-                            <input type="text" class="form-control" name="prefix" value="{{ prefix }}" placeholder="Prefix">
+                            <input type="text" class="form-control" name="prefix" value="{{ configuration.mqtt.broker.prefix }}" placeholder="Prefix">
                         </div>                        
                     </div>
 
@@ -63,39 +63,40 @@
                     <div class="col-md-6 mb-4">
                         <h5 class="mb-3">Homeassitant discovery</h5>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enableHomeAssistant" name="enable_HomeAssistant" {% if enable_HomeAssistant %}checked{% endif %}>
+                            <input type="checkbox" class="form-check-input" id="enableHomeAssistant" name="configuration.mqtt.homeassistant.enabled" {% if enable_HomeAssistant %}checked{% endif %}>
                             <label class="form-check-label" for="enableHomeAssistant">Enable</label>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Discovery prefix</label>
-                            <input type="text" class="form-control" id="discoveryPrefix" name="discovery_prefix" value="{{ discovery_prefix or '' }}" placeholder="z.B. homeassistant">
+                            <input type="text" class="form-control" id="discoveryPrefix" name="discovery_prefix" value="{{ configuration.mqtt.homeassistant.discovery_prefix or '' }}" placeholder="z.B. homeassistant">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Device name</label>
-                            <input type="text" class="form-control" id="deviceName" name="device_name" value="{{ device_name or '' }}" placeholder="z.B. MQTT Presence PC1">
+                            <input type="text" class="form-control" id="deviceName" name="device_name" value="{{ configuration.mqtt.homeassistant.device_name or '' }}" placeholder="z.B. MQTT Presence PC1">
                         </div>                        
                     </div>
 
                 </div>
 
                 <div class="row">
-                    <!-- Raspberry Pi Einstellungen 
+                    <!-- Raspberry Pi Einstellungen -->
                     <div class="col-md-6 mb-4">
                         <h5 class="mb-3">Raspberry Pi Erweiterung</h5>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enableRpi" name="enable_raspberrypi" {% if enable_raspberrypi %}checked{% endif %}>
+                            <input type="checkbox" class="form-check-input" id="enableRpi" name="enable_raspberrypi" {% if configuration.devices.raspberryPi.enabled %}checked{% endif %}>
                             <label class="form-check-label" for="enableRpi">Enable</label>
-                        </div>
-                        <div class="mb-3">
+                        </div>                       
+                        <div id="rpi_status_container" class="mb-3">
                             <label class="form-label">GPIO LED</label>
                             <input type="number" class="form-control" id="gpioLed" name="gpio_led" value="{{ gpio_led or '' }}" placeholder="i.e.21">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">GPIO Button</label>
                             <input type="number" class="form-control" id="gpioButton" name="gpio_button" value="{{ gpio_button or '' }}" placeholder="i.e. 13">
-                        </div>                        
+                        </div>
+
                     </div>
-                    -->
+                    
                 </div>
 
                 <div class="text-end">
@@ -126,7 +127,7 @@
             const response = await fetch('/status');
             const data = await response.json();
             document.getElementById("mqtt_status").textContent = data.mqtt_status;
-            document.getElementById("client_id").textContent = data.client_id;
+            document.getElementById("client_id").textContent = data.configuration.mqtt.broker.client_id;
             //document.getElementById("online_status").textContent = data.online_status;
             //document.getElementById("last_payload").textContent = data.last_payload;
             //document.getElementById("raspberrypi_extension_status").textContent = data.raspberrypi_extension_status;
@@ -141,15 +142,15 @@
     }
 
     function toggleGpioFields() {
-        //const enabled = document.getElementById('enableRpi').checked;
-        //document.getElementById('gpioLed').disabled = !enabled;
-        //document.getElementById('gpioButton').disabled = !enabled;
+        const enabled = document.getElementById('enableRpi').checked;
+        document.getElementById('gpioLed').disabled = !enabled;
+        document.getElementById('gpioButton').disabled = !enabled;
 
-        // Raspberry Pi state shoew/hide
-        //const rpiStatus = document.getElementById('rpi_status_container');
-        //if (rpiStatus) {
-        //    rpiStatus.style.display = enabled ? 'block' : 'none';
-        //}
+        // Raspberry Pi state show/hide
+        const rpiStatus = document.getElementById('rpi_status_container');
+        if (rpiStatus) {
+            rpiStatus.style.display = enabled ? 'block' : 'none';
+        }
     }
 
     function toggleHomeassistantFields() {
@@ -168,9 +169,8 @@
         }
     }
 
-
-    //document.getElementById('enableRpi').addEventListener('change', toggleGpioFields);
-    //toggleGpioFields(); // Initialer Zustand
+    document.getElementById('enableRpi').addEventListener('change', toggleGpioFields);
+    toggleGpioFields(); // Initialer Zustand
     document.getElementById('enableHomeAssistant').addEventListener('change', toggleHomeassistantFields);
     toggleHomeassistantFields();
 

@@ -32,7 +32,7 @@ class ConfigYamlHelper:
 
     # Convert strings back to Enums
     @staticmethod
-    def deserialize_enum(value: Any, enum_classes: list) -> Any:
+    def deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function]) -> Any:
         """Recursively converts string values to their corresponding Enums."""
         if isinstance(value, str):
             for enum_class in enum_classes:
@@ -171,8 +171,8 @@ class ConfigHandler:
         config.devices.pc_utils = PcUtilsSettings()
         if Tools.is_rasppery_pi():
             config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
-        
-        
+        else:
+            config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
 
         return config
 
@@ -219,8 +219,7 @@ class ConfigHandler:
             return self.get_default_config()  # Return default configuration if file is empty
         
         # Convert Enums in nested fields
-        enum_classes = [GpioMode, GpioButton_Function]
-        parsed_yaml = ConfigYamlHelper.deserialize_enum(yaml_data.get("app", {}), enum_classes)
+        parsed_yaml = ConfigYamlHelper.deserialize_enum(yaml_data.get("app", {}))
 
         # Convert YAML data to Configuration dataclass
         config = from_dict(

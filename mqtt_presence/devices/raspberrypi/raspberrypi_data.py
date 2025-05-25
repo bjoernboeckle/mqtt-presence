@@ -15,7 +15,7 @@ class GpioButton_Function(Enum):
 
 @dataclass
 class GpioButton:
-    bounce_s: int = 0.1
+    bounce_s: float = 0.1
     pull_up: bool = True
     function_pressed:GpioButton_Function = None
     function_released:GpioButton_Function = None
@@ -34,14 +34,14 @@ class Gpio:
 
 @dataclass
 class RaspberryPiSettings:
-    enable: bool = True
+    enabled: bool = True
     gpios: List[Gpio] = field(default_factory=list)
 
 
     @staticmethod
     def get_default_raspberrypi_settings() -> 'RaspberryPiSettings':
         return RaspberryPiSettings(
-            enable=True,
+            enabled=True,
             gpios=[
                 Gpio(mode=GpioMode.LED, number=19, friendly_name="Red"),
                 Gpio(mode=GpioMode.LED, number=21, friendly_name="Blue"),
