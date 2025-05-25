@@ -80,9 +80,9 @@ class WebUI:
             data = request.json
             new_config: Configuration = ConfigYamlHelper.deserialize_enum(data.get('config'))
             new_password = data.get('password')
-            logger.info("⚙️ Konfiguration aktualisiert....")
+            logger.info("⚙️  Configuration updated....")
             self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)
-            return jsonify({"message": "Konfiguration aktualisiert!"}), 200
+            return jsonify({"message": "⚙️  Configuration updated!"}), 200
 
         @self.app.route("/status")
         def status():

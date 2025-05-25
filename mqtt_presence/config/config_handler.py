@@ -172,7 +172,7 @@ class ConfigHandler:
         if Tools.is_rasppery_pi():
             config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
         else:
-            config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
+            config.devices.raspberryPi = RaspberryPiSettings(enabled=False) #None  #RaspberryPiSettings.get_default_raspberrypi_settings()
 
         return config
 
@@ -233,14 +233,17 @@ class ConfigHandler:
 
 
     def save_config(self, config: Configuration, password: str, add_default_comment: bool = False):
-        config_path = Path(self._config_file)
-        
-        original_yaml = None
-        if config_path.exists():
-            with config_path.open("r", encoding="utf-8") as f:
-                original_yaml = self._yaml.load(f)
-        
-        self._save_config(self._config_file, config, password, original_yaml=original_yaml, add_default_comment=add_default_comment)
+        try:
+            config_path = Path(self._config_file)
+            
+            original_yaml = None
+            if config_path.exists():
+                with config_path.open("r", encoding="utf-8") as f:
+                    original_yaml = self._yaml.load(f)
+            
+            self._save_config(self._config_file, config, password, original_yaml=original_yaml, add_default_comment=add_default_comment)
+        except Exception as e:
+            logger.exception("❌ Failed to save config")
         
 
 
