@@ -3,8 +3,8 @@
 from PyInstaller.utils.hooks import collect_data_files
 
 datas = [
-    ('mqtt_presence/templates/*.html', 'templates'),#
-    #('mqtt_presence/static', 'static')
+    ('mqtt_presence/templates', 'templates'),
+    ('mqtt_presence/static', 'static')
 ]
 
 a = Analysis(

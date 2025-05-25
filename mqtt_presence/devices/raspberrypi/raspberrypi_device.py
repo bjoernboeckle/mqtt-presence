@@ -17,7 +17,7 @@ class RaspberryPiDevice:
 
 
     def exit(self):
-        if self.gpio_handlers is not None:
+        if self.online or len(self.gpio_handlers) > 0:
             logger.info("🔴 Stopping raspberrypi device")
             for gpio in self.gpio_handlers:
                 gpio.close()

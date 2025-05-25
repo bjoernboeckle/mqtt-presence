@@ -69,18 +69,18 @@ try {
 Write-Host "Registering service '$ServiceName'..."
 
 # Argumente für Konfiguration (z. B. Relativpfade unterhalb von ProgramData)
-$dataArg = "--data `"$InstallDir\data`""
+$configArg = "--config `"$InstallDir\config`""
 $logArg = "--log `"$InstallDir\log`""
 
 if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
-    & $NssmPath install $ServiceName $ExePath $dataArg $logArg
+    & $NssmPath install $ServiceName $ExePath $configArg $logArg
     & $NssmPath set $ServiceName AppDirectory $InstallDir
     & $NssmPath set $ServiceName Start SERVICE_AUTO_START
     & $NssmPath set $ServiceName AppExit Default Restart
 } else {
     & $NssmPath set $ServiceName Application $ExePath
     & $NssmPath set $ServiceName AppDirectory $InstallDir
-    & $NssmPath set $ServiceName AppParameters "$dataArg $logArg"
+    & $NssmPath set $ServiceName AppParameters "$configArg $logArg"
 }
 
 # Dienst starten

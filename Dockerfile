@@ -1,24 +1,24 @@
-# 1. Basis-Image mit Python 3.11
+# 1. Verwende ein schlankes Python-Image mit Version 3.11
 FROM python:3.11-slim
 
-# 2. Arbeitsverzeichnis im Container
+# 2. Setze das Arbeitsverzeichnis im Container
 WORKDIR /app
 
-# 3. Poetry installieren (empfohlen von Poetry-Doku)
+# 3. Installiere Poetry
 RUN pip install poetry
 
-# 4. Kopiere nur die notwendigen Dateien zuerst (für Cache)
+# 4. Kopiere nur die Abhängigkeitsdateien zuerst für Caching
 COPY pyproject.toml poetry.lock* /app/
 
-# 5. Abhängigkeiten (inkl. dev) installieren
+# 5. Installiere Abhängigkeiten ohne virtuelle Umgebung
 RUN poetry config virtualenvs.create false \
- && poetry install --no-interaction --no-ansi --with dev
+ && poetry install --no-interaction --no-ansi
 
-# 6. Projektcode kopieren
+# 6. Kopiere den gesamten Projektcode
 COPY . /app
 
-# 7. Expose falls dein Service einen Port verwendet (optional)
+# 7. Optional: öffne Port 8100 (nur relevant, wenn die App HTTP anbietet)
 EXPOSE 8100
 
-# 8. Standardkommando (hier startest du deinen Service)
-CMD ["poetry", "run", "mqtt-presence"]
+# 8. Starte immer mit dem festen Config-Pfad
+ENTRYPOINT ["poetry", "run", "mqtt-presence", "--config", "/config", "--log", "/log"]
