@@ -93,3 +93,15 @@ class WebUI:
                 #"web_status":  "🟢 Online" if self.is_server_running() else "🔴 Offline",
                 "devices_data": self.mqtt_app.get_devices().data
             })
+
+        @self.app.route('/shutdown', methods=['POST'])
+        def shutdown():
+            logger.info("shutdown....")
+            Tools.shutdown()
+            return '', 204
+
+        @self.app.route('/restart', methods=['POST'])
+        def restart():
+            logger.info("reboot....")
+            Tools.reboot()
+            return '', 204
