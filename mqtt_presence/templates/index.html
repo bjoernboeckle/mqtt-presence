@@ -387,6 +387,17 @@
             }
         }
 
+        async function sendCommand(endpoint) {
+                try {
+                    const response = await fetch(endpoint, { method: 'POST' });
+                    if (!response.ok) throw new Error("Command failed");
+                    //alert(`Command sent: ${endpoint.replace('/', '')}`);
+                } catch (error) {
+                    alert(`Error sending command: ${error}`);
+                }
+            }
+
+
         async function updateConfig() {
             const config = structuredClone(g_config);
 
