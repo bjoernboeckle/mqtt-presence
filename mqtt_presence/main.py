@@ -3,7 +3,7 @@ import logging
 
 from mqtt_presence.mqtt_presence_app import MQTTPresenceApp #, MQTTPresenceAppSingleton
 from mqtt_presence.utils import Tools
-from mqtt_presence.web_ui2 import WebUI
+from mqtt_presence.web_ui import WebUI
 
 from mqtt_presence.parser import get_parser
 from mqtt_presence.version import NAME
@@ -16,7 +16,7 @@ def main():
     def stop(_signum, _frame):
         logger.info("🚪 Stop signal recived, exiting...")
         if mqtt_app is not None:
-            mqtt_app.exit_app()
+            mqtt_app.stop()
         if user_interface is not None:
             user_interface.stop()
         Tools.exit_application()

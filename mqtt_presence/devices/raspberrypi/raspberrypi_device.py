@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class RaspberryPiDevice:
     def __init__(self):
         self.gpio_handlers: List[GpioHandler] = []
+        self.online = False
 
 
     def exit(self):
@@ -37,10 +38,12 @@ class RaspberryPiDevice:
                 if gpio is not None:
                     self.gpio_handlers.append(gpio_handler)
             logger.info("🍓 Created %s gpios", len(self.gpio_handlers))
+            self.online = True
           
         except Exception as e:
             logger.info("🔴 Raspberrypi failed: %s", e)
             self.gpio_handlers = []
+            self.online = False
 
 
     def create_topics(self) -> dict[str, MqttTopic]:

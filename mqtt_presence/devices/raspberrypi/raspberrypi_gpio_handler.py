@@ -19,20 +19,20 @@ class GpioHandler:
         self.topic = f"gpio_{self.gpio.number}"
         self._action_callback = action_callback
 
-        try:
-            from gpiozero import Button, LED
-            if gpio.mode == GpioMode.LED:
-                self.gpio_zero = LED(gpio.number)
-            elif gpio.mode == GpioMode.BUTTON:
-                button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
-                self.gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
-                self.gpio_zero.when_pressed  = partial(self._button_callback, self.topic, PRESSED)
-                self.gpio_zero.when_released  = partial(self._button_callback, self.topic, RELEASED)
-                self.gpio_zero.when_held  = partial(self._button_callback, self.topic, HELD)
-            else:
-                logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
-        except Exception as e:
-            logger.exception("🔴 Raspberry Pi failed")
+
+        from gpiozero import Button, LED
+        if gpio.mode == GpioMode.LED:
+            self.gpio_zero = LED(gpio.number)
+        elif gpio.mode == GpioMode.BUTTON:
+            button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
+            self.gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
+            self.gpio_zero.when_pressed  = partial(self._button_callback, self.topic, PRESSED)
+            self.gpio_zero.when_released  = partial(self._button_callback, self.topic, RELEASED)
+            self.gpio_zero.when_held  = partial(self._button_callback, self.topic, HELD)
+        else:
+            logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
+        #except Exception as e:
+        #    logger.exception("🔴 Raspberry Pi failed")
 
 
 

@@ -1,14 +1,14 @@
-import copy
 import logging
+import requests
 
-import json
-from dataclasses import asdict
+
 from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
 from mqtt_presence.utils import Tools
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,19 @@ class WebUI:
         pass
 
 
+
+    def is_server_running(self):
+        try:
+
+            response = requests.get(f"http://localhost:{self.mqtt_app.config.webServer.port}/health", timeout=2)
+            if response.status_code == 200:
+                return True
+        except requests.ConnectionError:
+            return False
+        return False
+
+
+
     def run_ui(self):
         # use waitress or flask self run
         logging.info("Starting web ui at %s:%s", self.mqtt_app.config.webServer.host, self.mqtt_app.config.webServer.port)
@@ -35,73 +48,48 @@ class WebUI:
 
 
 
+
     def setup_routes(self):
-        @self.app.route("/", methods=["GET", "POST"])
+            
+        @self.app.route("/")
         def index():
-            if request.method == "POST":
-                new_config: Configuration = copy.deepcopy(self.mqtt_app.config)
-                # raspberry pi
-                #new_config.raspi
-                #new_config["enable_raspberrypi"] = request.form.get("enable_raspberrypi", "off") == "on"  # ergibt True oder False
-                #gpioLed = request.form.get("gpio_led")
-                #if (gpioLed is not None): new_config["gpio_led"] = int(gpioLed)
-                #gpio_button = request.form.get("gpio_button", None)
-                #if (gpio_button is not None): new_config["gpio_button"] = int(gpio_button)
-
-                # mqtt broker
-                new_config.mqtt.broker.host = request.form.get("host")
-                new_config.mqtt.broker.username = request.form.get("username")
-                new_password = request.form.get("password")
-                new_config.mqtt.broker.prefix = Tools.sanitize_mqtt_topic(request.form.get("prefix"))
-
-                #homeassistant
-                new_config.mqtt.homeassistant.enabled = request.form.get("enable_HomeAssistant", "off") == "on"  #  True or False
-                new_config.mqtt.homeassistant.device_name = request.form.get("device_name", self.mqtt_app.config.mqtt.homeassistant.device_name)
-                new_config.mqtt.homeassistant.discovery_prefix = request.form.get("discovery_prefix", self.mqtt_app.config.mqtt.homeassistant.discovery_prefix)
-                logger.info("⚙️ Konfiguration aktualisiert....")
-                self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)
-
-            serializable = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config)
             return render_template("index.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
-                "description": self.mqtt_app.DESCRIPTION,
-                "configuration": serializable
-                #MQTT
-                #"host": self.mqtt_app.config.mqtt.broker.host,
-                #"username": self.mqtt_app.config.mqtt.broker.username,
-                #"prefix": self.mqtt_app.config.mqtt.broker.prefix,
-
-                #Homeassistant
-                #"enable_HomeAssistant": self.mqtt_app.config.mqtt.homeassistant.enabled,
-                #"discovery_prefix": self.mqtt_app.config.mqtt.homeassistant.discovery_prefix,
-                #"device_name": self.mqtt_app.config.mqtt.homeassistant.device_name,
-                #raspberrypi
-                #"enable_raspberrypi": self.config_handler.config.get("enable_raspberrypi"),
-                #"gpio_led":  int(self.config_handler.config.get("gpio_led")),
-                #"gpio_button": int(self.config_handler.config.get("gpio_button"))
-            })
+                "description": self.mqtt_app.DESCRIPTION})
 
 
+        @self.app.route("/health")
+        def health():
+            return jsonify({"status": "running"}), 200
+
+        @self.app.route('/config', methods=['GET'])
+        def get_config():
+            return jsonify(ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config))
+
+        @self.app.route('/gpio_modes', methods=['GET'])
+        def get_gpio_modes():
+            return jsonify([mode.value for mode in GpioMode])
+
+        @self.app.route('/gpio_functions', methods=['GET'])
+        def get_gpio_functions():
+            return jsonify([func.value for func in GpioButton_Function])
+
+        @self.app.route('/config', methods=['POST'])
+        def update_config():
+            data = request.json
+            new_config: Configuration = ConfigYamlHelper.deserialize_enum(data.get('config'))
+            new_password = data.get('password')
+            logger.info("⚙️ Konfiguration aktualisiert....")
+            self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)
+            return jsonify({"message": "Konfiguration aktualisiert!"}), 200
 
         @self.app.route("/status")
         def status():
+            
             return jsonify({
-                #"mqtt_status": "Online" if self.mqtt_app.get_mqtt_client().is_connected() else "Offline",
-                #"client_id": self.mqtt_app.config.mqtt.broker.client_id,
-                "configuration:": ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config),
-                #"raspberrypi_extension_status": self.helpers.appstate.raspberrypi.status.replace('"', '')
+                "mqtt_status": "🟢 Online" if self.mqtt_app.get_mqtt_client().is_connected() else "🔴 Offline",
+                "raspberry_pi_status": "🟢 Online" if self.mqtt_app.get_devices().devices["raspberry"].online else "🔴 Offline",
+                #"web_status":  "🟢 Online" if self.is_server_running() else "🔴 Offline",
+                "devices_data": self.mqtt_app.get_devices().data
             })
-
-
-        @self.app.route('/shutdown', methods=['POST'])
-        def shutdown():
-            logger.info("shutdown....")
-            Tools.shutdown()
-            return '', 204
-
-        @self.app.route('/restart', methods=['POST'])
-        def restart():
-            logger.info("reboot....")
-            Tools.reboot()
-            return '', 204

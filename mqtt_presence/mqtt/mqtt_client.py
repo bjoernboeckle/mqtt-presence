@@ -27,6 +27,7 @@ class MQTTClient:
         self._discovery_prefix: str = None
         self._node_id: str = None
         self._topic_prefix: str = None
+        self._published_topics : List[str] = []
 
 
     def set_topics(self, topics: dict[str, MqttTopic]):
@@ -220,7 +221,7 @@ class MQTTClient:
 
     def publish_discovery(self):
         with self._lock:
-            self._published_topics: List[str] = []
+            self._published_topics = []
             for topic, mqtt_topic in self._mqtt_topics.items():
                 component = mqtt_topic.homeassistant.type if mqtt_topic.homeassistant else None
                 if component is not None:
