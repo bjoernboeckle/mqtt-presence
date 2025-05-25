@@ -3,7 +3,8 @@ import logging
 
 from mqtt_presence.mqtt_presence_app import MQTTPresenceApp #, MQTTPresenceAppSingleton
 from mqtt_presence.utils import Tools
-from mqtt_presence.web_ui import WebUI
+from mqtt_presence.web_ui2 import WebUI
+
 from mqtt_presence.parser import get_parser
 from mqtt_presence.version import NAME
 
