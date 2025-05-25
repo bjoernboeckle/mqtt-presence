@@ -17,6 +17,7 @@ include = "mqtt_presence"
 
 [[tool.poetry.include]]
 path = "mqtt_presence/templates"
+path = "mqtt_presence/static"
 format = "sdist"
 
 [tool.poetry.dependencies]

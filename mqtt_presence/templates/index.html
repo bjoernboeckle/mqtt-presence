@@ -1,182 +1,496 @@
 <!doctype html>
 <html lang="de">
+
 <head>
     <meta charset="utf-8">
-    <title>MQTT presence</title>
+    <title>MQTT Presence</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <!-- Bootstrap JS -->
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <style>
+        .gpio-entry .form-control,
+        .gpio-entry .form-select {
+            margin-bottom: 0.5rem;
+        }
+
+        .gpio-button-settings {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #ccc;
+        }
+
+        .gpio-button-settings .form-label {
+            font-weight: 500;
+        }
+
+        .gpio-button-settings .row>div {
+            padding-right: 0.5rem;
+        }
+    </style>
 </head>
+
 <body class="bg-light">
 
-<div class="container py-5">
-    <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
-    <div class="mb-4 text-center">{{description}}</div>
-    <!-- State Section -->
-    <div class="card shadow-sm mb-5">
-        <div class="card-body">
-            <h4 class="card-title mb-3">State</h4>
-            <p>MQTT connection: <strong id="mqtt_status">Loading...</strong></p>
-            <p>Client ID: <strong id="client_id">Loading...</strong></p>
-            <!--
-            <p>Online Topic state: <strong id="online_status">Loading...</strong></p>
-            
-                <p>Last received message: <strong id="last_payload">Loading...</strong></p>
-            
-            <p id="rpi_status_container">Raspberrypi extension: <strong id="raspberrypi_extension_status">Loading...</strong></p>
-            -->
-        </div>
-    </div>
+    <div class="container py-5">
+        <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
+        <div class="mb-4 text-center">{{description}}</div>
 
-    <!-- Settings Form -->
-    <form method="post">
-        <div class="card shadow-sm">
+
+        <!-- Configuration Section -->
+        <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <h4 class="card-title mb-4">Configuration</h4>
-                <div class="row">
-                    <!-- MQTT Settings -->
-                    <div class="col-md-6 mb-4">
-                        <h5 class="mb-3">MQTT settings</h5>
-                        <!--                   
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="app-tab" data-bs-toggle="tab" data-bs-target="#app"
+                            type="button" role="tab">App config</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mqtt-tab" data-bs-toggle="tab" data-bs-target="#mqtt"
+                            type="button" role="tab">MQTT</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="webserver-tab" data-bs-toggle="tab" data-bs-target="#webserver"
+                            type="button" role="tab">Webserver</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pcutilities-tab" data-bs-toggle="tab" data-bs-target="#pcutilities"
+                            type="button" role="tab">PC utilities</button>
+                    </li>
+                    <li class="nav-item d-none" id="tab-ha" role="presentation">
+                        <button class="nav-link" id="ha-tab" data-bs-toggle="tab" data-bs-target="#ha" type="button"
+                            role="tab">Home Assistant</button>
+                    </li>
+                    <li class="nav-item d-none" id="tab-raspi" role="presentation">
+                        <button class="nav-link" id="raspi-tab" data-bs-toggle="tab" data-bs-target="#raspi"
+                            type="button" role="tab">Raspberry Pi</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content pt-3">
+                    <!-- app configs -->
+                    <div class="tab-pane fade show active" id="app" role="tabpanel">
                         <div class="mb-3">
-                            <label class="form-label">Device ID</label>
-                            <input type="text" class="form-control" name="client_id" value="{{ client_id }}" placeholder="Client ID">
-                        </div>-->
+                            <label for="updateRate" class="form-label">internal data update rate (s)</label>
+                            <input type="number" class="form-control" id="updateRate">
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="ha_enabled">
+                            <label class="form-check-label" for="ha_enabled">Enable Homeassistant Discovery</label>
+                        </div>
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="enable_raspberryPi">
+                            <label class="form-check-label" for="enable_raspberryPi">Enable Raspberry Pi</label>
+                        </div>
+                    </div>
+                    <!-- MQTT -->
+                    <div class="tab-pane fade" id="mqtt" role="tabpanel">
                         <div class="mb-3">
-                            <label class="form-label">Broker/Host</label>
-                            <input type="text" class="form-control" name="host" value="{{ configuration.mqtt.broker.host }}" placeholder="MQTT Broker">
+                            <div id="mqtt_status">Loading...</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="host_mqtt" class="form-label">Broker/Host</label>
+                            <input type="text" class="form-control" id="host_mqtt">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">User</label>
-                            <input type="text" class="form-control" name="username" value="{{ configuration.mqtt.broker.username }}" placeholder="MQTT User">
+                            <label for="username" class="form-label">Benutzername</label>
+                            <input type="text" class="form-control" id="username">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" placeholder="(unchanged, if empty)">
+                            <label for="password" class="form-label">Passwort</label>
+                            <input type="password" class="form-control" id="password"
+                                placeholder="(leer = unverändert)">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Prefix</label>
-                            <input type="text" class="form-control" name="prefix" value="{{ configuration.mqtt.broker.prefix }}" placeholder="Prefix">
+                            <label for="prefix" class="form-label">Prefix</label>
+                            <input type="text" class="form-control" id="prefix">
+                        </div>
+                    </div>
+
+                    <!-- Webserver -->
+                    <div class="tab-pane fade" id="webserver" role="tabpanel">
+                        <div class="mb-3">
+                            <div id="web_status">Loading...</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="host" class="form-label">Host</label>
+                            <input type="text" class="form-control" id="host">
+                        </div>
+                        <div class="mb-3">
+                            <label for="port" class="form-label">Port</label>
+                            <input type="number" class="form-control" id="port">
+                        </div>
+                    </div>
+
+                    <!-- PC utilities -->
+                    <div class="tab-pane fade" id="pcutilities" role="tabpanel">
+                        <div class="container py-3">
+                            <!-- Shutdown -->
+                            <div class="row align-items-center mb-3">
+                                <div class="col-auto">
+                                    <input class="form-check-input" type="checkbox" id="enable_shutdown">
+                                </div>
+                                <div class="col">
+                                    <label class="form-check-label" for="enable_shutdown">Enable shutdown</label>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-danger px-4" id="shutdownButton"
+                                        onclick="sendCommand('/shutdown')">
+                                        🔌 Shutdown
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Restart -->
+                            <div class="row align-items-center mb-3">
+                                <div class="col-auto">
+                                    <input class="form-check-input" type="checkbox" id="enable_reboot">
+                                </div>
+                                <div class="col">
+                                    <label class="form-check-label" for="enable_reboot">Enable reboot</label>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-warning px-4" id="restartButton"
+                                        onclick="sendCommand('/restart')">
+                                        ♻️ Restart
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CPU Utilization Table -->
+                            <div class="table-responsive mt-4">
+                                <table id="cpu_util_table"
+                                    class="table table-striped table-hover table-bordered text-center">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Home Assistant -->
+                    <div class="tab-pane fade" id="ha" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="discovery_prefix" class="form-label">Discovery Prefix</label>
+                            <input type="text" class="form-control" id="discovery_prefix">
+                        </div>
+                        <div class="mb-3">
+                            <label for="device_name" class="form-label">Device name</label>
+                            <input type="text" class="form-control" id="device_name">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="enableAutoCleanup">
+                            <label class="form-check-label" for="enableAutoCleanup">Auto-Cleanup discovery</label>
+                        </div>
+                    </div>
+
+                    <!-- Raspberry Pi -->
+                    <div class="tab-pane fade" id="raspi" role="tabpanel">
+                        <div class="mb-3">
+                            <div id="raspberry_status">Loading...</div>
                         </div>                        
+                        <div class="row fw-bold mb-2">
+                            <div class="col-md-2">Pin</div>
+                            <div class="col-md-3">Name</div>
+                            <div class="col-md-3">Funktion</div>
+                            <div class="col-md-4">Aktionen</div>
+                        </div>
+                        <div id="gpio-container"></div>
+                        <button class="btn btn-sm btn-outline-primary mt-3" onclick="addGpio()">➕ Add GPIO</button>
                     </div>
-
-                    <!-- Homeassitant discovery -->
-                    <div class="col-md-6 mb-4">
-                        <h5 class="mb-3">Homeassitant discovery</h5>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enableHomeAssistant" name="configuration.mqtt.homeassistant.enabled" {% if enable_HomeAssistant %}checked{% endif %}>
-                            <label class="form-check-label" for="enableHomeAssistant">Enable</label>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Discovery prefix</label>
-                            <input type="text" class="form-control" id="discoveryPrefix" name="discovery_prefix" value="{{ configuration.mqtt.homeassistant.discovery_prefix or '' }}" placeholder="z.B. homeassistant">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Device name</label>
-                            <input type="text" class="form-control" id="deviceName" name="device_name" value="{{ configuration.mqtt.homeassistant.device_name or '' }}" placeholder="z.B. MQTT Presence PC1">
-                        </div>                        
-                    </div>
-
-                </div>
-
-                <div class="row">
-                    <!-- Raspberry Pi Einstellungen -->
-                    <div class="col-md-6 mb-4">
-                        <h5 class="mb-3">Raspberry Pi Erweiterung</h5>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enableRpi" name="enable_raspberrypi" {% if configuration.devices.raspberryPi.enabled %}checked{% endif %}>
-                            <label class="form-check-label" for="enableRpi">Enable</label>
-                        </div>                       
-                        <div id="rpi_status_container" class="mb-3">
-                            <label class="form-label">GPIO LED</label>
-                            <input type="number" class="form-control" id="gpioLed" name="gpio_led" value="{{ gpio_led or '' }}" placeholder="i.e.21">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">GPIO Button</label>
-                            <input type="number" class="form-control" id="gpioButton" name="gpio_button" value="{{ gpio_button or '' }}" placeholder="i.e. 13">
-                        </div>
-
-                    </div>
-                    
-                </div>
-
-                <div class="text-end">
-                    <button type="submit" class="btn btn-primary px-4">Save</button>
                 </div>
             </div>
         </div>
-    </form>
-
-    <!-- Control Commands -->
-    <div class="card shadow-sm mt-4">
-        <div class="card-body text-center">
-            <h4 class="card-title mb-3">System Control</h4>
-            <button class="btn btn-danger me-3 px-4" onclick="sendCommand('/shutdown')">
-                🔌 Shutdown
-            </button>
-            <button class="btn btn-warning px-4" onclick="sendCommand('/restart')">
-                ♻️ Restart
-            </button>
+        <!-- Save Button -->
+        <div class="text-end">
+            <button class="btn btn-success" onclick="updateConfig()">💾 Apply Configuration</button>
         </div>
     </div>
 
-</div>
 
-<script>
-    async function updateStatus() {
-        try {
-            const response = await fetch('/status');
-            const data = await response.json();
-            document.getElementById("mqtt_status").textContent = data.mqtt_status;
-            document.getElementById("client_id").textContent = data.configuration.mqtt.broker.client_id;
-            //document.getElementById("online_status").textContent = data.online_status;
-            //document.getElementById("last_payload").textContent = data.last_payload;
-            //document.getElementById("raspberrypi_extension_status").textContent = data.raspberrypi_extension_status;
-            
-        } catch (e) {
-            document.getElementById("mqtt_status").textContent = "Error";
-            document.getElementById("client_id").textContent = "Error";
-            //document.getElementById("online_status").textContent = "Error";
-            //document.getElementById("last_payload").textContent = "Error";
-            //document.getElementById("raspberrypi_extension_status").textContent = "Error";
+    <!-- Bootstrap JS with Popper -->
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        let gpioCounter = 0;
+        const functionOptions = ["", "shutdown", "reboot"];
+        let g_config = {};
+
+
+        function createFunctionSelect(className, selectedValue) {
+            let select = `<select class="form-select ${className}">`;
+            functionOptions.forEach(opt => {
+                const label = opt === "" ? "None" : opt.charAt(0).toUpperCase() + opt.slice(1);
+                select += `<option value="${opt}" ${opt === selectedValue ? "selected" : ""}>${label}</option>`;
+            });
+            select += "</select>";
+            return select;
         }
-    }
 
-    function toggleGpioFields() {
-        const enabled = document.getElementById('enableRpi').checked;
-        document.getElementById('gpioLed').disabled = !enabled;
-        document.getElementById('gpioButton').disabled = !enabled;
+        function addGpio(mode = "led", number = "", friendlyName = "", settings = {}) {
+            let gpioContainer = document.getElementById("gpio-container");
+            let div = document.createElement("div");
+            div.classList.add("row", "gpio-entry", "mb-2", "align-items-start");
+            div.setAttribute("data-index", gpioCounter);
 
-        // Raspberry Pi state show/hide
-        const rpiStatus = document.getElementById('rpi_status_container');
-        if (rpiStatus) {
-            rpiStatus.style.display = enabled ? 'block' : 'none';
+            if (mode === 'button') {
+                settings = {
+                    bounce_s: (settings?.bounce_s !== undefined) ? settings.bounce_s : 0.1,
+                    pull_up: (settings?.pull_up !== undefined) ? settings.pull_up : true,
+                    function_pressed: settings?.function_pressed || "",
+                    function_released: settings?.function_released || "",
+                    function_held: settings?.function_held || ""
+                };
+            }
+
+            div.innerHTML = `
+                <div class="col-md-2">
+                    <input type="number" value="${number}" class="form-control gpio-number">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" value="${friendlyName}" class="form-control gpio-name">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select gpio-mode" onchange="toggleButtonSettings(this, ${gpioCounter})">
+                        <option value="led" ${mode === "led" ? "selected" : ""}>LED</option>
+                        <option value="button" ${mode === "button" ? "selected" : ""}>Button</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-sm btn-danger mb-2" onclick="removeGpio(${gpioCounter})">❌ Delete</button>
+                    <div class="gpio-button-settings" id="button-settings-${gpioCounter}" style="display: ${mode === 'button' ? 'block' : 'none'}">
+                        <div class="mb-2">
+                            <label class="form-label">Debounce (seconds)</label>
+                            <input type="number" class="form-control bounce-s" step="0.01" value="${settings.bounce_s !== undefined ? settings.bounce_s : ''}">
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input pull-up" type="checkbox" ${settings.pull_up === undefined || settings.pull_up ? 'checked' : ''}>
+                            <label class="form-check-label">Pull-Up</label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">pressed</label>
+                                ${createFunctionSelect("function-pressed", settings.function_pressed)}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">released</label>
+                                ${createFunctionSelect("function-released", settings.function_released)}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">held</label>
+                                ${createFunctionSelect("function-held", settings.function_held)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            gpioContainer.appendChild(div);
+            gpioCounter++;
         }
-    }
 
-    function toggleHomeassistantFields() {
-        const enabled = document.getElementById('enableHomeAssistant').checked;
-        document.getElementById('discoveryPrefix').disabled = !enabled;
-        document.getElementById('deviceName').disabled = !enabled;
-    }
-
-    async function sendCommand(endpoint) {
-        try {
-            const response = await fetch(endpoint, { method: 'POST' });
-            if (!response.ok) throw new Error("Command failed");
-            //alert(`Command sent: ${endpoint.replace('/', '')}`);
-        } catch (error) {
-            alert(`Error sending command: ${error}`);
+        function toggleButtonSettings(selectElement, index) {
+            const settingsDiv = document.getElementById(`button-settings-${index}`);
+            settingsDiv.style.display = selectElement.value === "button" ? "block" : "none";
         }
-    }
 
-    document.getElementById('enableRpi').addEventListener('change', toggleGpioFields);
-    toggleGpioFields(); // Initialer Zustand
-    document.getElementById('enableHomeAssistant').addEventListener('change', toggleHomeassistantFields);
-    toggleHomeassistantFields();
+        function removeGpio(index) {
+            const entry = document.querySelector(`.gpio-entry[data-index='${index}']`);
+            if (entry) entry.remove();
+        }
 
-    setInterval(updateStatus, 2000);
-    updateStatus();
-</script>
+
+
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                document.getElementById("mqtt_status").innerHTML = `<p><strong>${data.mqtt_status}</strong></p>` // - (${g_config.mqtt.broker.client_id})</p>`;
+                document.getElementById("web_status").innerHTML = `<p><strong>🟢 Online</strong></p>`; //    ${data.web_status}</strong></p>`
+                document.getElementById("raspberry_status").innerHTML = `<p><strong>${data.raspberry_pi_status}</strong></p>`;
+
+                const tbody = document.querySelector("#cpu_util_table tbody");
+                // Remove old data (can be improved, to only update values)
+                tbody.innerHTML = "";
+                // Add new data
+                Object.keys(data.devices_data).forEach(key => {
+                    let row = document.createElement("tr");
+                    let cellKey = document.createElement("td");
+                    let cellValue = document.createElement("td");
+                    cellKey.textContent = key;
+                    cellValue.textContent = data.devices_data[key] !== null ? data.devices_data[key] : "N/A"; // Falls `null`, zeige "N/A"
+                    row.appendChild(cellKey);
+                    row.appendChild(cellValue);
+                    tbody.appendChild(row);
+                });
+            } catch (e) {
+                document.getElementById("mqtt_status").innerHTML = `<p>-</p>`;
+                document.getElementById("web_status").innerHTML = `<p>🔴 Offline</p>`;
+                document.getElementById("raspberry_status").innerHTML = `<p>🔴 Offline</p>`;
+            }
+        }
+
+        async function fetchConfig() {
+            const response = await fetch('/config');
+            const config = await response.json();
+            g_config = structuredClone(config);
+
+            document.getElementById("updateRate").value = config.updateRate;
+            document.getElementById("host").value = config.webServer.host;
+            document.getElementById("port").value = config.webServer.port;
+            document.getElementById("host_mqtt").value = config.mqtt.broker.host;
+            document.getElementById("username").value = config.mqtt.broker.username;
+            document.getElementById("prefix").value = config.mqtt.broker.prefix || "";
+
+            // Home Assistant
+            const ha = config.mqtt.homeassistant;
+            document.getElementById("ha_enabled").checked = ha.enabled;
+            //document.getElementById("ha-options").classList.toggle("d-none", !ha.enabled);
+            document.getElementById("discovery_prefix").value = ha.discovery_prefix || "";
+            document.getElementById("device_name").value = ha.device_name || "";
+            document.getElementById("enableAutoCleanup").checked = ha.enableAutoCleanup ?? true;
+
+
+            // pc utils
+            document.getElementById("enable_shutdown").checked = config.devices.pc_utils?.enableShutdown || false;
+            document.getElementById("enable_reboot").checked = config.devices.pc_utils?.enableReboot || false;
+
+            // Raspberry Pi
+            document.getElementById("enable_raspberryPi").checked = config.devices.raspberryPi?.enabled || false;
+
+            // GPIOs
+            console.log("Adding gpios")
+            document.getElementById("gpio-container").innerHTML = "";
+            gpioCounter = 0;
+            if (config.devices.raspberryPi?.gpios) {
+                config.devices.raspberryPi.gpios.forEach(gpio => {
+                    addGpio(
+                        gpio.mode || "led",
+                        gpio.number || "",
+                        gpio.friendly_name || "",
+                        gpio.button || {}
+                    );
+                });
+            }
+        }
+
+        async function updateConfig() {
+            const config = structuredClone(g_config);
+
+            const getValueOrUndefined = (entry, selector) => {
+                const value = entry.querySelector(selector).value;
+                return value === "" ? undefined : value;
+            };
+
+            config.updateRate = parseInt(document.getElementById("updateRate").value);
+            config.webServer.host = document.getElementById("host").value;
+            config.webServer.port = parseInt(document.getElementById("port").value);
+            config.mqtt.broker.host = document.getElementById("host_mqtt").value;
+            config.mqtt.broker.username = document.getElementById("username").value;
+            config.mqtt.broker.prefix = document.getElementById("prefix").value;
+
+            const password = document.getElementById("password").value;
+            if (password.trim() !== "") config.mqtt.broker.password = password;
+
+            config.mqtt.homeassistant.enabled = document.getElementById("ha_enabled").checked;
+            config.mqtt.homeassistant.discovery_prefix = document.getElementById("discovery_prefix").value;
+            config.mqtt.homeassistant.device_name = document.getElementById("device_name").value;
+            config.mqtt.homeassistant.enableAutoCleanup = document.getElementById("enableAutoCleanup").checked;
+
+            if (config.devices?.pc_utils) {
+                config.devices.pc_utils.enableShutdown = document.getElementById("enable_shutdown").checked;
+                config.devices.pc_utils.enableReboot = document.getElementById("enable_reboot").checked;
+            }
+
+            if (config.devices?.raspberryPi) {
+                config.devices.raspberryPi.enabled = document.getElementById("enable_raspberryPi").checked;
+
+                const gpios = [];
+                document.querySelectorAll(".gpio-entry").forEach(entry => {
+                    const number = parseInt(entry.querySelector(".gpio-number").value);
+                    const name = entry.querySelector(".gpio-name").value;
+                    const mode = entry.querySelector(".gpio-mode").value;
+                    if (!isNaN(number)) {
+                        gpios.push({ number, friendly_name: name, mode });
+                        if (mode === "button") {
+                            const bounce_s = parseFloat(entry.querySelector(".bounce-s").value) || 0.1;
+                            const pull_up = entry.querySelector(".pull-up").checked;
+                            const function_pressed = getValueOrUndefined(entry, ".function-pressed");
+                            const function_released = getValueOrUndefined(entry, ".function-released");
+                            const function_held = getValueOrUndefined(entry, ".function-held");
+
+                            gpios[gpios.length - 1].button = {
+                                bounce_s,
+                                pull_up,
+                                function_pressed,
+                                function_released,
+                                function_held
+                            };
+                        }
+                    }
+                });
+                config.devices.raspberryPi.gpios = gpios;
+            }
+
+            const res = await fetch('/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ config: config, password: password })
+            });
+
+            if (res.ok) {
+                //alert("Konfiguration gespeichert.");
+            } else {
+                alert("Fehler beim Speichern.");
+            }
+        }
+
+        function updateVisibility() {
+            const haEnabled = document.getElementById("ha_enabled").checked;
+            const rpiEnabled = document.getElementById("enable_raspberryPi").checked;
+
+            document.getElementById("tab-ha").classList.toggle("d-none", !haEnabled);
+            document.getElementById("tab-raspi").classList.toggle("d-none", !rpiEnabled);
+
+            // Incase active tab is hidden jump to MQTT
+            const activeTab = document.querySelector("#configTabs .nav-link.active");
+            if (!haEnabled && activeTab?.id === "ha-tab") {
+                document.getElementById("mqtt-tab").click();
+            }
+            if (!rpiEnabled && activeTab?.id === "raspi-tab") {
+                document.getElementById("mqtt-tab").click();
+            }
+
+            // pc utilities
+            document.getElementById("shutdownButton").classList.toggle("d-none", !document.getElementById("enable_shutdown").checked);
+            document.getElementById("restartButton").classList.toggle("d-none", !document.getElementById("enable_reboot").checked);
+        }
+
+
+        // add Event-Handler
+        document.getElementById("ha_enabled").addEventListener("change", updateVisibility);
+        document.getElementById("enable_raspberryPi").addEventListener("change", updateVisibility);
+        document.getElementById("enable_shutdown").addEventListener("change", updateVisibility);
+        document.getElementById("enable_reboot").addEventListener("change", updateVisibility);
+
+
+        fetchConfig().then(updateStatus).then(updateVisibility);
+        setInterval(updateStatus, 2000)
+    </script>
 
 </body>
+
 </html>

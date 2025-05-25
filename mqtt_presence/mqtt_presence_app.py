@@ -41,10 +41,9 @@ class MQTTPresenceApp():
         self._sleep_event = threading.Event()
         # load config
         self.config : Configuration = self._config_handler.load_config()
-
+        self._thread = None
         self._mqtt_client: MQTTClient = MQTTClient(self._mqtt_callback)
         self._devices = Devices()
-        self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
 
 
     def get_config_handler(self):
@@ -52,32 +51,37 @@ class MQTTPresenceApp():
 
     def get_mqtt_client(self):
         return self._mqtt_client
+    
+    def get_devices(self):
+        return self._devices
 
     def update_new_config(self, config : Configuration, password: str = None):
         self._config_handler.save_config(config, password)
-        self.config = config
         self.restart()
 
 
     def start(self):
         #show platform
         Tools.log_platform()
+        self.config = self._config_handler.load_config()
         self._devices.init(self.config, self._action_callback)
+        self._should_run = True
+        self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
         self._thread.start()
 
 
     def restart(self):
         logger.info("🔄 ReStarting...")
-        self.config = self._config_handler.load_config()
-        self._devices.exit()
-        self._devices.init(self.config, self._action_callback)
-        self._mqtt_client.disconnect()
-        self._sleep_event.set()
+        self.stop()      
+        self.start()
 
 
-    def exit_app(self):
+
+    def stop(self):
         self._should_run = False
         self._sleep_event.set()
+        self._thread.join()
+        self._thread = None
         self._mqtt_client.disconnect()
         self._devices.exit()
 
@@ -121,6 +125,6 @@ class MQTTPresenceApp():
                 self._devices.update_data()
                 self._mqtt_client.publish_mqtt_data(self._devices.data)
 
-            self._sleep_event.wait(timeout=self.config.updateRate)      # Wait for the next update cycle
             self._sleep_event.clear()                                   # Reset the event for the next cycle
+            self._sleep_event.wait(timeout=self.config.updateRate)      # Wait for the next update cycle
         logger.info("🔴 App main loop stopped")

@@ -261,11 +261,12 @@ class ConfigHandler:
         """
         self.save_password(password)
 
+        # TODO: issues after a value was changed it will not be updated any more if set to default value!
         # Default config for comparison (use unchanged defaults, to store pc dependent defaults)
-        default_config = Configuration()
+        #default_config = Configuration()
 
         # Keep only the fields that differ from the default configuration
-        reduced_config_dict = ConfigYamlHelper.remove_defaults(config, default_config)
+        reduced_config_dict = config # ConfigYamlHelper.remove_defaults(config, default_config)
 
         # Convert Enums to strings
         reduced_config_dict = ConfigYamlHelper.dataclass_to_serializable(reduced_config_dict)
