@@ -70,14 +70,14 @@ if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
     Write-Host "Creating new Windows service '$ServiceName'..."
     & $NssmPath install $ServiceName $ExePath
     & $NssmPath set $ServiceName AppDirectory $InstallDir
-    & $NssmPath set $ServiceName AppParameters "--data ./data --log ./log"
+    & $NssmPath set $ServiceName AppParameters "--config ./config --log ./log"
     & $NssmPath set $ServiceName Start SERVICE_AUTO_START
     & $NssmPath set $ServiceName AppExit Default Restart
 } else {
     Write-Host "Updating existing Windows service '$ServiceName'..."
     & $NssmPath set $ServiceName Application $ExePath
     & $NssmPath set $ServiceName AppDirectory $InstallDir
-    & $NssmPath set $ServiceName AppParameters "--data ./data --log ./log"
+    & $NssmPath set $ServiceName AppParameters "--config ./config --log ./log"
 }
 
 # Start the service

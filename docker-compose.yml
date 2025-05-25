@@ -6,8 +6,8 @@ services:
       image: mqtt-presence:latest
       container_name: mqtt-presence
       ports:
-        - "8000:8000"
+        - "8100:8100"
       volumes:
         - ./config/:/config
-        #- ./log/:/log
+        - ./log/:/log
       #privileged: true

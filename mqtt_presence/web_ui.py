@@ -16,7 +16,8 @@ class WebUI:
 
     def __init__(self, mqtt_app):
         template_folder = Tools.resource_path("templates")
-        self.app = Flask(__name__, template_folder=template_folder)
+        static_folder = Tools.resource_path("static")
+        self.app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
         self.mqtt_app = mqtt_app
         self.setup_routes()
 

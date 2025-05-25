@@ -15,9 +15,9 @@ def get_parser(desc: str):
 
     # Optional argument for selecting the config directory
     parser.add_argument(
-        '--data',
+        '--config',
         type=str,  # Argument type
-        help="Set the data directory"
+        help="Set the config directory"
     )
 
     # Optional argument for selecting the log directory

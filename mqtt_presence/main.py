@@ -28,7 +28,7 @@ def main():
     Tools.setup_logger(NAME, args.log)
 
     user_interface = None
-    mqtt_app: MQTTPresenceApp = MQTTPresenceApp(args.data)
+    mqtt_app: MQTTPresenceApp = MQTTPresenceApp(args.config)
 
     start_up_msg = f"🚀 mqtt-presence startup (Version: {mqtt_app.VERSION})"
     logger.info("\n\n")
