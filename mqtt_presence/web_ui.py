@@ -50,7 +50,7 @@ class WebUI:
 
 
     def setup_routes(self):
-            
+
         @self.app.route("/")
         def index():
             return render_template("index.html", **{
@@ -86,7 +86,7 @@ class WebUI:
 
         @self.app.route("/status")
         def status():
-            
+
             return jsonify({
                 "mqtt_status": "🟢 Online" if self.mqtt_app.get_mqtt_client().is_connected() else "🔴 Offline",
                 "raspberry_pi_status": "🟢 Online" if self.mqtt_app.get_devices().devices["raspberry"].online else "🔴 Offline",
