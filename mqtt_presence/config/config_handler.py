@@ -4,6 +4,7 @@ from dataclasses import fields, is_dataclass, MISSING, asdict
 from typing import Type, TypeVar, Optional, List, Any, Dict
 from pathlib import Path
 from enum import Enum
+from functools import partial
 from copy import deepcopy
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
@@ -18,7 +19,7 @@ from mqtt_presence.version import NAME
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
-
+from mqtt_presence.devices.device_data import HomeassistantType
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class ConfigYamlHelper:
 
     # Convert strings back to Enums
     @staticmethod
-    def deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function]) -> Any:
+    def deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function, HomeassistantType]) -> Any:
         """Recursively converts string values to their corresponding Enums."""
         if isinstance(value, str):
             for enum_class in enum_classes:
@@ -53,7 +54,7 @@ class ConfigYamlHelper:
         if is_dataclass(obj):
             result = {}
             for key, value in asdict(obj).items():
-                if value is None:
+                if value is None or isinstance(value, partial):
                     continue  # ⛔ None-Werte auslassen
                 result[key] = ConfigYamlHelper.dataclass_to_serializable(value)
             return result
@@ -70,9 +71,10 @@ class ConfigYamlHelper:
                 for k, v in obj.items()
                 if v is not None  # ⛔ None-Werte in Dicts auslassen
             }
-
+        elif isinstance(obj, partial):
+            return ""
         else:
-            return obj      
+            return obj
 
 
     @staticmethod
@@ -122,13 +124,13 @@ class ConfigHandler:
         self._yaml = self._create_yaml()
         self._initialize_data_path()
         self._fernet = Fernet(self._load_key())
-        
+
 
     def _create_yaml(self):
         yaml = YAML()
         yaml.preserve_quotes = True
         yaml.indent(mapping=2, sequence=4, offset=2)
-        yaml.default_flow_style = False           
+        yaml.default_flow_style = False
         return yaml
 
     def _initialize_data_path(self):
@@ -141,7 +143,7 @@ class ConfigHandler:
         else:
             logger.debug("ℹ️  Data path already exists: %s", self.data_path)
 
-    
+
     def _initialize_config_file(self):
         if not os.path.exists(self._config_file):
             logger.warning("⚠️ No configuration file found in: %s. Create default.", self._config_file)
@@ -172,7 +174,13 @@ class ConfigHandler:
         if Tools.is_rasppery_pi():
             config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
         else:
-            config.devices.raspberryPi = RaspberryPiSettings(enabled=False) #None  #RaspberryPiSettings.get_default_raspberrypi_settings()
+            config.devices.raspberryPi.enabled = False
+
+
+        # Set default values for conatiner environment
+        if Tools.is_in_container():
+            config.devices.pc_utils.enableReboot = False
+            config.devices.pc_utils.enableShutdown = False
 
         return config
 
@@ -217,7 +225,7 @@ class ConfigHandler:
         if yaml_data is None:
             logger.warning("⚠️ Configuration file is empty or not valid YAML. Using default configuration.")
             return self.get_default_config()  # Return default configuration if file is empty
-        
+
         # Convert Enums in nested fields
         parsed_yaml = ConfigYamlHelper.deserialize_enum(yaml_data.get("app", {}))
 
@@ -228,23 +236,23 @@ class ConfigHandler:
             config=DaciteConfig(strict=False)
         )
 
-        
+
         return config
 
 
     def save_config(self, config: Configuration, password: str, add_default_comment: bool = False):
         try:
             config_path = Path(self._config_file)
-            
+
             original_yaml = None
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:
                     original_yaml = self._yaml.load(f)
-            
+
             self._save_config(self._config_file, config, password, original_yaml=original_yaml, add_default_comment=add_default_comment)
         except Exception as e:
             logger.exception("❌ Failed to save config")
-        
+
 
 
 
@@ -294,7 +302,7 @@ class ConfigHandler:
                 )
             self._yaml.dump(merged_yaml, f)
 
-        
+
 
 
     def save_password(self, password: str):
@@ -304,7 +312,7 @@ class ConfigHandler:
         If the password is None the file is not changed.
         :param password: Password to save as a string.
         """
-        if (password is None): 
+        if (password is None):
             return  # Do not change the file if password is None
         encrypted_password = self.get_encrypt_password(password)
         with open(self._passowrd_file, "w", encoding="utf-8") as f:
@@ -322,7 +330,7 @@ class ConfigHandler:
             return ""
         with open(self._passowrd_file, "r", encoding="utf-8") as f:
             return self.get_decrypt_password(f.read().strip())
-        
+
 
     def get_encrypt_password(self, plain_password):
         return "" if Tools.is_none_or_empty(plain_password) else self._encrypt(plain_password)

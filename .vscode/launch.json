@@ -16,7 +16,7 @@
         "PYTHONPATH": "${workspaceFolder}",
         "DEBUG": "1"
       },
-      "args": ["--data", "./test", "--log", "./test"]
+      "args": ["--config", "./test", "--log", "./test"]
     }
 ]
 }

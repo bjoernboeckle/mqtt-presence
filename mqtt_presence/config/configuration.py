@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
+
 
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
@@ -17,7 +16,7 @@ class WebServerAppConfig:
 
 @dataclass
 class Broker:
-    client_id: Optional[str] = None # MQTT broker configuration
+    client_id: str = "" # MQTT broker configuration
     host: str = "localhost"
     port: int = 1883
     username: str = "mqttuser"
@@ -36,14 +35,14 @@ class Homeassistant:
 @dataclass
 class Mqtt:
     broker: Broker = field(default_factory=Broker)
-    homeassistant: Optional[Homeassistant] = field(default_factory=Homeassistant)
+    homeassistant: Homeassistant = field(default_factory=Homeassistant)
 
 
 
 @dataclass
 class Devices:
-    raspberryPi: Optional[RaspberryPiSettings] = None
-    pc_utils: Optional[PcUtilsSettings] = None
+    raspberryPi: RaspberryPiSettings = field(default_factory=RaspberryPiSettings)
+    pc_utils: PcUtilsSettings = field(default_factory=PcUtilsSettings)
 
 
 

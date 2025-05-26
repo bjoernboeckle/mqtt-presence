@@ -3,18 +3,19 @@ import psutil
 
 from functools import partial
 
-from mqtt_presence.mqtt.mqtt_data import MqttTopic, MQTTHomeassistant, MQTTHomeassistantType
+from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
+from mqtt_presence.devices.device import Device
+
 
 logger = logging.getLogger(__name__)
 
 
-class PcUtils:
+class PcUtils(Device):
     def __init__(self):
-        pass
-
+        super().__init__()
 
     def exit(self):
         pass
@@ -22,40 +23,41 @@ class PcUtils:
 
     def init(self, config: Configuration, _topic_callback):
         self.settings: PcUtilsSettings = config.devices.pc_utils
+        self.data.clear()
+        if not self.settings.enabled:
+            return
 
-
-
-    def create_topics(self) -> dict[str, MqttTopic]:
-        topics: dict[str, MqttTopic] = {
-            # MQTT buttons
-            "test": MqttTopic("Teste button", action = partial(self._device_command, "test"), homeassistant=MQTTHomeassistant(MQTTHomeassistantType.BUTTON)),
-            # MQTT sensors
-            "cpu_freq": MqttTopic("CPU Frequency", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "MHz", icon = "sine-wave")),
-            "memory_usage": MqttTopic("RAM Usage", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "%", icon = "memory" )),
-            "cpu_load": MqttTopic("CPU Load (1 min avg)", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "%", icon = "gauge" )),
-            "disk_usage_root": MqttTopic("Disk Usage", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "%", icon = "harddisk")),
-            "disk_free_root": MqttTopic("Disk Free Space", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "GB", icon = "harddisk" )),
-            "net_bytes_sent": MqttTopic("Network Bytes Sent", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "B", icon = "network" )),
-            "net_bytes_recv": MqttTopic("Network Bytes Received", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "B", icon = "network" )),
-            "cpu_temp": MqttTopic("CPU Temperature", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SENSOR, unit = "°C", icon = "thermometer" ))
-        }
+        if self.settings.enableInfos:
+            self.data.update( {
+                # MQTT buttons
+                "test": DeviceData("Teste button", action = partial(self._device_command, "test"), homeassistant=Homeassistant(HomeassistantType.BUTTON)),
+                # MQTT sensors
+                "cpu_freq": DeviceData("CPU Frequency", unit = "MHz", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "sine-wave")),
+                "memory_usage": DeviceData("RAM Usage", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "memory" )),
+                "cpu_load": DeviceData("CPU Load (1 min avg)", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "gauge" )),
+                "disk_usage_root": DeviceData("Disk Usage", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "harddisk")),
+                "disk_free_root": DeviceData("Disk Free Space", unit = "GB", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "harddisk" )),
+                "net_bytes_sent": DeviceData("Network Bytes Sent", unit = "B", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "network" )),
+                "net_bytes_recv": DeviceData("Network Bytes Received", unit = "B", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "network" )),
+                "cpu_temp": DeviceData("CPU Temperature", unit = "°C", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "thermometer" ))
+            })
         if self.settings.enableShutdown:
-            topics["shutdown"] = MqttTopic("Shutdown PC", action=partial(self._device_command, "shutdown"), homeassistant=MQTTHomeassistant(MQTTHomeassistantType.BUTTON))
+            self.data["shutdown"] = DeviceData("Shutdown PC", action=partial(self._device_command, "shutdown"), homeassistant=Homeassistant(HomeassistantType.BUTTON))
         if self.settings.enableReboot:
-            topics["reboot"] = MqttTopic("Reboot PC", action=partial(self._device_command, "reboot"), homeassistant=MQTTHomeassistant(MQTTHomeassistantType.BUTTON))
-        
-        return topics
+            self.data["reboot"] = DeviceData("Reboot PC", action=partial(self._device_command, "reboot"), homeassistant=Homeassistant(HomeassistantType.BUTTON))
 
 
-    def update_data(self, device_data: dict[str, str]):
-        device_data["cpu_freq"] = self._get_cpu_freq()
-        device_data["memory_usage"] = self._get_memory_usage_percent()
-        device_data["cpu_load"] = self._get_memory_usage_percent()
-        device_data["disk_usage_root"] = self._get_disk_usage_root_percent()
-        device_data["disk_free_root"] = self._get_disk_free_root_gb()
-        device_data["net_bytes_sent"] = self._get_net_bytes_sent()
-        device_data["net_bytes_recv"] = self._get_net_bytes_recv()
-        device_data["cpu_temp"] = self._get_cpu_temp_psutil()
+
+    def update_data(self):
+        if self.settings.enabled and self.settings.enableInfos:
+            self.data["cpu_freq"].data = self._get_cpu_freq()
+            self.data["memory_usage"].data = self._get_memory_usage_percent()
+            self.data["cpu_load"].data = self._get_memory_usage_percent()
+            self.data["disk_usage_root"].data = self._get_disk_usage_root_percent()
+            self.data["disk_free_root"].data = self._get_disk_free_root_gb()
+            self.data["net_bytes_sent"].data = self._get_net_bytes_sent()
+            self.data["net_bytes_recv"].data = self._get_net_bytes_recv()
+            self.data["cpu_temp"].data = self._get_cpu_temp_psutil()
 
 
 

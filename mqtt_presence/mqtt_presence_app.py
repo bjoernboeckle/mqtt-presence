@@ -46,14 +46,18 @@ class MQTTPresenceApp():
         self._devices = Devices()
 
 
-    def get_config_handler(self):
+    @property
+    def config_handler(self) -> ConfigHandler:
         return self._config_handler
 
-    def get_mqtt_client(self):
+    @property
+    def mqtt_client(self) -> MQTTClient:
         return self._mqtt_client
 
-    def get_devices(self):
+    @property
+    def devices(self) -> Devices:
         return self._devices
+
 
     def update_new_config(self, config : Configuration, password: str = None):
         self._config_handler.save_config(config, password)
@@ -88,10 +92,10 @@ class MQTTPresenceApp():
 
 
     def _on_connect(self):
-        device_topics = self._devices.create_topics()
-        self._devices.update_data()
-        self._mqtt_client.set_topics(device_topics)
-        self._mqtt_client.publish_mqtt_data(self._devices.data, True)
+        #device_topics = self._devices.create_topics()
+        self._devices.update_data(True)
+        self._mqtt_client.set_devices_data(self._devices)
+        self._mqtt_client.publish_mqtt_data(True)
         if self.config.mqtt.homeassistant.enabled:
             self._mqtt_client.publish_discovery()
 
@@ -108,11 +112,15 @@ class MQTTPresenceApp():
             self._on_connect()
         elif function == "on_disconnect":
             pass
+        elif function == "on_message_action":
+            self._sleep_event.set()
 
 
     def _run_app_loop(self):
         should_cleanup: bool = False
         while self._should_run:
+            self._sleep_event.clear()                                   # Reset the event for the next cycle
+            self._devices.update_data(True)
             # handle mqtt (auto)connection
             if not self._mqtt_client.is_connected():
                 should_cleanup = self.config.mqtt.homeassistant and  self.config.mqtt.homeassistant.enableAutoCleanup
@@ -122,9 +130,8 @@ class MQTTPresenceApp():
                 if should_cleanup:
                     self._mqtt_client.clean_discovery_topics(False)
                     should_cleanup = False
-                self._devices.update_data()
-                self._mqtt_client.publish_mqtt_data(self._devices.data)
+                self._mqtt_client.publish_mqtt_data()
 
-            self._sleep_event.clear()                                   # Reset the event for the next cycle
+
             self._sleep_event.wait(timeout=self.config.updateRate)      # Wait for the next update cycle
         logger.info("🔴 App main loop stopped")

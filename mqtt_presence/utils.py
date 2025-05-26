@@ -157,6 +157,8 @@ class Tools:
     def log_platform():
         system = platform.system()
 
+        logger.info("🐳 Running in container" if Tools.is_in_container() else "💻 Outside container")
+
         if system == "Windows":
             logger.info("🪟 Running on Windows")
         elif system == "Linux":
@@ -176,3 +178,15 @@ class Tools:
         system = platform.system()
         machine = platform.machine()
         return system == "Linux" and  "arm" in machine or "aarch64" in machine
+
+
+    @staticmethod
+    def is_in_container() -> bool:
+        if os.path.exists("/.dockerenv"):
+            return True
+        try:
+            with open("/proc/1/cgroup", "rt", encoding="utf-8") as f:
+                content = f.read()
+                return "docker" in content or "containerd" in content or "kubepods" in content
+        except FileNotFoundError:
+            return False

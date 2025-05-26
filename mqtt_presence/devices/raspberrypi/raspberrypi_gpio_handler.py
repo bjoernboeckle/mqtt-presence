@@ -2,7 +2,7 @@ import logging
 from functools import partial
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioButton_Function
-from mqtt_presence.mqtt.mqtt_data import MqttTopic, MQTTHomeassistant, MQTTHomeassistantType
+from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
 from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class GpioHandler:
     def __init__(self, gpio : Gpio, action_callback):
         self.gpio = gpio
         self.gpio_zero = None
-        self.topic = f"gpio_{self.gpio.number}"
+        self.gpio_key = f"gpio_{self.gpio.number}"
         self._action_callback = action_callback
 
 
@@ -26,9 +26,9 @@ class GpioHandler:
         elif gpio.mode == GpioMode.BUTTON:
             button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
             self.gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
-            self.gpio_zero.when_pressed  = partial(self._button_callback, self.topic, PRESSED)
-            self.gpio_zero.when_released  = partial(self._button_callback, self.topic, RELEASED)
-            self.gpio_zero.when_held  = partial(self._button_callback, self.topic, HELD)
+            self.gpio_zero.when_pressed  = partial(self._button_callback, self.gpio_key, PRESSED)
+            self.gpio_zero.when_released  = partial(self._button_callback, self.gpio_key, RELEASED)
+            self.gpio_zero.when_held  = partial(self._button_callback, self.gpio_key, HELD)
         else:
             logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
         #except Exception as e:
@@ -49,8 +49,8 @@ class GpioHandler:
 
 
 
-    def _button_callback(self, topic, function):
-        self._action_callback(topic, function)
+    def _button_callback(self, gpio_key, function):
+        self._action_callback(gpio_key, function)
         command = self.get_button_function(function, self.gpio.button)
         if (command is not None):
             if command ==  GpioButton_Function.REBOOT: Tools.reboot()
@@ -71,18 +71,18 @@ class GpioHandler:
                 self.gpio_zero.off()
 
 
-    def create_topic(self, mqtt_topics: dict[str, MqttTopic]):
+    def create_data(self, device_data: dict[str, DeviceData]):
         if self.gpio.mode == GpioMode.LED:
-            mqtt_topics[self.topic] = MqttTopic(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.SWITCH))
+            device_data[self.gpio_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=Homeassistant(type=HomeassistantType.SWITCH))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
             #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
         elif self.gpio.mode == GpioMode.BUTTON:
-            mqtt_topics[self.topic] = MqttTopic(f"GPIO {self.gpio.number} action", homeassistant=MQTTHomeassistant(type=MQTTHomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
+            device_data[self.gpio_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
         
 
     def update_data(self, device_data: dict[str, str]):
         if self.gpio.mode == GpioMode.LED:
-            device_data[self.topic] = "OFF" if self.get_led() == 0 else "ON"
+            device_data[self.gpio_key].data = "OFF" if self.get_led() == 0 else "ON"
 
 
 
