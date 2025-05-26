@@ -10,6 +10,7 @@ from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function
 
+
 logger = logging.getLogger(__name__)
 
 class WebUI:
@@ -87,12 +88,12 @@ class WebUI:
 
         @self.app.route("/status")
         def status():
-
+            devices_data = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.devices.get_devices_data())
             return jsonify({
-                "mqtt_status": "🟢 Online" if self.mqtt_app.get_mqtt_client().is_connected() else "🔴 Offline",
-                "raspberry_pi_status": "🟢 Online" if self.mqtt_app.get_devices().devices["raspberry"].online else "🔴 Offline",
+                "mqtt_status": "🟢 Online" if self.mqtt_app.mqtt_client.is_connected() else "🔴 Offline",
+                "raspberry_pi_status": "🟢 Online" if self.mqtt_app.devices.devices["raspberrypi"].online else "🔴 Offline",
                 #"web_status":  "🟢 Online" if self.is_server_running() else "🔴 Offline",
-                "devices_data": self.mqtt_app.get_devices().data
+                "devices_data": devices_data
             })
 
         @self.app.route('/shutdown', methods=['POST'])

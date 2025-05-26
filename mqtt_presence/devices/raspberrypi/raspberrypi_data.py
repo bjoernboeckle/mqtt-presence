@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
+from mqtt_presence.devices.device_data import DeviceSettings
 
 class GpioMode(Enum):
     LED = "led"
@@ -33,8 +34,7 @@ class Gpio:
 
 
 @dataclass
-class RaspberryPiSettings:
-    enabled: bool = True
+class RaspberryPiSettings(DeviceSettings):
     gpios: List[Gpio] = field(default_factory=list)
 
 

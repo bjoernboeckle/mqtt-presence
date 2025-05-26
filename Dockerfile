@@ -10,12 +10,14 @@ RUN pip install poetry
 # 4. Kopiere nur die Abhängigkeitsdateien zuerst für Caching
 COPY pyproject.toml poetry.lock* /app/
 
-# 5. Installiere Abhängigkeiten ohne virtuelle Umgebung
+# 5. Kopiere den gesamten Projektcode
+COPY . /app
+
+# 6. Installiere Abhängigkeiten ohne virtuelle Umgebung
 RUN poetry config virtualenvs.create false \
  && poetry install --no-interaction --no-ansi
 
-# 6. Kopiere den gesamten Projektcode
-COPY . /app
+
 
 # 7. Optional: öffne Port 8100 (nur relevant, wenn die App HTTP anbietet)
 EXPOSE 8100

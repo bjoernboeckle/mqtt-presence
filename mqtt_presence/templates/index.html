@@ -58,13 +58,13 @@
                         <button class="nav-link" id="webserver-tab" data-bs-toggle="tab" data-bs-target="#webserver"
                             type="button" role="tab">Webserver</button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="pcutilities-tab" data-bs-toggle="tab" data-bs-target="#pcutilities"
-                            type="button" role="tab">PC utilities</button>
-                    </li>
                     <li class="nav-item d-none" id="tab-ha" role="presentation">
                         <button class="nav-link" id="ha-tab" data-bs-toggle="tab" data-bs-target="#ha" type="button"
                             role="tab">Home Assistant</button>
+                    </li>                    
+                    <li class="nav-item" id="tab-pcutilities" role="presentation">
+                        <button class="nav-link" id="pcutilities-tab" data-bs-toggle="tab" data-bs-target="#pcutilities"
+                            type="button" role="tab">PC utilities</button>
                     </li>
                     <li class="nav-item d-none" id="tab-raspi" role="presentation">
                         <button class="nav-link" id="raspi-tab" data-bs-toggle="tab" data-bs-target="#raspi"
@@ -79,10 +79,13 @@
                             <label for="updateRate" class="form-label">internal data update rate (s)</label>
                             <input type="number" class="form-control" id="updateRate">
                         </div>
-
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="ha_enabled">
                             <label class="form-check-label" for="ha_enabled">Enable Homeassistant Discovery</label>
+                        </div>
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="enable_pc_utilities">
+                            <label class="form-check-label" for="enable_pc_utilities">Enable PC utilities</label>     
                         </div>
                         <div class="form-check form-switch mb-4">
                             <input class="form-check-input" type="checkbox" id="enable_raspberryPi">
@@ -126,6 +129,23 @@
                         <div class="mb-3">
                             <label for="port" class="form-label">Port</label>
                             <input type="number" class="form-control" id="port">
+                        </div>
+                    </div>
+
+
+                    <!-- Home Assistant -->
+                    <div class="tab-pane fade" id="ha" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="discovery_prefix" class="form-label">Discovery Prefix</label>
+                            <input type="text" class="form-control" id="discovery_prefix">
+                        </div>
+                        <div class="mb-3">
+                            <label for="device_name" class="form-label">Device name</label>
+                            <input type="text" class="form-control" id="device_name">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="enableAutoCleanup">
+                            <label class="form-check-label" for="enableAutoCleanup">Auto-Cleanup discovery</label>
                         </div>
                     </div>
 
@@ -177,23 +197,6 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-
-
-                    <!-- Home Assistant -->
-                    <div class="tab-pane fade" id="ha" role="tabpanel">
-                        <div class="mb-3">
-                            <label for="discovery_prefix" class="form-label">Discovery Prefix</label>
-                            <input type="text" class="form-control" id="discovery_prefix">
-                        </div>
-                        <div class="mb-3">
-                            <label for="device_name" class="form-label">Device name</label>
-                            <input type="text" class="form-control" id="device_name">
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="enableAutoCleanup">
-                            <label class="form-check-label" for="enableAutoCleanup">Auto-Cleanup discovery</label>
                         </div>
                     </div>
 
@@ -326,17 +329,26 @@
                 // Remove old data (can be improved, to only update values)
                 tbody.innerHTML = "";
                 // Add new data
-                Object.keys(data.devices_data).forEach(key => {
+                pc_utils_data = data.devices_data["pc_utils"]
+                Object.keys(pc_utils_data).forEach(key => {
                     let row = document.createElement("tr");
                     let cellKey = document.createElement("td");
                     let cellValue = document.createElement("td");
-                    cellKey.textContent = key;
-                    cellValue.textContent = data.devices_data[key] !== null ? data.devices_data[key] : "N/A"; // Falls `null`, zeige "N/A"
+                    if (pc_utils_data[key] !== null) {
+                        cellKey.textContent = pc_utils_data[key].friendly_name != null ? pc_utils_data[key].friendly_name : key;
+                        cellValue.textContent = pc_utils_data[key].data + " " + (pc_utils_data[key].unit !== null ? pc_utils_data[key].unit : "");
+                    }
+                    else {
+                         cellKey.textContent = key;
+                         cellValue.textContent = "N/A"
+                    }
                     row.appendChild(cellKey);
                     row.appendChild(cellValue);
                     tbody.appendChild(row);
                 });
             } catch (e) {
+                console.error("updateStatus failed")
+                console.error(e)
                 document.getElementById("mqtt_status").innerHTML = `<p>-</p>`;
                 document.getElementById("web_status").innerHTML = `<p>🔴 Offline</p>`;
                 document.getElementById("raspberry_status").innerHTML = `<p>🔴 Offline</p>`;
@@ -358,13 +370,13 @@
             // Home Assistant
             const ha = config.mqtt.homeassistant;
             document.getElementById("ha_enabled").checked = ha.enabled;
-            //document.getElementById("ha-options").classList.toggle("d-none", !ha.enabled);
             document.getElementById("discovery_prefix").value = ha.discovery_prefix || "";
             document.getElementById("device_name").value = ha.device_name || "";
             document.getElementById("enableAutoCleanup").checked = ha.enableAutoCleanup ?? true;
 
 
             // pc utils
+            document.getElementById("enable_pc_utilities").checked =  config.devices.pc_utils?.enabled || false;
             document.getElementById("enable_shutdown").checked = config.devices.pc_utils?.enableShutdown || false;
             document.getElementById("enable_reboot").checked = config.devices.pc_utils?.enableReboot || false;
 
@@ -422,6 +434,7 @@
             config.mqtt.homeassistant.enableAutoCleanup = document.getElementById("enableAutoCleanup").checked;
 
             if (config.devices?.pc_utils) {
+                config.devices.pc_utils.enabled = document.getElementById("enable_pc_utilities").checked;
                 config.devices.pc_utils.enableShutdown = document.getElementById("enable_shutdown").checked;
                 config.devices.pc_utils.enableReboot = document.getElementById("enable_reboot").checked;
             }
@@ -472,9 +485,14 @@
         function updateVisibility() {
             const haEnabled = document.getElementById("ha_enabled").checked;
             const rpiEnabled = document.getElementById("enable_raspberryPi").checked;
+            const pcutilitiesEnabled = document.getElementById("enable_pc_utilities").checked;
+
+            
 
             document.getElementById("tab-ha").classList.toggle("d-none", !haEnabled);
             document.getElementById("tab-raspi").classList.toggle("d-none", !rpiEnabled);
+            document.getElementById("tab-pcutilities").classList.toggle("d-none", !pcutilitiesEnabled);
+            
 
             // Incase active tab is hidden jump to MQTT
             const activeTab = document.querySelector("#configTabs .nav-link.active");
@@ -484,6 +502,9 @@
             if (!rpiEnabled && activeTab?.id === "raspi-tab") {
                 document.getElementById("mqtt-tab").click();
             }
+           if (!pcutilitiesEnabled && activeTab?.id === "pcutilities-tab") {
+                document.getElementById("mqtt-tab").click();
+            }            
 
             // pc utilities
             document.getElementById("shutdownButton").classList.toggle("d-none", !document.getElementById("enable_shutdown").checked);
@@ -494,6 +515,7 @@
         // add Event-Handler
         document.getElementById("ha_enabled").addEventListener("change", updateVisibility);
         document.getElementById("enable_raspberryPi").addEventListener("change", updateVisibility);
+        document.getElementById("enable_pc_utilities").addEventListener("change", updateVisibility);
         document.getElementById("enable_shutdown").addEventListener("change", updateVisibility);
         document.getElementById("enable_reboot").addEventListener("change", updateVisibility);
 
