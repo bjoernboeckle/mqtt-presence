@@ -74,8 +74,6 @@ class GpioHandler:
     def create_data(self, device_data: dict[str, DeviceData]):
         if self.gpio.mode == GpioMode.LED:
             device_data[self.gpio_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=Homeassistant(type=HomeassistantType.SWITCH))
-            #mqtt_topics.buttons[f"gpio_{self.gpio.number}_on"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} on", action=partial(self.command, "on"))
-            #mqtt_topics.buttons[f"gpio_{self.gpio.number}_off"] = MqttTopic(f"{self.gpio.mode} {self.gpio.number} off", action=partial(self.command, "off"))
         elif self.gpio.mode == GpioMode.BUTTON:
             device_data[self.gpio_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
         
