@@ -108,7 +108,7 @@ class MQTTClient:
                             if value is not None and (force or old_value is None or value != old_value):
                                 self._devices_data_old[device_key][data_key] = value
                                 self._client.publish(topic, payload=str(value), retain=True)
-                                logger.info("📡 Published %s: %s = %s",component.value, device_data.friendly_name, value)
+                                logger.debug("📡 Published %s: %s = %s",component.value, device_data.friendly_name, value)
                         except Exception as exception:      # pylint: disable=broad-exception-caught
                             logger.error("Failed to get %s data %s: %s  (%s, %s)", component.value, topic, exception, value, old_value)
 

@@ -4,6 +4,7 @@ import re
 import socket
 import sys
 import logging
+from logging.handlers import RotatingFileHandler
 
 from pathlib import Path
 from platformdirs import user_cache_dir, user_config_dir, user_log_dir
@@ -148,7 +149,7 @@ class Tools:
             format="%(asctime)s [%(levelname)s] %(message)s",
             handlers=[
                 logging.StreamHandler(sys.stdout),
-                logging.FileHandler(file, mode='a', encoding='utf-8')
+                RotatingFileHandler(file, mode='a', encoding='utf-8', maxBytes=5_000_000, backupCount=2)
             ]
         )
 
