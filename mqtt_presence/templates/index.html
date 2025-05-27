@@ -51,12 +51,12 @@
                             type="button" role="tab">App config</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="mqtt-tab" data-bs-toggle="tab" data-bs-target="#mqtt"
-                            type="button" role="tab">MQTT</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="webserver-tab" data-bs-toggle="tab" data-bs-target="#webserver"
                             type="button" role="tab">Webserver</button>
+                    </li>                    
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mqtt-tab" data-bs-toggle="tab" data-bs-target="#mqtt"
+                            type="button" role="tab">MQTT</button>
                     </li>
                     <li class="nav-item d-none" id="tab-ha" role="presentation">
                         <button class="nav-link" id="ha-tab" data-bs-toggle="tab" data-bs-target="#ha" type="button"
@@ -92,6 +92,22 @@
                             <label class="form-check-label" for="enable_raspberryPi">Enable Raspberry Pi</label>
                         </div>
                     </div>
+
+                    <!-- Webserver -->
+                    <div class="tab-pane fade" id="webserver" role="tabpanel">
+                        <div class="mb-3">
+                            <div id="web_status">Loading...</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="host" class="form-label">Host</label>
+                            <input type="text" class="form-control" id="host">
+                        </div>
+                        <div class="mb-3">
+                            <label for="port" class="form-label">Port</label>
+                            <input type="number" class="form-control" id="port">
+                        </div>
+                    </div>
+
                     <!-- MQTT -->
                     <div class="tab-pane fade" id="mqtt" role="tabpanel">
                         <div class="mb-3">
@@ -109,26 +125,11 @@
                         <div class="mb-3">
                             <label for="password" class="form-label">Passwort</label>
                             <input type="password" class="form-control" id="password"
-                                placeholder="(leer = unverändert)">
+                                placeholder="(empty = unchanged)">
                         </div>
                         <div class="mb-3">
                             <label for="prefix" class="form-label">Prefix</label>
                             <input type="text" class="form-control" id="prefix">
-                        </div>
-                    </div>
-
-                    <!-- Webserver -->
-                    <div class="tab-pane fade" id="webserver" role="tabpanel">
-                        <div class="mb-3">
-                            <div id="web_status">Loading...</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="host" class="form-label">Host</label>
-                            <input type="text" class="form-control" id="host">
-                        </div>
-                        <div class="mb-3">
-                            <label for="port" class="form-label">Port</label>
-                            <input type="number" class="form-control" id="port">
                         </div>
                     </div>
 
@@ -152,6 +153,9 @@
                     <!-- PC utilities -->
                     <div class="tab-pane fade" id="pcutilities" role="tabpanel">
                         <div class="container py-3">
+                            <div class="mb-3">
+                                <div id="pcutilities_status">Loading...</div>
+                            </div>                            
                             <!-- Shutdown -->
                             <div class="row align-items-center mb-3">
                                 <div class="col-auto">
@@ -208,8 +212,8 @@
                         <div class="row fw-bold mb-2">
                             <div class="col-md-2">Pin</div>
                             <div class="col-md-3">Name</div>
-                            <div class="col-md-3">Funktion</div>
-                            <div class="col-md-4">Aktionen</div>
+                            <div class="col-md-3">Function</div>
+                            <div class="col-md-4"></div>
                         </div>
                         <div id="gpio-container"></div>
                         <button class="btn btn-sm btn-outline-primary mt-3" onclick="addGpio()">➕ Add GPIO</button>
@@ -277,7 +281,7 @@
                     <div class="gpio-button-settings" id="button-settings-${gpioCounter}" style="display: ${mode === 'button' ? 'block' : 'none'}">
                         <div class="mb-2">
                             <label class="form-label">Debounce (seconds)</label>
-                            <input type="number" class="form-control bounce-s" step="0.01" value="${settings.bounce_s !== undefined ? settings.bounce_s : ''}">
+                            <input type="number" class="form-control bounce-s" step="0.01" value="${settings.bounce_s !== undefined ? settings.bounce_s : '0.1'}">
                         </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input pull-up" type="checkbox" ${settings.pull_up === undefined || settings.pull_up ? 'checked' : ''}>
@@ -321,9 +325,16 @@
             try {
                 const response = await fetch('/status');
                 const data = await response.json();
-                document.getElementById("mqtt_status").innerHTML = `<p><strong>${data.mqtt_status}</strong></p>` // - (${g_config.mqtt.broker.client_id})</p>`;
+                document.getElementById("mqtt_status").innerHTML = `<p><strong>${data.mqtt_status  ? "🟢 Online" : "🔴 Offline"}</strong></p>` // - (${g_config.mqtt.broker.client_id})</p>`;
                 document.getElementById("web_status").innerHTML = `<p><strong>🟢 Online</strong></p>`; //    ${data.web_status}</strong></p>`
-                document.getElementById("raspberry_status").innerHTML = `<p><strong>${data.raspberry_pi_status}</strong></p>`;
+                document.getElementById("raspberry_status").innerHTML = `<p><strong>${data.raspberry_pi_status  ? "🟢 Online" : "🔴 Offline"}</strong></p>`;
+                document.getElementById("pcutilities_status").innerHTML = `<p><strong>🟢 Online</strong></p>`
+
+                document.getElementById("mqtt-tab").innerHTML = `<p><strong>MQTT ${data.mqtt_status ? "🟢" : "🔴"}</strong></p>` // - (${g_config.mqtt.broker.client_id})</p>`;
+                document.getElementById("raspi-tab").innerHTML = `<p><strong>Raspberry Pi ${data.raspberry_pi_status ? "🟢" : "🔴"}</strong></p>`
+                document.getElementById("webserver-tab").innerHTML = `<p><strong>Webserver 🟢</strong></p>`
+                document.getElementById("pcutilities-tab").innerHTML = `<p><strong>PC utilities 🟢</strong></p>`
+
 
                 const tbody = document.querySelector("#cpu_util_table tbody");
                 // Remove old data (can be improved, to only update values)
@@ -349,9 +360,14 @@
             } catch (e) {
                 console.error("updateStatus failed")
                 console.error(e)
-                document.getElementById("mqtt_status").innerHTML = `<p>-</p>`;
+                document.getElementById("mqtt_status").innerHTML = `<p>⚪ Unknown</p>`;
                 document.getElementById("web_status").innerHTML = `<p>🔴 Offline</p>`;
-                document.getElementById("raspberry_status").innerHTML = `<p>🔴 Offline</p>`;
+                document.getElementById("raspberry_status").innerHTML = `<p>⚪ Unknown</p>`;
+
+                document.getElementById("mqtt-tab").innerHTML = `<p><strong>MQTT ⚪</strong></p>` // - (${g_config.mqtt.broker.client_id})</p>`;
+                document.getElementById("raspi-tab").innerHTML = `<p><strong>Raspberry Pi ⚪</strong></p>`
+                document.getElementById("webserver-tab").innerHTML = `<p><strong>Webserver 🔴</strong></p>`
+                document.getElementById("pcutilities-tab").innerHTML = `<p><strong>PC utilities ⚪</strong></p>`
             }
         }
 
