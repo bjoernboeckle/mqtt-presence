@@ -90,8 +90,8 @@ class WebUI:
         def status():
             devices_data = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.devices.get_devices_data())
             return jsonify({
-                "mqtt_status": "🟢 Online" if self.mqtt_app.mqtt_client.is_connected() else "🔴 Offline",
-                "raspberry_pi_status": "🟢 Online" if self.mqtt_app.devices.devices["raspberrypi"].online else "🔴 Offline",
+                "mqtt_status": self.mqtt_app.mqtt_client.is_connected(),
+                "raspberry_pi_status": self.mqtt_app.devices.devices["raspberrypi"].online,
                 #"web_status":  "🟢 Online" if self.is_server_running() else "🔴 Offline",
                 "devices_data": devices_data
             })
