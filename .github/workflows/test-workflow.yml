@@ -41,7 +41,7 @@ jobs:
         run: |
           docker build -t mqtt-presence:base .
           docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          ocker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
+          docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
           docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
 
