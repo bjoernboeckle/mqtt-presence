@@ -1,4 +1,4 @@
-name: Create Release and Publish to PyPI + Docker
+name: Test Docker
 
 on:
   workflow_dispatch:
