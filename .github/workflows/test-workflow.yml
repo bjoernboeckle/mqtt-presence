@@ -6,11 +6,13 @@ on:
   #  tags:
   #    - 'v*'
 
+
 permissions:
   contents: write
 
 env:
   IMAGE_NAME: mqtt-presence
+  TAG_NAME: test    #github.ref_name
 
 jobs:  
   docker:
@@ -23,14 +25,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🐳 Log in to Docker Hub
-        #if: ${{ secrets.DOCKER_USERNAME }} != '' && ${{ secrets.DOCKER_PASSWORD }} != ''
+        if: ${{ secrets.DOCKER_USERNAME }} != '' && ${{ secrets.DOCKER_PASSWORD }} != ''
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 🔐 Log in to GitHub Container Registry (GHCR)
-        #if: ${{ secrets.CR_PAT }} != ''
+        if: ${{ secrets.CR_PAT }} != ''
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -41,18 +43,18 @@ jobs:
         run: |
           docker build -t mqtt-presence:base .
           docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ocker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
           docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
 
       - name: 📤 Push to Docker Hub
-        #if: ${{ secrets.DOCKER_USERNAME }} != '' && ${{ secrets.DOCKER_PASSWORD }} != ''
+        if: ${{ secrets.DOCKER_USERNAME }} != '' && ${{ secrets.DOCKER_PASSWORD }} != ''
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
 
       - name: 📤 Push to GitHub Container Registry
-        #if: ${{ secrets.CR_PAT }} != ''
+        if: ${{ secrets.CR_PAT }} != ''
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
