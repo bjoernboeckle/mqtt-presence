@@ -1,0 +1,144 @@
+import logging
+import requests
+
+
+from flask import Flask, request, render_template, jsonify
+from waitress import serve
+
+from mqtt_presence.utils import Tools
+from mqtt_presence.config.configuration import Configuration
+from mqtt_presence.config.config_handler import ConfigYamlHelper
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio
+
+
+logger = logging.getLogger(__name__)
+
+
+class WebUI:
+
+    def __init__(self, mqtt_app):
+        template_folder = Tools.resource_path("templates")
+        static_folder = Tools.resource_path("static")
+        self.app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+        self.mqtt_app = mqtt_app
+        self.setup_routes()
+
+
+    def stop(self):
+        pass
+
+
+
+    def is_server_running(self):
+        try:
+
+            response = requests.get(f"http://localhost:{self.mqtt_app.config.webServer.port}/health", timeout=2)
+            if response.status_code == 200:
+                return True
+        except requests.ConnectionError:
+            return False
+        return False
+
+
+
+    def run_ui(self):
+        # use waitress or flask self run
+        logging.info("Starting web ui at %s:%s", self.mqtt_app.config.webServer.host, self.mqtt_app.config.webServer.port)
+        if Tools.is_debugger_active():
+            self.app.run(host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
+        else:
+            serve(self.app, host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
+
+
+
+
+    def setup_routes(self):
+
+
+        @self.app.route("/")
+        def index():
+            return render_template("index.html", **{
+                "appName": self.mqtt_app.NAME.replace("-", " ").title(),
+                "version": self.mqtt_app.VERSION,
+                "description": self.mqtt_app.DESCRIPTION})
+
+
+        @self.app.route("/health")
+        def health():
+            return jsonify({"status": "running"}), 200
+
+
+
+        @self.app.route('/shutdown', methods=['POST'])
+        def shutdown():
+            logger.info("shutdown....")
+            Tools.shutdown()
+            return '', 204
+
+        @self.app.route('/restart', methods=['POST'])
+        def restart():
+            logger.info("reboot....")
+            Tools.reboot()
+            return '', 204
+
+
+
+        @self.app.route("/partial/appconfig")
+        def partial_appconfig():
+            config: Configuration = self.mqtt_app.config
+            return render_template("partials/appconfig_form.html",
+                                updateRate=config.updateRate)
+
+
+        @self.app.route("/partial/webserver")
+        def partial_webserver():
+            config: Configuration = self.mqtt_app.config
+            webserver = config.webServer
+            return render_template("partials/webserver_form.html",
+                                webserver=webserver)
+
+        @self.app.route("/partial/mqtt")
+        def partial_mqtt():
+            config: Configuration = self.mqtt_app.config
+            mqtt = config.mqtt
+            return render_template("partials/mqtt_form.html",
+                                mqtt=mqtt)
+
+
+        @self.app.route("/partial/pcutils")
+        def partial_pcutils():
+            config: Configuration = self.mqtt_app.config
+            mqtt = config.mqtt
+            return render_template("partials/pcutils_form.html",
+                                enabled=mqtt.homeassistant.enabled,
+                                discovery_prefix=mqtt.homeassistant.discovery_prefix,
+                                device_name=mqtt.homeassistant.device_name,
+                                enableAutoCleanup=mqtt.homeassistant.enableAutoCleanup)
+
+
+        @self.app.route("/partial/raspberrypi")
+        def partial_gpio():
+            config: Configuration = self.mqtt_app.config
+            return render_template("partials/raspberrypi/raspberrypi_form.html", raspberryPi=ConfigYamlHelper.dataclass_to_serializable(config.devices.raspberryPi))
+
+
+
+        @self.app.route('/partial/gpio/new')
+        def partial_gpio_new():
+            gpio = ConfigYamlHelper.dataclass_to_serializable(Gpio())
+            index_str = request.args.get('index', '0')
+            try:
+                gpio_index = int(index_str)
+            except ValueError:
+                gpio_index = 0
+            print(f"gpio_index: {gpio_index}")
+            # Das Macro rendern wir in einem Template, das nur den einzelnen GPIO-Block enthält
+            return render_template('partials/raspberrypi/gpio_entry.html', gpio=gpio, gpio_index=gpio_index, render_gpio_entry=True)
+
+
+
+        @self.app.route("/config/save", methods=["POST"])
+        def config_save():
+            # Daten könnten hier verarbeitet und gespeichert werden
+            print("Konfiguration empfangen:", request.form.to_dict(flat=False))
+            return "<div class='alert alert-success'>✅ Konfiguration gespeichert!</div>"

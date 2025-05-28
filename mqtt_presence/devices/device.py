@@ -21,7 +21,7 @@ class Device(ABC):
 
 
     @abstractmethod
-    def update_data(self):
+    def update_data(self, mqtt_online: bool = False):
         pass
 
 

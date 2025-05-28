@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8" />
+    <title>MQTT Presence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
+
+    <style>
+        .gpio-entry .form-control,
+        .gpio-entry .form-select {
+            margin-bottom: 0.5rem;
+        }
+
+        .gpio-settings {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .gpio-settings .form-label {
+            font-weight: 500;
+        }
+
+        .gpio-settings .row>div {
+            padding-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div id="app" class="container py-5" v-if="config && config.mqtt && config.mqtt.broker">
+        <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
+        <div class="mb-4 text-center">{{description}}</div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Configuration</h4>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <!-- app configs -->
+                    {% raw %}
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }"
+                            @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
+                        {% endraw %}
+                    </li>
+                    <!-- MQTT -->
+                    <li class="nav-item" v-if="config.mqtt.enabled">
+                        {% raw %}
+                        <a href="#" class="nav-link" :class="{ active: activeTab==='mqtt' }"
+                            @click.prevent="activeTab='mqtt'">MQTT {{mqttStatusIcon}}</a>
+                        {% endraw %}
+                    </li>
+                    <!-- PC utilities -->
+                    <li class="nav-item" v-if="config.devices.pc_utils.enabled">
+                        {% raw %}
+                        <a href="#" class="nav-link" :class="{ active: activeTab==='pcutils' }"
+                            @click.prevent="activeTab='pcutils'">PC utilities {{pcUtilsStatusIcon}}</a>
+                        {% endraw %}
+                    </li>
+                    <!-- RaspberryPi -->
+                    <li class="nav-item" v-if="config.devices.raspberryPi.enabled">
+                        {% raw %}
+                        <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }"
+                            @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
+                        {% endraw %}
+                    </li>
+                </ul>
+                <div class="tab-content mt-3">
+                    <!-- app configs -->
+                    <div v-show="activeTab==='appconfig'">
+                        {% include "tab_appconfig.html" %}
+                    </div>
+                    <!-- MQTT -->
+                    <div v-show="activeTab==='mqtt'">
+                        {% include "tab_mqtt.html" %}
+                    </div>
+                    <!-- PC utils -->
+                    <div v-show="activeTab==='pcutils'">
+                        {% include "tab_pcutils.html" %}
+                    </div>
+
+                    <!-- Raspberry Pi -->
+                    <div v-show="activeTab==='raspberrypi'">
+                        {% include "tab_raspberrypi.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+            <!-- Save Button -->
+            <div class="text-end">
+                <button @click="saveConfig" class="btn btn-success mt-3">💾 Apply configuration</button>
+            </div>        
+    </div>
+    <script>
+
+        Vue.createApp({
+            data() {
+                config = JSON.parse('{{ config | tojson | safe | replace("'", "\\'") }}')
+                config.devices.raspberryPi.gpios.forEach((gpio, index) => this.ensureValidGpioSettings(gpio));
+                return {
+                    appName: "{{ appName }}",
+                    version: "{{ version }}",
+                    description: "{{ description }}",
+                    config: config,
+                    mqtt_status: JSON.parse('{{ mqtt_status | tojson }}'),
+                    raspberryPi_status: JSON.parse('{{ raspberryPi_status | tojson }}'),
+                    devices_data: JSON.parse('{{ devices_data | tojson | safe | replace("'", "\\'") }}'),
+                    activeTab: "appconfig",
+                    statusOnline: true,
+                    password: ""
+                };
+            },
+            computed: {
+                webserverStatusIcon() {
+                    return (this.statusOnline ? '🟢' : '🔴');
+                },
+                mqttStatusIcon() {
+                    return (this.statusOnline ? (this.mqtt_status ? '🟢' : '🔴') : '⚪');
+                },
+                pcUtilsStatusIcon() {
+                    return (this.statusOnline ? '🟢' : '⚪');
+                },
+                raspberryPiStatusIcon() {
+                    return (this.statusOnline ? (this.raspberryPi_status ? '🟢' : '🔴') : '⚪');
+                }
+            },
+            mounted() {
+                setInterval(this.fetchStatus, 2000);
+                /*fetch("/config")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.config = data;
+                        setInterval(this.fetchStatus, 2000);
+                    });*/
+            },
+            methods: {
+                ensureValidGpioSettings(gpio) {
+
+                    gpio.button = gpio.button ? gpio.button : {
+                        bounce_s: 0.1,
+                        pull_up: true,
+                        function_pressed: null,
+                        function_released: null,
+                        function_held: null,
+                    }
+                    gpio.led = gpio.led ? gpio.led : {
+                        led_mode: "on-off",
+                        led_function: null                 
+                    }
+                },
+                fetchStatus() {
+                    fetch("/status")
+                        .then(res => res.json())
+                        .then(data => {
+                            this.mqtt_status = data.mqtt_status,
+                                this.raspberryPi_status = data.raspberryPi_status,
+                                this.devices_data = data.devices_data;
+                            this.statusOnline = true
+                        })
+                        .catch(err => {
+                            this.statusOnline = false
+                            console.error("Status fetch failed:", err);
+                        });
+                },
+                addGpio() {
+                    gpio = { 
+                            mode: "led",
+                            number: 0,
+                            friendly_name: ""
+                    }
+                    this.ensureValidGpioSettings(gpio)
+                    this.config.devices.raspberryPi.gpios.push(gpio);
+                },
+                removeGpio(index) {
+                    this.config.devices.raspberryPi.gpios.splice(index, 1);
+                },
+                toggleButtonSettings(index) {
+                    gpio = this.config.devices.raspberryPi.gpios[index]
+                    this.ensureValidGpioSettings(gpio) 
+                },
+                sendCommand(endpoint, func) {
+                    fetch(endpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ "function": func })
+                    }) //.then(() => alert("Comman send"))
+                        .catch(() => alert("Failed to send command"));
+                },
+                saveConfig() {
+                    this.config.devices.raspberryPi.gpios.forEach((gpio, index) => {
+                        if (gpio.mode === "led")
+                            gpio.button = null 
+                        else if (gpio.mode === "button")
+                            gpio.led = null
+                    });
+                    fetch("/config/save", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ "config": this.config, "password": this.password })
+                    })
+                        .then(() => alert("Configuration applied"))
+                        .catch(() => alert("Failed to apply configuration"));
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+
+</html>

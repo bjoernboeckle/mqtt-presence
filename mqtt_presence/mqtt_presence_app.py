@@ -90,14 +90,14 @@ class MQTTPresenceApp():
         self._devices.exit()
 
 
-
     def _on_connect(self):
         #device_topics = self._devices.create_topics()
-        self._devices.update_data(True)
+        self._devices.update_data(True, mqtt_online = self._mqtt_client.is_connected())
         self._mqtt_client.set_devices_data(self._devices)
         self._mqtt_client.publish_mqtt_data(True)
         if self.config.mqtt.homeassistant.enabled:
             self._mqtt_client.publish_discovery()
+
 
 
     def _action_callback(self, topic: str, function: str):
@@ -121,16 +121,17 @@ class MQTTPresenceApp():
         while self._should_run:
             self._sleep_event.clear()                                   # Reset the event for the next cycle
             self._devices.update_data(True)
-            # handle mqtt (auto)connection
-            if not self._mqtt_client.is_connected():
-                should_cleanup = self.config.mqtt.homeassistant and  self.config.mqtt.homeassistant.enableAutoCleanup
-                password = self._config_handler.get_password()
-                self._mqtt_client.connect(self.config, password)
-            else:
-                if should_cleanup:
-                    self._mqtt_client.clean_discovery_topics(False)
-                    should_cleanup = False
-                self._mqtt_client.publish_mqtt_data()
+            if self.config.mqtt.enabled:
+                # handle mqtt (auto)connection
+                if not self._mqtt_client.is_connected():
+                    should_cleanup = self.config.mqtt.homeassistant and  self.config.mqtt.homeassistant.enableAutoCleanup
+                    password = self._config_handler.get_password()
+                    self._mqtt_client.connect(self.config, password)
+                else:
+                    if should_cleanup:
+                        self._mqtt_client.clean_discovery_topics(False)
+                        should_cleanup = False
+                    self._mqtt_client.publish_mqtt_data()
 
 
             self._sleep_event.wait(timeout=self.config.updateRate)      # Wait for the next update cycle

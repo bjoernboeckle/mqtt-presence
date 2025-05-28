@@ -13,15 +13,28 @@ class GpioButton_Function(Enum):
     SHUTDOWN = "shutdown"
     REBOOT = "reboot"
 
+class GpioLed_Function(Enum):
+    RUNNING = "running"
+    MQTT_ONLINE = "mqtt-online"
+
+class GpioLed_Mode(Enum):
+    ON_OFF = "on-off"
+    BLINK = "blink"
+
 
 @dataclass
 class GpioButton:
     bounce_s: float = 0.1
     pull_up: bool = True
-    function_pressed:GpioButton_Function = None
-    function_released:GpioButton_Function = None
-    function_held:GpioButton_Function = None
+    function_pressed:Optional[GpioButton_Function] = None
+    function_released:Optional[GpioButton_Function] = None
+    function_held:Optional[GpioButton_Function] = None
 
+
+@dataclass
+class GpioLed:
+    led_mode: GpioLed_Mode = GpioLed_Mode.ON_OFF
+    led_function: Optional[GpioLed_Function] = None
 
 
 @dataclass
@@ -30,6 +43,7 @@ class Gpio:
     number: int = 0
     friendly_name: str = ""
     button: Optional[GpioButton] = None
+    led: Optional[GpioLed] = None
 
 
 

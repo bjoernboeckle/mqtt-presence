@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 
-from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioButton_Function
+from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioLed, GpioButton_Function, GpioLed_Mode, GpioLed_Function
 from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
 from mqtt_presence.utils import Tools
 
@@ -22,7 +22,10 @@ class GpioHandler:
 
         from gpiozero import Button, LED
         if gpio.mode == GpioMode.LED:
+            led: GpioLed = gpio.led if gpio.led is not None else GpioLed()
             self.gpio_zero = LED(gpio.number)
+            if led.led_function == GpioLed_Function.RUNNING:
+                self.set_led(1)
         elif gpio.mode == GpioMode.BUTTON:
             button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
             self.gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
@@ -66,7 +69,10 @@ class GpioHandler:
     def set_led(self, state: int):
         if (self.gpio_zero is not None):
             if state != 0:
-                self.gpio_zero.on()
+                if self.gpio.led is not None and self.gpio.led.led_mode == GpioLed_Mode.BLINK:
+                    self.gpio_zero.blink()
+                else:
+                    self.gpio_zero.on()
             else:
                 self.gpio_zero.off()
 
@@ -78,8 +84,10 @@ class GpioHandler:
             device_data[self.gpio_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
         
 
-    def update_data(self, device_data: dict[str, str]):
+    def update_data(self, device_data: dict[str, str], mqtt_online: bool = False):
         if self.gpio.mode == GpioMode.LED:
+            if self.gpio.led is not None and self.gpio.led.led_function == GpioLed_Function.MQTT_ONLINE:
+                self.set_led(1 if mqtt_online else 0)
             device_data[self.gpio_key].data = "OFF" if self.get_led() == 0 else "ON"
 
 

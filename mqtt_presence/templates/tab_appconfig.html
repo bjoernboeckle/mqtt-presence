@@ -1,0 +1,29 @@
+<div>
+    <div class="mb-3">
+        <label for="host" class="form-label">Host</label>
+        <input type="text" class="form-control" id="host" v-model="config.webServer.host">
+    </div>
+    <div class="mb-3">
+        <label for="port" class="form-label">Port</label>
+        <input type="number" class="form-control" id="port" v-model.number="config.webServer.port">
+    </div>
+    <div class="mb-3">
+        <label for="updateRate" class="form-label">Internal data update rate (s)</label>
+        <input type="number" class="form-control" id="updateRate" v-model.number="config.updateRate">
+    </div>
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox"
+            v-model.bool="config.mqtt.enabled">
+        <label class="form-check-label" for="enable_raspberryPi">Enable MQTT</label>
+    </div>    
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" id="enable_pc_utilities"
+            v-model.bool="config.devices.pc_utils.enabled">
+        <label class="form-check-label" for="enable_pc_utilities">Enable PC utilities</label>
+    </div>
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" id="enable_raspberryPi"
+            v-model.bool="config.devices.raspberryPi.enabled">
+        <label class="form-check-label" for="enable_raspberryPi">Enable Raspberry Pi</label>
+    </div>
+</div>
