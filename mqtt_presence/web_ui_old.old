@@ -13,7 +13,7 @@ from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioBut
 
 logger = logging.getLogger(__name__)
 
-class WebUI:
+class WebUIOld:
 
     def __init__(self, mqtt_app):
         template_folder = Tools.resource_path("templates")
@@ -31,7 +31,7 @@ class WebUI:
     def is_server_running(self):
         try:
 
-            response = requests.get(f"http://localhost:{self.mqtt_app.config.webServer.port}/health", timeout=2)
+            response = requests.get(f"http://localhost:{self.mqtt_app.config.webServer.port+1}/health", timeout=2)
             if response.status_code == 200:
                 return True
         except requests.ConnectionError:
@@ -44,9 +44,9 @@ class WebUI:
         # use waitress or flask self run
         logging.info("Starting web ui at %s:%s", self.mqtt_app.config.webServer.host, self.mqtt_app.config.webServer.port)
         if Tools.is_debugger_active():
-            self.app.run(host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
+            self.app.run(host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port+1)
         else:
-            serve(self.app, host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port)
+            serve(self.app, host=self.mqtt_app.config.webServer.host, port=self.mqtt_app.config.webServer.port+1)
 
 
 
@@ -55,7 +55,7 @@ class WebUI:
 
         @self.app.route("/")
         def index():
-            return render_template("index.html", **{
+            return render_template("index_old.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
                 "description": self.mqtt_app.DESCRIPTION})

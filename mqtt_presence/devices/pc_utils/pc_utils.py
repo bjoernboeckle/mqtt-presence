@@ -48,7 +48,7 @@ class PcUtils(Device):
 
 
 
-    def update_data(self):
+    def update_data(self, _mqtt_online: bool = False):
         if self.settings.enabled and self.settings.enableInfos:
             self.data["cpu_freq"].data = self._get_cpu_freq()
             self.data["memory_usage"].data = self._get_memory_usage_percent()
@@ -62,11 +62,13 @@ class PcUtils(Device):
 
 
     def _device_command(self, function, payload):
-        logger.info("✏️  Device command: %s", payload)
-        if ( function == "shutdown"): Tools.shutdown()
-        elif ( function == "reboot"): Tools.reboot()
+        logger.info("✏️  Device command: %s - %s", function, payload)
+        if ( function == "shutdown"): 
+            pass #Tools.shutdown()
+        elif ( function == "reboot"): 
+            pass #Tools.reboot()
         elif ( function == "test"): logger.info("🧪 Test command")
-        else: logger.warning("⚠️  Unknown Device command: %s", payload)
+        else: logger.warning("⚠️  Unknown Device command: %s - %s", function, payload)
 
 
     def _get_cpu_freq(self):

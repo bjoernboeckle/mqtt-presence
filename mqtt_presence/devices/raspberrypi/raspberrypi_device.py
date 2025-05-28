@@ -52,9 +52,9 @@ class RaspberryPiDevice(Device):
             self.online = False
 
 
-    def update_data(self):
+    def update_data(self, mqtt_online: bool = False):
         for gpio_handler in self.gpio_handlers:
-            gpio_handler.update_data(self.data)
+            gpio_handler.update_data(self.data, mqtt_online)
 
 
     def get_gpio_handler(self, gpio_setting):

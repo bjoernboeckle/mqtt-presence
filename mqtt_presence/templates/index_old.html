@@ -16,17 +16,17 @@
             margin-bottom: 0.5rem;
         }
 
-        .gpio-button-settings {
+        .gpio-settings {
             margin-top: 0.5rem;
             padding-left: 1rem;
             border-left: 2px solid #ccc;
         }
 
-        .gpio-button-settings .form-label {
+        .gpio-settings .form-label {
             font-weight: 500;
         }
 
-        .gpio-button-settings .row>div {
+        .gpio-settings .row>div {
             padding-right: 0.5rem;
         }
     </style>
@@ -278,7 +278,7 @@
                 </div>
                 <div class="col-md-4">
                     <button class="btn btn-sm btn-danger mb-2" onclick="removeGpio(${gpioCounter})">❌ Delete</button>
-                    <div class="gpio-button-settings" id="button-settings-${gpioCounter}" style="display: ${mode === 'button' ? 'block' : 'none'}">
+                    <div class="gpio-settings" id="button-settings-${gpioCounter}" style="display: ${mode === 'button' ? 'block' : 'none'}">
                         <div class="mb-2">
                             <label class="form-label">Debounce (seconds)</label>
                             <input type="number" class="form-control bounce-s" step="0.01" value="${settings.bounce_s !== undefined ? settings.bounce_s : '0.1'}">

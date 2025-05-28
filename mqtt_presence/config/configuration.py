@@ -34,6 +34,7 @@ class Homeassistant:
 
 @dataclass
 class Mqtt:
+    enabled: bool = True
     broker: Broker = field(default_factory=Broker)
     homeassistant: Homeassistant = field(default_factory=Homeassistant)
 

@@ -1,0 +1,84 @@
+<div class="row fw-bold mb-2">
+    <div class="col-md-2">Pin</div>
+    <div class="col-md-3">Name</div>
+    <div class="col-md-3">Function</div>
+    <div class="col-md-4"></div>
+</div>
+
+<form id="gpio-form" method="POST" action="/save_gpios">
+  <div id="gpio-list">
+    {% import "partials/raspberrypi/gpio_entry.html" as gpio_macros %}
+    {% for gpio in raspberryPi.gpios %}
+      {{ gpio_macros.render_gpio_entry(gpio, loop.index0) }}
+    {% endfor %}
+  </div>
+
+  <div class="mt-3">
+    <button type="button" 
+            class="btn btn-sm btn-outline-primary mt-3" 
+            id="add-gpio-btn">
+      ➕ Add GPIO New
+    </button>
+  </div>
+</form>
+
+<script>
+
+
+  document.getElementById("add-gpio-btn").addEventListener("click", function () {
+    // Finde den höchsten aktuellen Index
+    const entries = document.querySelectorAll(".gpio-entry");
+    let maxIndex = -1;
+    entries.forEach(entry => {
+      const idx = parseInt(entry.dataset.index, 10);
+      if (!isNaN(idx) && idx > maxIndex) {
+        maxIndex = idx;
+      }
+    });
+    const nextIndex = maxIndex + 1;
+
+    // Erzeuge HTMX-Request manuell
+    htmx.ajax('GET', `/partial/gpio/new?index=${nextIndex}`, {
+      target: "#gpio-list",
+      swap: "beforeend"
+    });
+  });
+
+
+  // Toggle settings
+  function toggleButtonSettings(selectElem, index) {
+    const mode = selectElem.value;
+    const btnSettings = document.getElementById(`button-settings-${index}`);
+    if (btnSettings) {
+      btnSettings.style.display = (mode === 'button') ? 'block' : 'none';
+    }
+  }
+
+  function removeGpio(index) {
+    const elem = document.getElementById(`gpio-${index}`);
+    if(elem) elem.remove();
+    // Auch aus dem JS-Array entfernen
+    raspberryPi.gpios = raspberryPi.gpios.filter(gpio => gpio.index !== index);
+  }
+
+  // Nach jedem HTMX Swap: Button-Settings anzeigen/ausblenden
+  document.body.addEventListener('htmx:afterSwap', (event) => {
+    if(event.target.id === 'gpio-list') {
+      // Neuen Index finden
+      const entries = document.querySelectorAll('.gpio-entry');
+      const lastEntry = entries[entries.length - 1];
+      if(lastEntry) {
+        const idx = lastEntry.dataset.index;
+        const selectElem = lastEntry.querySelector('.gpio-mode');
+        if(selectElem) toggleButtonSettings(selectElem, idx);
+      }
+    }
+  });
+
+  // Initial beim Laden
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.gpio-mode').forEach((selectElem, idx) => {
+      toggleButtonSettings(selectElem, idx);
+    });
+  });
+</script>

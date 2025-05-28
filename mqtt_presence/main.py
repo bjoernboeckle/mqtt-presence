@@ -3,7 +3,8 @@ import logging
 
 from mqtt_presence.mqtt_presence_app import MQTTPresenceApp #, MQTTPresenceAppSingleton
 from mqtt_presence.utils import Tools
-from mqtt_presence.web_ui import WebUI
+from mqtt_presence.web_ui_vue import WebUIVue
+
 
 from mqtt_presence.parser import get_parser
 from mqtt_presence.version import NAME
@@ -39,7 +40,8 @@ def main():
     mqtt_app.start()
 
     #logger.info("ℹ️  Selected user_interface: %s", args.ui)
-    WebUI(mqtt_app).run_ui()
+    WebUIVue(mqtt_app).run_ui()
+    #WebUI2(mqtt_app).run_ui()
 
 
 if __name__ == "__main__":

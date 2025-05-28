@@ -1,0 +1,47 @@
+<div>
+  <div class="mb-3">
+    <label for="mqtt-host" class="form-label">MQTT Broker</label>
+    <input id="mqtt-host" type="text" class="form-control" v-model="config.mqtt.broker.host">
+  </div>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label class="form-label">Username</label>
+      <input type="text" name="mqtt_user" class="form-control" v-model="config.mqtt.broker.username">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Password</label>
+      <input type="password" name="mqtt_pass" class="form-control" placeholder="(empty = unchanged)" v-model="password">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Prefix</label>
+    <input type="text" name="mqtt_prefix" class="form-control" v-model="config.mqtt.broker.prefix">
+  </div>
+
+  <div class="form-check form-switch mb-3">
+    <input class="form-check-input" type="checkbox" id="ha_enabled" v-model.bool="config.mqtt.homeassistant.enabled">
+    <label class="form-check-label" for="ha_enabled">Enable Homeassistant
+      Discovery</label>
+  </div>
+
+  <div v-if="config.mqtt.homeassistant.enabled">
+    <h6>Homeassistant</h6>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Discovery Prefix</label>
+        <input type="text" name="discovery_prefix" class="form-control"
+          v-model="config.mqtt.homeassistant.discovery_prefix">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Device name</label>
+        <input type="text" name="device_name" class="form-control" v-model="config.mqtt.homeassistant.device_name">
+      </div>
+    </div>
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" id="enableAutoCleanup"
+        v-model.bool="config.mqtt.homeassistant.enableAutoCleanup">
+      <label class="form-check-label">Auto-Cleanup discovery</label>
+    </div>
+  </div>
+</div>

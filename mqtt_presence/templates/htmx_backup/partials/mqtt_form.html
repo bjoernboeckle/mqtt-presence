@@ -1,0 +1,33 @@
+<form>
+  <div class="mb-3">
+    <label class="form-label">MQTT Broker</label>
+    <input type="text" name="mqtt_host" class="form-control" value="{{ mqtt.broker.host }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input type="text" name="mqtt_user" class="form-control" value="{{ mqtt.broker.username }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" name="mqtt_pass" class="form-control" placeholder="(empty = unchanged)">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Prefix</label>
+    <input type="text" name="mqtt_prefix" class="form-control" value="{{ mqtt.broker.prefix }}">
+  </div>
+
+  <h5>Homeassistant</h5>
+
+  <label class="form-label">Discovery Prefix</label>
+    <input type="text" name="discovery_prefix" class="form-control" value="{{ mqtt.homeassistant.discovery_prefix }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Device name</label>
+    <input type="text" name="device_name" class="form-control" value="{{ mqtt.homeassistant.device_name }}">
+  </div>
+  <div class="mb-3">
+      <input class="form-check-input" type="checkbox" id="enableAutoCleanup" value="{{mqtt.homeassistant.enableAutoCleanup}}">
+      <label class="form-label">Auto-Cleanup discovery</label>
+  </div>  
+
+</form>
