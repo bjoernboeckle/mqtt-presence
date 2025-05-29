@@ -21,7 +21,7 @@ class Device(ABC):
 
 
     @abstractmethod
-    def update_data(self, mqtt_online: bool = False):
+    def update_data(self, mqtt_online: bool = None):
         pass
 
 
@@ -44,7 +44,7 @@ class Device(ABC):
 
     def update_filterd_data(self):
         self._filtered_data = {
-            key: value
+            key: { "data": value.data, "friendly_name": value.friendly_name, "unit": value.unit }
             for key, value in self._data.items()
             if value.data is not None
         }

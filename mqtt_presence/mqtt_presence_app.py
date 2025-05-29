@@ -120,7 +120,7 @@ class MQTTPresenceApp():
         should_cleanup: bool = False
         while self._should_run:
             self._sleep_event.clear()                                   # Reset the event for the next cycle
-            self._devices.update_data(True)
+            self._devices.update_data(True, mqtt_online = self._mqtt_client.is_connected())
             if self.config.mqtt.enabled:
                 # handle mqtt (auto)connection
                 if not self._mqtt_client.is_connected():

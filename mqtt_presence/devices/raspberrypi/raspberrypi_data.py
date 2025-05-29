@@ -18,7 +18,7 @@ class GpioLed_Function(Enum):
     MQTT_ONLINE = "mqtt-online"
 
 class GpioLed_Mode(Enum):
-    ON_OFF = "on-off"
+    ONOFF = "onoff"
     BLINK = "blink"
 
 
@@ -33,7 +33,7 @@ class GpioButton:
 
 @dataclass
 class GpioLed:
-    led_mode: GpioLed_Mode = GpioLed_Mode.ON_OFF
+    led_mode: GpioLed_Mode = GpioLed_Mode.ONOFF
     led_function: Optional[GpioLed_Function] = None
 
 
