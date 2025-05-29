@@ -20,7 +20,7 @@ class GpioHandler:
         self._action_callback = action_callback
         self.led_state = -1
 
-        logger.info("✏️ Init %s", gpio.number)
+        logger.info("✏️ Init Gpio %s", gpio.number)
         from gpiozero import Button, LED
         if gpio.mode == GpioMode.LED:
             self.led_state = -1
@@ -115,6 +115,6 @@ class GpioHandler:
 
 
     def close(self):
-        logger.info("✏️ Close %s", self.gpio.number)
+        logger.info("✏️ Close Gpio %s", self.gpio.number)
         if (self._gpio_zero is not None):
             self._gpio_zero.close()
