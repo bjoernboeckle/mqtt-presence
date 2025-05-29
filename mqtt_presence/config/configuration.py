@@ -51,7 +51,7 @@ class Devices:
 
 @dataclass
 class Configuration:
-    updateRate: int = 5  # Update interval in seconds
+    updateRate: int = 4  # Update interval in seconds
     webServer: WebServerAppConfig = field(default_factory=WebServerAppConfig)    # pylint: disable=invalid-name
     mqtt: Mqtt = field(default_factory=Mqtt)
     devices: Devices = field(default_factory=Devices)

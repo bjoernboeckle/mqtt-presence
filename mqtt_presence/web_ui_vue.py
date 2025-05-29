@@ -9,6 +9,7 @@ from mqtt_presence.utils import Tools
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
 from mqtt_presence.devices.device_data import DeviceData
+from mqtt_presence.devices.raspberrypi.raspberrypi_device import RaspberryPiDevice
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,16 @@ class WebUIVue:
                         device_data.action("")
             return '', 204
 
+
+        @self.app.route('/raspberryPi/gpio/led', methods=['POST'])
+        def raspberryPi_gpio_led():
+            gpio = request.json.get('function')
+            raspi :RaspberryPiDevice = self.mqtt_app.devices.devices["raspberrypi"]
+            handler = raspi.get_gpio_handler_by_number(gpio.get("number"))
+            if handler is not None:
+                handler.set_led(gpio.get("command"))
+            self.mqtt_app.force_update()
+            return '', 204
 
 
 

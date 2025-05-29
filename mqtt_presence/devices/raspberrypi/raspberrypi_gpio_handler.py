@@ -20,7 +20,7 @@ class GpioHandler:
         self._action_callback = action_callback
         self.led_state = -1
 
-        logger.info("✏️ Init Gpio %s", gpio.number)
+        logger.info("✏️ Init Gpio %s - %s", gpio.number, gpio.mode)
         from gpiozero import Button, LED
         if gpio.mode == GpioMode.LED:
             self.led_state = -1
