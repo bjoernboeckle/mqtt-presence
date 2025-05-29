@@ -47,7 +47,7 @@ class Devices:
             device.exit()
 
 
-    def update_data(self, update_filered: bool = False, mqtt_online: bool = False):
+    def update_data(self, update_filered: bool = False, mqtt_online: bool = None):
         for device in self._devices.values():
             device.update_data(mqtt_online)
             if update_filered:

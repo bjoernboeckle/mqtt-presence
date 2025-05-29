@@ -49,7 +49,6 @@ class WebUIVue:
 
 
 
-
     def setup_routes(self):
         @self.app.route("/")
         def index():

@@ -145,7 +145,7 @@ class MQTTClient:
                                 payload["payload"] = action
                                 self._client.publish(discovery_topic, json.dumps(payload), retain=True)
                                 self._published_topics.append(discovery_topic)
-                                logger.info("🧠 Action %s Discovery published for %s: %s", action, component.value, data_key, device_data.friendly_name)
+                                logger.info("🧠 %s %s Discovery published for %s: %s", action, component.value, data_key, device_data.friendly_name)
                         else:
                             discovery_topic = f"{self._discovery_prefix}/{component.value}/{self._node_id}/{unique_id}/config"
                             payload = self._get_discovery_payload(topic, unique_id, device_data, component.value)

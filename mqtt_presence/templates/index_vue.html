@@ -92,10 +92,10 @@
                 </div>
             </div>
         </div>
-            <!-- Save Button -->
-            <div class="text-end">
-                <button @click="saveConfig" class="btn btn-success mt-3">💾 Apply configuration</button>
-            </div>        
+        <!-- Save Button -->
+        <div class="text-end">
+            <button @click="saveConfig" class="btn btn-success mt-3">💾 Apply configuration</button>
+        </div>
     </div>
     <script>
 
@@ -150,8 +150,8 @@
                         function_held: null,
                     }
                     gpio.led = gpio.led ? gpio.led : {
-                        led_mode: "on-off",
-                        led_function: null                 
+                        led_mode: "onoff",
+                        led_function: null
                     }
                 },
                 fetchStatus() {
@@ -159,8 +159,8 @@
                         .then(res => res.json())
                         .then(data => {
                             this.mqtt_status = data.mqtt_status,
-                                this.raspberryPi_status = data.raspberryPi_status,
-                                this.devices_data = data.devices_data;
+                            this.raspberryPi_status = data.raspberryPi_status,
+                            this.devices_data = data.devices_data;
                             this.statusOnline = true
                         })
                         .catch(err => {
@@ -169,10 +169,10 @@
                         });
                 },
                 addGpio() {
-                    gpio = { 
-                            mode: "led",
-                            number: 0,
-                            friendly_name: ""
+                    gpio = {
+                        mode: "led",
+                        number: 0,
+                        friendly_name: ""
                     }
                     this.ensureValidGpioSettings(gpio)
                     this.config.devices.raspberryPi.gpios.push(gpio);
@@ -182,7 +182,7 @@
                 },
                 toggleButtonSettings(index) {
                     gpio = this.config.devices.raspberryPi.gpios[index]
-                    this.ensureValidGpioSettings(gpio) 
+                    this.ensureValidGpioSettings(gpio)
                 },
                 sendCommand(endpoint, func) {
                     fetch(endpoint, {
@@ -195,7 +195,7 @@
                 saveConfig() {
                     this.config.devices.raspberryPi.gpios.forEach((gpio, index) => {
                         if (gpio.mode === "led")
-                            gpio.button = null 
+                            gpio.button = null
                         else if (gpio.mode === "button")
                             gpio.led = null
                     });

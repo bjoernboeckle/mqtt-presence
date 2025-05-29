@@ -19,7 +19,7 @@ from mqtt_presence.version import NAME
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
-from mqtt_presence.devices.device_data import HomeassistantType
+from mqtt_presence.devices.device_data import HomeassistantType, DeviceData
 
 logger = logging.getLogger(__name__)
 
@@ -49,32 +49,48 @@ class ConfigYamlHelper:
 
 
     # Convert Enum values to strings before saving
+   
     @staticmethod
     def dataclass_to_serializable(obj):
-        if is_dataclass(obj):
-            result = {}
-            for key, value in asdict(obj).items():
-                if value is None or isinstance(value, partial):
-                    continue  # ⛔ None-Werte auslassen
-                result[key] = ConfigYamlHelper.dataclass_to_serializable(value)
-            return result
+        try:
+            # 🎯 Fall 1: Dataclass
+            if is_dataclass(obj):
+                result = {}
+                for key, value in asdict(obj).items():
+                    # ⛔ partial und None-Werte überspringen
+                    if value is None or isinstance(value, partial):
+                        continue
+                    result[key] = ConfigYamlHelper.dataclass_to_serializable(value)
+                return result
 
-        elif isinstance(obj, Enum):
-            return obj.value
+            # 🎯 Fall 2: Enum
+            elif isinstance(obj, Enum):
+                return obj.value
 
-        elif isinstance(obj, list):
-            return [ConfigYamlHelper.dataclass_to_serializable(v) for v in obj]
+            # 🎯 Fall 3: Liste
+            elif isinstance(obj, list):
+                return [ConfigYamlHelper.dataclass_to_serializable(v) for v in obj if v is not None and not isinstance(v, partial)]
 
-        elif isinstance(obj, dict):
-            return {
-                k: ConfigYamlHelper.dataclass_to_serializable(v)
-                for k, v in obj.items()
-                if v is not None  # ⛔ None-Werte in Dicts auslassen
-            }
-        elif isinstance(obj, partial):
-            return ""
-        else:
-            return obj
+            # 🎯 Fall 4: Dictionary
+            elif isinstance(obj, dict):
+                return {
+                    k: ConfigYamlHelper.dataclass_to_serializable(v)
+                    for k, v in obj.items()
+                    if v is not None and not isinstance(v, partial)
+                }
+
+            # 🎯 Fall 5: functools.partial → komplett ignorieren
+            elif isinstance(obj, partial):
+                return None  # oder "" oder `continue`, je nach Wunsch
+
+            # 🎯 Fall 6: Alles andere → so wie es ist zurückgeben
+            else:
+                return obj
+
+        except Exception:
+            logger.exception("Fehler bei der Serialisierung von: %s", obj)
+            return None  # Sicherstellen, dass immer ein valider Rückgabewert entsteht
+        
 
 
     @staticmethod
@@ -172,7 +188,7 @@ class ConfigHandler:
         # Set default values for the devices
         config.devices.pc_utils = PcUtilsSettings()
         if Tools.is_rasppery_pi():
-            config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
+            config.devices.raspberryPi.enabled = False       #config.devices.raspberryPi = RaspberryPiSettings.get_default_raspberrypi_settings()
         else:
             config.devices.raspberryPi.enabled = False
 
