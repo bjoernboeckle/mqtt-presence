@@ -58,6 +58,8 @@ class MQTTPresenceApp():
     def devices(self) -> Devices:
         return self._devices
 
+    def force_update(self):
+        self._sleep_event.set()
 
     def update_new_config(self, config : Configuration, password: str = None):
         self._config_handler.save_config(config, password)

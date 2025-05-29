@@ -26,6 +26,7 @@
 
 
     <div class="col-md-1"></div>
+    <!-- Button -->
     <div v-if="gpio.mode === 'button' && gpio.button" class="col-md-11 gpio-settings">
         <div class="row gx-2 gy-1">
             <div class="col-md-2">
@@ -66,9 +67,10 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- LED -->
     <div v-if="gpio.mode === 'led' && gpio.led" class="col-md-11 gpio-settings">
-        <div class="row gx-2 gy-1">
+        <div class="row gx-2 gy-1  align-items-end">
             <div class="col-md-3">
                 <label class="form-label mb-1">Led mode</label>
                 <select class="form-select form-select-sm" v-model="gpio.led.led_mode">
@@ -85,6 +87,12 @@
                 </select>
             </div>
 
+            <!-- Rechtsbündige Buttons -->
+            <div class="col-md-6 text-end" >
+                <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none me-2" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 1 })">On</a>
+                <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 0 })">Off</a>
+                <span v-if="devices_data.raspberrypi['gpio_' + gpio.number]" v-text="'  State: ' + (devices_data.raspberrypi['gpio_' + gpio.number].data == 'ON' ? '🟢' : '🔴')"></span>
+            </div>
         </div>
     </div>
 

@@ -43,8 +43,8 @@
                 <!-- Tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                     <!-- app configs -->
-                    {% raw %}
                     <li class="nav-item">
+                        {% raw %}
                         <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }"
                             @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
                         {% endraw %}
@@ -159,8 +159,8 @@
                         .then(res => res.json())
                         .then(data => {
                             this.mqtt_status = data.mqtt_status,
-                            this.raspberryPi_status = data.raspberryPi_status,
-                            this.devices_data = data.devices_data;
+                                this.raspberryPi_status = data.raspberryPi_status,
+                                this.devices_data = data.devices_data;
                             this.statusOnline = true
                         })
                         .catch(err => {

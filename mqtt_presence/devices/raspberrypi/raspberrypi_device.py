@@ -59,3 +59,6 @@ class RaspberryPiDevice(Device):
 
     def get_gpio_handler(self, gpio_setting):
         return next((gpio for gpio in self._gpio_handlers if gpio.gpio == gpio_setting), None)
+
+    def get_gpio_handler_by_number(self, number):
+        return next((gpio for gpio in self._gpio_handlers if gpio.gpio.number== number), None)
