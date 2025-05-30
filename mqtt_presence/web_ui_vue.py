@@ -1,7 +1,6 @@
 import logging
 import requests
 
-from dacite import from_dict, Config as DaciteConfig
 from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
@@ -68,7 +67,7 @@ class WebUIVue:
         @self.app.route("/config")
         def get_config():
             config: Configuration = self.mqtt_app.config
-            return jsonify({ 
+            return jsonify({
                     "config":ConfigYamlHelper.dataclass_to_serializable(config)
                     })
 
@@ -101,7 +100,7 @@ class WebUIVue:
 
 
         @self.app.route('/raspberryPi/gpio/led', methods=['POST'])
-        def raspberryPi_gpio_led():
+        def raspberrypi_gpio_led():
             gpio = request.json.get('function')
             raspi :RaspberryPiDevice = self.mqtt_app.devices.devices["raspberrypi"]
             handler = raspi.get_gpio_handler_by_number(gpio.get("number"))
