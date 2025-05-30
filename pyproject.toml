@@ -4,8 +4,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mqtt-presence"
-version = "0.2.4"
-description = "Lightweight MQTT-based presence detection with shutdown support"
+version = "0.2.5"
+description = "Lightweight MQTT-based presence detection with shutdown and Raspberry Pi support"
 authors = [ "Bjoern Boeckle <bjoern@boeckle-net.de>",]
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,7 +15,6 @@ keywords = [ "mqtt", "presence", "shutdown", "home-assistant", "smart-home", "mq
 [[tool.poetry.packages]]
 include = "mqtt_presence"
 
-
 [[tool.poetry.include]]
 path = "mqtt_presence/templates"
 format = "sdist"
@@ -23,7 +22,6 @@ format = "sdist"
 [[tool.poetry.include]]
 path = "mqtt_presence/static"
 format = "sdist"
-
 
 [tool.poetry.dependencies]
 python = "^3.11"
