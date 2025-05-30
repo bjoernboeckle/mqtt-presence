@@ -1,103 +1,127 @@
-<div class="row fw-bold small mb-2">
-    <div class="col-md-1"></div>
-    <div class="col-md-2">Pin</div>
-    <div class="col-md-5">Name</div>
-    <div class="col-md-4">Function</div>    
+<div class="table-responsive mb-3">
+    <table class="table table-sm align-middle">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" style="width: 40px;"></th>
+                <th scope="col" style="width: 80px;">Pin</th>
+                <th scope="col">Mode</th>
+                <th scope="col">Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <template v-for="(gpio, index) in config.devices.raspberryPi.gpios" :key="index">
+                <tr>
+                    <td colspan="100%" style="height: 24px; border: none;"></td>
+                </tr>
+                <!-- Hauptzeile -->
+                <tr class="no-bottom-border no-top-border">
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" @click="removeGpio(index)" title="Remove GPIO">
+                            ❌
+                        </button>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" v-model.number="gpio.number"
+                            placeholder="Pin" />
+                    </td>
+                   <td>
+                        <select class="form-select form-select-sm" v-model="gpio.mode"
+                            @change="() => toggleButtonSettings(index)">
+                            <option value="led">LED</option>
+                            <option value="button">Button</option>
+                        </select>
+                    </td>                    
+                    <td>
+                        <input type="text" class="form-control form-control-sm" v-model="gpio.friendly_name"
+                            placeholder="Name" />
+                    </td> 
+                </tr>
+
+                <!-- Settings-Zeile -->
+                <tr class="no-bottom-border no-top-border gpio-settings-row">
+                    <td colspan="2"></td>
+                    <td colspan="2">
+                        <!-- Button Mode -->
+                        <div v-if="gpio.mode === 'button' && gpio.button" class="row g-2">
+                            <div class="col-md-2">
+                                <label class="form-label form-label-sm mb-1" :for="'bounce_s-' + index">Bounce (s)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm"
+                                    v-model.number="gpio.button.bounce_s" :id="'bounce_s-' + index" />
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label form-label-sm mb-1" :for="'pullup-' + index">Pull-Up</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" v-model="gpio.button.pull_up"
+                                        :id="'pullup-' + index" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label form-label-sm mb-1">Pressed</label>
+                                <select class="form-select form-select-sm"
+                                    v-model="gpio.button.function_pressed">
+                                    <option :value="null">None</option>
+                                    <option value="shutdown">Shutdown</option>
+                                    <option value="reboot">Reboot</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label form-label-sm mb-1">Released</label>
+                                <select class="form-select form-select-sm"
+                                    v-model="gpio.button.function_released">
+                                    <option :value="null">None</option>
+                                    <option value="shutdown">Shutdown</option>
+                                    <option value="reboot">Reboot</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label form-label-sm mb-1">Held</label>
+                                <select class="form-select form-select-sm" v-model="gpio.button.function_held">
+                                    <option :value="null">None</option>
+                                    <option value="shutdown">Shutdown</option>
+                                    <option value="reboot">Reboot</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- LED Mode -->
+                        <div v-if="gpio.mode === 'led' && gpio.led" class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label form-label-sm mb-1">LED Mode</label>
+                                <select class="form-select form-select-sm" v-model="gpio.led.led_mode">
+                                    <option value="onoff">On/Off</option>
+                                    <option value="blink">Blink</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label form-label-sm mb-1">LED Function</label>
+                                <select class="form-select form-select-sm" v-model="gpio.led.led_function">
+                                    <option :value="null">None</option>
+                                    <option value="running">App running</option>
+                                    <option value="mqtt-online">MQTT online</option>
+                                </select>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                  <td colspan="100%" class="no-bottom-border" style="height: 24px;"></td>
+                </tr>
+            </template>
+        </tbody>
+    </table>
 </div>
 
-<div v-for="(gpio, index) in config.devices.raspberryPi.gpios" :key="index"
-    class="row gx-1 gy-1 align-items-start small mb-2">
 
-    <div class="col-md-1">
-        <button class="btn btn-sm btn-outline-danger" @click="removeGpio(index)">❌</button>
-    </div>
-    <div class="col-md-2">
-        <input type="number" class="form-control form-control-sm" v-model.number="gpio.number" placeholder="Pin" />
-    </div>
-    <div class="col-md-5">
-        <input type="text" class="form-control form-control-sm" v-model="gpio.friendly_name" placeholder="Name" />
-    </div>
-    <div class="col-md-4">
-        <select class="form-select form-select-sm w-100" v-model="gpio.mode" @change="() => toggleButtonSettings(index)">
-            <option value="led">LED</option>
-            <option value="button">Button</option>
-        </select>
-    </div>
-
-
-    <div class="col-md-1"></div>
-    <!-- Button -->
-    <div v-if="gpio.mode === 'button' && gpio.button" class="col-md-11 gpio-settings">
-        <div class="row gx-2 gy-1">
-            <div class="col-md-2">
-                <label class="form-label mb-1">Bounce (s)</label>
-                <input type="number" step="0.01" class="form-control form-control-sm"
-                    v-model.number="gpio.button.bounce_s" />
-            </div>
-            <div class="col-md-1">
-                <label class="form-label mb-1 d-block">Pull-Up</label>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" v-model="gpio.button.pull_up"
-                        :id="'pullup-' + index" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label mb-1">Pressed</label>
-                <select class="form-select form-select-sm" v-model="gpio.button.function_pressed">
-                    <option :value="null">None</option>
-                    <option value="shutdown">Shutdown</option>
-                    <option value="reboot">Reboot</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label mb-1">Released</label>
-                <select class="form-select form-select-sm" v-model="gpio.button.function_released">
-                    <option :value="null">None</option>
-                    <option value="shutdown">Shutdown</option>
-                    <option value="reboot">Reboot</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label mb-1">Held</label>
-                <select class="form-select form-select-sm" v-model="gpio.button.function_held">
-                    <option :value="null">None</option>
-                    <option value="shutdown">Shutdown</option>
-                    <option value="reboot">Reboot</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    
-    <!-- LED -->
-    <div v-if="gpio.mode === 'led' && gpio.led" class="col-md-11 gpio-settings">
-        <div class="row gx-2 gy-1  align-items-end">
-            <div class="col-md-3">
-                <label class="form-label mb-1">Led mode</label>
-                <select class="form-select form-select-sm" v-model="gpio.led.led_mode">
-                    <option value="onoff">On/Off</option>
-                    <option value="blink">Blink</option>
-                </select>
-            </div>            
-            <div class="col-md-3">
-                <label class="form-label mb-1">Led Function</label>
-                <select class="form-select form-select-sm" v-model="gpio.led.led_function">
-                    <option :value="null">None</option>
-                    <option value="running">App running</option>
-                    <option value="mqtt-online">MQTT online</option>
-                </select>
-            </div>
-
-            <!-- Rechtsbündige Buttons -->
-            <div class="col-md-6 text-end" >
-                <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none me-2" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 1 })">On</a>
-                <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 0 })">Off</a>
-                <span v-if="devices_data.raspberrypi['gpio_' + gpio.number]" v-text="'  State: ' + (devices_data.raspberrypi['gpio_' + gpio.number].data == 'ON' ? '🟢' : '🔴')"></span>
-            </div>
-        </div>
-    </div>
-
+<!-- Rechtsbündige Buttons 
+<div class="col-md-6 text-end" >
+    <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none me-2" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 1 })">On</a>
+    <a v-if="gpio.led.led_function===null || gpio.led.led_function===undefined" href="#" class="text-decoration-none" @click.prevent="sendCommand('raspberryPi/gpio/led', { 'number': gpio.number, 'command': 0 })">Off</a>
+    <span v-if="devices_data.raspberrypi['gpio_' + gpio.number]" v-text="'  State: ' + (devices_data.raspberrypi['gpio_' + gpio.number].data == 'ON' ? '🟢' : '🔴')"></span>
 </div>
+-->
 
-<button class="btn btn-sm btn-outline-primary mt-2" @click="addGpio">
-    ➕ Add GPIO
-</button>
+<div class="text-start">
+    <button class="btn btn-sm btn-outline-primary" @click="addGpio">
+        ➕ Add GPIO
+    </button>
+</div>
