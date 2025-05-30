@@ -52,6 +52,19 @@ class RaspberryPiSettings(DeviceSettings):
     gpios: List[Gpio] = field(default_factory=list)
 
 
+
+    def remove_duplicate_gpios_by_number(self) -> bool:
+        old_length = len(self.gpios)
+        seen_numbers = set()
+        unique_gpios = []
+        for gpio in self.gpios:
+            if gpio.number not in seen_numbers:
+                unique_gpios.append(gpio)
+                seen_numbers.add(gpio.number)
+        self.gpios = unique_gpios
+        return len(self.gpios) != old_length
+
+
     @staticmethod
     def get_default_raspberrypi_settings() -> 'RaspberryPiSettings':
         return RaspberryPiSettings(

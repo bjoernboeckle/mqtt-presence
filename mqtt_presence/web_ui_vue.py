@@ -1,7 +1,7 @@
 import logging
 import requests
 
-
+from dacite import from_dict, Config as DaciteConfig
 from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
@@ -68,7 +68,9 @@ class WebUIVue:
         @self.app.route("/config")
         def get_config():
             config: Configuration = self.mqtt_app.config
-            return jsonify(ConfigYamlHelper.dataclass_to_serializable(config))
+            return jsonify({ 
+                    "config":ConfigYamlHelper.dataclass_to_serializable(config)
+                    })
 
 
         @self.app.route("/status")
@@ -114,7 +116,7 @@ class WebUIVue:
         @self.app.route('/config/save', methods=['POST'])
         def update_config():
             data = request.json
-            new_config: Configuration = ConfigYamlHelper.deserialize_enum(data.get('config'))
+            new_config = ConfigYamlHelper.convert_to_config(data.get('config'))
             new_password = data.get('password')
             logger.info("⚙️  Configuration updated....")
             self.mqtt_app.update_new_config(new_config, None if Tools.is_none_or_empty(new_password) else new_password)

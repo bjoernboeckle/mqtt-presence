@@ -1,4 +1,4 @@
-<!doctype html>
+    <!doctype html>
 <html lang="de">
 
 <head>
@@ -9,26 +9,26 @@
     <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
 
     <style>
-        .gpio-entry .form-control,
-        .gpio-entry .form-select {
-            margin-bottom: 0.5rem;
+          .no-top-border td {
+            border-top: none !important;
         }
-
-        .gpio-settings {
-            margin-top: 0.5rem;
-            padding-left: 1rem;
-            border-left: 2px solid #ccc;
-            margin-bottom: 1rem;
+        .no-bottom-border td {
+            border-bottom: none !important;
         }
-
-        .gpio-settings .form-label {
-            font-weight: 500;
-        }
-
-        .gpio-settings .row>div {
-            padding-right: 0.5rem;
-        }
-    </style>
+        
+        .gpio-settings-row {
+            font-size: 0.85rem; /* kleiner als Bootstrap's .small */
+        } 
+        
+        .gpio-settings-row .form-control,
+        .gpio-settings-row .form-select,
+        .gpio-settings-row .form-check-label {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.4rem;
+            height: auto;
+        }        
+</style>        
+    
 </head>
 
 <body class="bg-light">
@@ -93,7 +93,7 @@
             </div>
         </div>
         <!-- Save Button -->
-        <div class="text-end">
+        <div class="text-start">
             <button @click="saveConfig" class="btn btn-success mt-3">💾 Apply configuration</button>
         </div>
     </div>
@@ -154,6 +154,17 @@
                         led_function: null
                     }
                 },
+                fetchConfig() {
+                    fetch("/config")
+                        .then(res => res.json())
+                        .then(data => {
+                            this.config = data.config;
+                        })
+                        .catch(err => {
+                            this.statusOnline = false
+                            console.error("config fetch failed:", err);
+                        });
+                },                
                 fetchStatus() {
                     fetch("/status")
                         .then(res => res.json())
@@ -204,8 +215,11 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ "config": this.config, "password": this.password })
                     })
-                        .then(() => alert("Configuration applied"))
-                        .catch(() => alert("Failed to apply configuration"));
+                        .then(response  => {
+                            console.log(response)
+                            this.fetchConfig()
+                        } )// alert("Configuration applied" ))
+                        .catch(error  => alert("Failed to apply configuration" + error));
                 }
             }
         }).mount("#app");

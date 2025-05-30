@@ -31,25 +31,33 @@ PASSWORD_FILE = "password.key"
 
 class ConfigYamlHelper:
 
-    # Convert strings back to Enums
     @staticmethod
-    def deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode, HomeassistantType]) -> Any:
-        """Recursively converts string values to their corresponding Enums."""
-        if isinstance(value, str):
-            for enum_class in enum_classes:
-                try:
-                    return enum_class(value)
-                except ValueError:
-                    continue
-        if isinstance(value, dict):
-            return {k: ConfigYamlHelper.deserialize_enum(v, enum_classes) for k, v in value.items()}
-        if isinstance(value, list):
-            return [ConfigYamlHelper.deserialize_enum(v, enum_classes) for v in value]
-        return value
+    def convert_to_config(config_serializable) -> Configuration:
+        def _deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode, HomeassistantType]) -> Any:
+            """Recursively converts string values to their corresponding Enums."""
+            if isinstance(value, str):
+                for enum_class in enum_classes:
+                    try:
+                        return enum_class(value)
+                    except ValueError:
+                        continue
+            if isinstance(value, dict):
+                return {k: _deserialize_enum(v, enum_classes) for k, v in value.items()}
+            if isinstance(value, list):
+                return [_deserialize_enum(v, enum_classes) for v in value]
+            return value 
+               
+        # Convert YAML data to Configuration dataclass
+        # before Convert Enums in nested fields
+        config = from_dict(
+            data_class=Configuration,
+            data=_deserialize_enum(config_serializable),
+            config=DaciteConfig(strict=False)
+        )
+        return config    
 
 
-    # Convert Enum values to strings before saving
-   
+    # Convert Enum values to strings before saving  
     @staticmethod
     def dataclass_to_serializable(obj):
         try:
@@ -129,6 +137,8 @@ class ConfigYamlHelper:
             return {k: ConfigYamlHelper._to_dict(value) for k, value in obj.items()}
 
         return obj
+    
+
 
 
 class ConfigHandler:
@@ -218,6 +228,7 @@ class ConfigHandler:
 
 
 
+    
 
     def load_config(self) -> Configuration:
         """
@@ -242,18 +253,9 @@ class ConfigHandler:
             logger.warning("⚠️ Configuration file is empty or not valid YAML. Using default configuration.")
             return self.get_default_config()  # Return default configuration if file is empty
 
-        # Convert Enums in nested fields
-        parsed_yaml = ConfigYamlHelper.deserialize_enum(yaml_data.get("app", {}))
-
+        
         # Convert YAML data to Configuration dataclass
-        config = from_dict(
-            data_class=Configuration,
-            data=parsed_yaml,
-            config=DaciteConfig(strict=False)
-        )
-
-
-        return config
+        return ConfigYamlHelper.convert_to_config(yaml_data.get("app", {}))
 
 
     def save_config(self, config: Configuration, password: str, add_default_comment: bool = False):
@@ -288,15 +290,18 @@ class ConfigHandler:
         """
         self.save_password(password)
 
+        if config.devices.raspberryPi.remove_duplicate_gpios_by_number():
+            logger.warning("⚠️ Duplicated gpio numbers has been removed!")
+
         # TODO: issues after a value was changed it will not be updated any more if set to default value!
         # Default config for comparison (use unchanged defaults, to store pc dependent defaults)
-        #default_config = Configuration()
+        default_config = Configuration()
 
         # Keep only the fields that differ from the default configuration
-        reduced_config_dict = config # ConfigYamlHelper.remove_defaults(config, default_config)
+        #reduced_config_dict = config # ConfigYamlHelper.remove_defaults(config, default_config)
 
         # Convert Enums to strings
-        reduced_config_dict = ConfigYamlHelper.dataclass_to_serializable(reduced_config_dict)
+        serializable_config_dict = ConfigYamlHelper.dataclass_to_serializable(config)
 
         if original_yaml:
             def merge(d_old, d_new):
@@ -306,10 +311,11 @@ class ConfigHandler:
                     else:
                         d_old[k] = v
             merged_yaml = deepcopy(original_yaml)
-            merge(merged_yaml, {"app": reduced_config_dict})
+            merge(merged_yaml, {"app": serializable_config_dict})
         else:
-            merged_yaml = CommentedMap({"app": reduced_config_dict})
+            merged_yaml = CommentedMap({"app": serializable_config_dict})
 
+        
         with open(self._config_file, "w", encoding="utf-8") as f:
             if add_default_comment and hasattr(merged_yaml, "yaml_set_start_comment"):
                 merged_yaml.yaml_set_start_comment(
