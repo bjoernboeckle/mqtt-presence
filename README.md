@@ -69,16 +69,10 @@ Install via pip:
 pip install mqtt-presence
 ```
 
-Run with default Web UI:
+Run:
 
 ```bash
 mqtt-presence
-```
-
-Run with Console UI:
-
-```bash
-mqtt-presence --ui console
 ```
 
 Run as Python module:
@@ -104,8 +98,8 @@ mqtt-presence.exe
 ## ⚙️ Command Line Options
 
 ```bash
-mqtt-presence.exe --ui webui      # Starts the Web UI (default)
-mqtt-presence.exe --ui console    # Starts the Console UI
+mqtt-presence.exe --config PATH   # use PATH as configuration directory
+mqtt-presence.exe --log PATH      # use PATH as log directory
 ```
 
 ---
@@ -115,10 +109,10 @@ mqtt-presence.exe --ui console    # Starts the Console UI
 Access the Web UI in your browser at:
 
 ```
-http://<ip-address>:8000
+http://<ip-address>:8100
 ```
 
-Example: [http://localhost:8000](http://localhost:8000)
+Example: [http://localhost:8100](http://localhost:8100)
 
 <img src="docs/images/mqtt-presence-webui.png" alt="mqtt_presence Web UI screenshot" width="800">
 
@@ -128,25 +122,28 @@ Example: [http://localhost:8000](http://localhost:8000)
 
 Configuration files are created on first run.
 
-### `config.yaml` (Application Settings)
+### `configuration.yaml` (Application Settings)
+
+This file is configured using the webUI.
 
 ```yaml
+# Configuration file for MQTT Presence
+# Please refer to the documentation for details on how to configure.
 app:
-  disableShutdown: false         # Set to true to disable shutdown commands (for testing)
-mqtt:
-  client_id: mqtt-presence_PC    # MQTT client ID (must be unique)
-webServer:
-  host: 0.0.0.0                  # Host IP for the Web UI
-  port: 8000                     # Port for the Web UI
+  updateRate: 2
+  webServer:
+    host: 0.0.0.0
+    port: 8100
+  mqtt:
+    enabled: true
+    broker:
 ```
 
-Changes require a restart of the service.
+Changes require a restart of the service, which will be automatically done using the web UI.
+Manuall changes require a manual restart.
 
-### `config.json` (Runtime State)
 
-Managed by the Web UI. Manual edits are overwritten on save.
 
----
 
 ## 📁 Directory Structure
 
@@ -163,9 +160,9 @@ Managed by the Web UI. Manual edits are overwritten on save.
 
 | OS        | Config Path                                 |
 |-----------|---------------------------------------------|
-| Linux     | `~/.config/mqtt_presence/config.yaml`       |
-| Windows   | `%APPDATA%\mqtt_presence\config.yaml`       |
-| macOS     | `~/Library/Application Support/mqtt_presence/config.yaml` |
+| Linux     | `~/.config/mqtt_presence`       |
+| Windows   | `%APPDATA%\mqtt_presence`       |
+| macOS     | `~/Library/Application Support/mqtt_presence` |
 
 ---
 
@@ -173,9 +170,9 @@ Managed by the Web UI. Manual edits are overwritten on save.
 
 | OS        | Log Path                                   |
 |-----------|---------------------------------------------|
-| Linux     | `~/.local/state/mqtt_presence/app.log`      |
-| Windows   | `%LOCALAPPDATA%\mqtt_presence\Logs\app.log` |
-| macOS     | `~/Library/Logs/mqtt_presence/app.log`      |
+| Linux     | `~/.local/state/mqtt_presence/`      |
+| Windows   | `%LOCALAPPDATA%\mqtt_presence\` |
+| macOS     | `~/Library/Logs/mqtt_presence/`      |
 
 ---
 
@@ -187,33 +184,7 @@ Managed by the Web UI. Manual edits are overwritten on save.
 | Windows   | `%LOCALAPPDATA%\mqtt_presence\Cache\status.cache` |
 | macOS     | `~/Library/Caches/mqtt_presence/status.cache` |
 
----
 
-## 📦 Build and Deploy
-
-### Python Package
-
-```bash
-pip install --upgrade build
-make build
-
-pip install --upgrade twine
-twine upload dist/*
-```
-
-### Executable (PyInstaller)
-
-With spec file:
-
-```bash
-python -m PyInstaller mqtt-presence.spec
-```
-
-Without spec file:
-
-```bash
-python -m PyInstaller --onefile --name mqtt-presence mqtt_presence/main.py
-```
 
 ---
 
