@@ -30,7 +30,7 @@ class PcUtils(Device):
         if self.settings.enableInfos:
             self.data.update( {
                 # MQTT buttons
-                "test": DeviceData("Teste button", action = partial(self._device_command, "test"), homeassistant=Homeassistant(HomeassistantType.BUTTON)),
+                #"test": DeviceData("Teste button", action = partial(self._device_command, "test"), homeassistant=Homeassistant(HomeassistantType.BUTTON)),
                 # MQTT sensors
                 "cpu_freq": DeviceData("CPU Frequency", unit = "MHz", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "sine-wave")),
                 "memory_usage": DeviceData("RAM Usage", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "memory" )),
@@ -64,9 +64,9 @@ class PcUtils(Device):
     def _device_command(self, function, payload):
         logger.info("✏️  Device command: %s - %s", function, payload)
         if ( function == "shutdown"): 
-            pass #Tools.shutdown()
+            Tools.shutdown()
         elif ( function == "reboot"): 
-            pass #Tools.reboot()
+            Tools.reboot()
         elif ( function == "test"): logger.info("🧪 Test command")
         else: logger.warning("⚠️  Unknown Device command: %s - %s", function, payload)
 

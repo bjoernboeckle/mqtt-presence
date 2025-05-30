@@ -106,7 +106,7 @@ class MQTTPresenceApp():
         logger.info("🚪 Callback: %s: %s", topic, function)
         if topic is not None:
             self._mqtt_client.handle_action(topic, function)
-        self._sleep_event.set()
+        self.force_update()
 
 
     def _mqtt_callback(self, function: str):
@@ -115,7 +115,7 @@ class MQTTPresenceApp():
         elif function == "on_disconnect":
             pass
         elif function == "on_message_action":
-            self._sleep_event.set()
+            self.force_update()
 
 
     def _run_app_loop(self):

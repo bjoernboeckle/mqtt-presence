@@ -113,7 +113,8 @@
                     devices_data: JSON.parse('{{ devices_data | tojson | safe | replace("'", "\\'") }}'),
                     activeTab: "appconfig",
                     statusOnline: true,
-                    password: ""
+                    password: "",
+                    statusRunning: false
                 };
             },
             computed: {
@@ -132,12 +133,6 @@
             },
             mounted() {
                 setInterval(this.fetchStatus, 2000);
-                /*fetch("/config")
-                    .then(res => res.json())
-                    .then(data => {
-                        this.config = data;
-                        setInterval(this.fetchStatus, 2000);
-                    });*/
             },
             methods: {
                 ensureValidGpioSettings(gpio) {
@@ -166,6 +161,9 @@
                         });
                 },                
                 fetchStatus() {
+                    if (this.statusRunning)
+                        return
+                    this.statusRunning = true
                     fetch("/status")
                         .then(res => res.json())
                         .then(data => {
@@ -173,9 +171,11 @@
                                 this.raspberryPi_status = data.raspberryPi_status,
                                 this.devices_data = data.devices_data;
                             this.statusOnline = true
+                            this.statusRunning = false
                         })
                         .catch(err => {
                             this.statusOnline = false
+                            this.statusRunning = false
                             console.error("Status fetch failed:", err);
                         });
                 },
