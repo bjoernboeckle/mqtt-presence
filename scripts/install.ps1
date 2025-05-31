@@ -1,24 +1,22 @@
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$AppName = "mqtt-presence"
-$InstallDir = "$Env:ProgramData\$AppName"
-$VenvDir = "$InstallDir\venv"
-$Python = "python"
-$ExePath = "$VenvDir\Scripts\mqtt-presence.exe"
+$serviceName = "mqtt-presence"
+$programData = $env:ProgramData
+$installDir = Join-Path $programData $serviceName
 $NssmPath = "$InstallDir\nssm.exe"
-$ServiceName = $AppName
 $NssmUrl = "https://nssm.cc/release/nssm-2.24.zip"
 $TempZip = "$env:TEMP\nssm.zip"
 $TempExtractDir = "$env:TEMP\nssm"
 
-Write-Host "Starting installation/update of '$AppName'..."
+$configArg = "--config `"$InstallDir\config`""
+$logArg = "--log `"$InstallDir\log`""
 
-# Create installation directory
+# 1. Create installation directory
 Write-Host "Creating installation directory at $InstallDir..."
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
-# Download and extract NSSM if not present
+# 2. Download and extract NSSM if not present
 if (!(Test-Path $NssmPath)) {
     Write-Host "Downloading NSSM..."
     Invoke-WebRequest -Uri $NssmUrl -OutFile $TempZip
@@ -40,48 +38,53 @@ if (!(Test-Path $NssmPath)) {
     Remove-Item -Force $TempZip
 }
 
-# Create virtual environment if it doesn't exist
-if (!(Test-Path "$VenvDir\Scripts\Activate.ps1")) {
-    Write-Host "Creating virtual environment..."
-    & $Python -m venv "$VenvDir"
+
+# 3. GitHub API for Releases (JSON)
+$releaseApi = "https://api.github.com/repos/bjoernboeckle/mqtt-presence/releases/latest"
+Write-Host "Looking up latest release using GitHub API..."
+$release = Invoke-RestMethod -Uri $releaseApi -UseBasicParsing
+
+# 4. Find exe using version in its name
+$exeAsset = $release.assets | Where-Object { $_.name -match "^mqtt-presence-v[\d\.]+\.exe$" } | Select-Object -First 1
+if (-not $exeAsset) {
+    Write-Error "No executable found in release."
+    exit 1
 }
 
-# Install or upgrade mqtt-presence package
-Write-Host "Installing or upgrading mqtt-presence..."
-& "$VenvDir\Scripts\pip.exe" install --upgrade pip
-& "$VenvDir\Scripts\pip.exe" install --upgrade mqtt-presence
-#& "$VenvDir\Scripts\pip.exe" install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple mqtt-presence
+$exeName = $exeAsset.name
+$exeUrl = $exeAsset.browser_download_url
+$exePath = Join-Path $installDir $exeName
+
+Write-Host "Downloading $exeName from:"
+Write-Host "   $exeUrl"
 
 
-# Stop service if running
-try {
-    $status = & $NssmPath status $ServiceName 2>$null
-    if ($status -and $status -match "SERVICE_RUNNING") {
-        Write-Host "Stopping existing service..."
-        & $NssmPath stop $ServiceName confirm | Out-Null
-        Start-Sleep -Seconds 2
-    }
-} catch {
-    Write-Host "Info: Service '$ServiceName' not found or not running."
+
+# 5. Download EXE
+Invoke-WebRequest -Uri $exeUrl -OutFile $exePath -UseBasicParsing
+
+
+# 6. Remove service if required
+if ((& $NssmPath status $serviceName) -match "SERVICE_NAME") {
+    Write-Host "Removing existing service..."
+    & $NssmPath stop $serviceName | Out-Null
+    Start-Sleep -Seconds 3
+    & $NssmPath remove $serviceName confirm | Out-Null
 }
 
-# Create or update the Windows service
-if (-not (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
-    Write-Host "Creating new Windows service '$ServiceName'..."
-    & $NssmPath install $ServiceName $ExePath
-    & $NssmPath set $ServiceName AppDirectory $InstallDir
-    & $NssmPath set $ServiceName AppParameters "--config ./config --log ./log"
-    & $NssmPath set $ServiceName Start SERVICE_AUTO_START
-    & $NssmPath set $ServiceName AppExit Default Restart
-} else {
-    Write-Host "Updating existing Windows service '$ServiceName'..."
-    & $NssmPath set $ServiceName Application $ExePath
-    & $NssmPath set $ServiceName AppDirectory $InstallDir
-    & $NssmPath set $ServiceName AppParameters "--config ./config --log ./log"
-}
+# 7. Install service
+Write-Host "Installing service '$serviceName' with $exeName..."
+& $NssmPath install $serviceName $exePath
 
-# Start the service
-Write-Host "Starting service..."
-& $NssmPath start $ServiceName | Out-Null
+# Working directories and Logs
+& $NssmPath set $serviceName AppDirectory $installDir
+& $NssmPath set $ServiceName AppParameters "$configArg $logArg"
+& $NssmPath set $serviceName AppStdout (Join-Path $installDir "stdout.log")
+& $NssmPath set $serviceName AppStderr (Join-Path $installDir "stderr.log")
+& $NssmPath set $serviceName AppRotateFiles 1
 
-Write-Host "Installation complete. Service is running as '$ServiceName'."
+# 8. Starting service
+Write-Host "Starting service '$serviceName'..."
+& $NssmPath start $serviceName
+
+Write-Host "Installation complete. Service is running as '$exeName'."
