@@ -27,19 +27,30 @@ It is especially useful in smart home environments such as [Home Assistant](http
 
 ### 📦 Installation
 
-#### Windows
+#### Docker
 
-> **Note:** Installation and uninstallation require Administrator rights.
-
-##### Install
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
+#### Docker compose
+```yaml
+services:
+  mqtt-presence:
+    image: bjoernboeckle/mqtt-presence:latest
+    container_name: mqtt-presence
+    volumes:
+      - ./config/:/config
+      - ./log/:/log
+    network_mode: host      
 ```
 
-##### Uninstall
+#### Windows
+
+> **Note:** Installation and uninstallation require admin rights.
+
 
 ```powershell
+# Install
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
+
+# Uninstall
 iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
 ```
 
@@ -47,15 +58,12 @@ iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scr
 
 #### Linux
 
-##### Install
 
 ```bash
+# Install
 curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh?$(date +%s)" | bash
-```
 
-##### Uninstall
-
-```bash
+# Uninstall
 curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh?$(date +%s)" | bash -s -- --yes
 ```
 
@@ -98,8 +106,8 @@ mqtt-presence.exe
 ## ⚙️ Command Line Options
 
 ```bash
-mqtt-presence.exe --config PATH   # use PATH as configuration directory
-mqtt-presence.exe --log PATH      # use PATH as log directory
+mqtt-presence.exe --config CONFIG_PATH --log LOG_PATH   # use CONFIG_PATH as configuration directory
+                                                        # use LOG_PATH as log directory
 ```
 
 ---
