@@ -80,7 +80,7 @@ jobs:
             dist/mqtt-presence-${{ github.ref_name }}.exe
             dist/*.whl
             dist/*.tar.gz
-            dist/mqtt-presence-"${{ github.ref_name }}"-setup.exe
+            dist/mqtt-presence-${{ github.ref_name }}-setup.exe
 
 
       ## Needs ubuntu
