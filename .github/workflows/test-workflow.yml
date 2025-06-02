@@ -72,7 +72,7 @@ jobs:
         run: |
           $tag = "${{ env.TAG_NAME }}"
           $exeName = "mqtt-presence-$tag.exe"
-          $issFile = "installer/mqtt-presence.iss"
+          $issFile = "installer/mqtt-presence-setup.iss"
           $version = $tag.TrimStart("v")
           (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
           (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
