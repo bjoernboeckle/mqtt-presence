@@ -58,7 +58,7 @@ jobs:
 
       - name: 🏷️ Rename executable with version
         run: |
-          $tag = ${{ env.IMAGE_NAME }}
+          $tag = ${{ env.TAG_NAME }}
           Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
 
       - name: 🏗️ Install Inno Setup
@@ -68,7 +68,7 @@ jobs:
 
       - name: 📦 Build Inno Setup installer
         run: |
-          $tag = ${{ env.IMAGE_NAME }}
+          $tag = ${{ env.TAG_NAME }}
           $exeName = "mqtt-presence-$tag.exe"
           $issFile = "installer/mqtt-presence.iss"
           $version = $tag.TrimStart("v")
