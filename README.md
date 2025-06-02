@@ -8,15 +8,15 @@
 <img src="docs/images/logo.png" alt="mqtt_presence logo" width="128">
 
 **mqtt-presence** is a lightweight Python-based presence indicator for MQTT systems. Originally designed for Raspberry Pi environments, it now supports Windows, Linux. It reports the online status of a device (e.g., a PC) and listens for shutdown or restart commands.  
-It is especially useful in smart home environments such as [Home Assistant](https://www.home-assistant.io/).
+It is especially useful in smart home environments such as [Home Assistant](https://www.home-assistant.io/) in combination with a mqtt broker.
 
 ---
 
 ## ✨ Features
 
-- Publishes device online state to MQTT  
+- Publishes device online state and other pc information to MQTT  
 - Receives shutdown and restart commands via MQTT  
-- Supports Home Assistant MQTT Discovery (optional)  
+- Supports Home Assistant MQTT Discovery (optional)
 - Cross-platform: Windows, Linux  
 - Provides Web UI and Console UI  
 - Configuration via YAML and JSON files  
@@ -25,9 +25,50 @@ It is especially useful in smart home environments such as [Home Assistant](http
 
 ## 🚀 Getting Started
 
-### 📦 Installation
+### 🪟 Windows
 
-#### Docker
+Download the and run the installer exe from the latest release:
+
+[GitHub releases](https://github.com/bjoernboeckle/mqtt-presence/releases)
+
+```bash
+mqtt-presence-vx.x.x-setup.exe
+```
+
+
+The prgramm will be installed as a service placed in %ProgrammData%\mqtt-presence.
+After a succefull installation, the web ui can be opened using:
+
+http://localhost:8100
+
+> **Note:** Installation and uninstallation require admin rights.
+
+
+#### 📦  Or using portable Executable
+
+Download the latest executable from the [GitHub releases](https://github.com/bjoernboeckle/mqtt-presence/releases) page.
+
+```bash
+mqtt-presence-vx.x.x.exe
+```
+
+
+#### 📝 Or using script
+The install script in github can also be used, which performs the same installation as the installer:
+
+```powershell
+# Install
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
+
+# Uninstall
+iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
+```
+
+---
+
+### 🐳 Docker
+
+Shutdown/Restart are not supported if running in a container and therefore they are disabled by default.
 
 #### Docker compose
 ```yaml
@@ -40,24 +81,13 @@ services:
       - ./log/:/log
     network_mode: host      
 ```
-
-#### Windows
-
-> **Note:** Installation and uninstallation require admin rights.
-
-
-```powershell
-# Install
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
-
-# Uninstall
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
-```
-
 ---
 
-#### Linux
 
+### 🐧 Linux
+
+Just use the install / uninstall script.
+mqtt-presence will be installed as system.d service.
 
 ```bash
 # Install
@@ -69,7 +99,7 @@ curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/sc
 
 ---
 
-#### As Python Package
+### 🐍 As Python Package
 
 Install via pip:
 
@@ -91,17 +121,7 @@ python -m mqtt_presence.main
 
 ---
 
-#### As Executable
 
-Download the latest executable from the [GitHub releases](https://github.com/bjoernboeckle/mqtt-presence/releases) page.
-
-Run:
-
-```bash
-mqtt-presence.exe
-```
-
----
 
 ## ⚙️ Command Line Options
 
@@ -130,7 +150,7 @@ Example: [http://localhost:8100](http://localhost:8100)
 
 Configuration files are created on first run.
 
-### `configuration.yaml` (Application Settings)
+### Application Settings: (`configuration.yaml`)
 
 This file is configured using the webUI.
 
@@ -155,7 +175,7 @@ Manuall changes require a manual restart.
 
 ## 📁 Directory Structure
 
-### Installation paths used by scripts:
+### Installation paths used by installer/scripts:
 
 | OS        | Paths                                                                                  |
 |-----------|----------------------------------------------------------------------------------------|

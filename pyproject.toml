@@ -54,4 +54,4 @@ markers = "platform_system == 'Linux' and (platform_machine == 'armv7l' or platf
 pytest = "*"
 pylint = "*"
 toml = "*"
-pyinstaller ="*"
+pyinstaller = "*"
