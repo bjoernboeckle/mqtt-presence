@@ -61,21 +61,24 @@ jobs:
           $tag = "${{ env.TAG_NAME }}"
           Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
 
+
       - name: 🏗️ Install Inno Setup
         run: |
           choco install innosetup --yes
         shell: pwsh
+
 
       - name: 📦 Build Inno Setup installer
         run: |
           $tag = "${{ env.TAG_NAME }}"
           $exeName = "mqtt-presence-$tag.exe"
           $issFile = "installer/mqtt-presence.iss"
-          $version = ${{ env.TAG_NAME }}.TrimStart("v")
+          $version = $tag.TrimStart("v")
           (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
           (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
         shell: pwsh
+
 
       - name: 💾 Rename installer
         run: |
