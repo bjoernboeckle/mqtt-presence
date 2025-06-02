@@ -27,7 +27,7 @@ It is especially useful in smart home environments such as [Home Assistant](http
 
 ### 🪟 Windows
 
-Download the and run the installer exe from the latest release:
+Download  and run the installer exe from the latest release:
 
 [GitHub releases](https://github.com/bjoernboeckle/mqtt-presence/releases)
 
