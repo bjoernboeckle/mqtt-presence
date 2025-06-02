@@ -1,4 +1,4 @@
-name: Test Docker
+name: Test Inno Setup
 
 on:
   workflow_dispatch:
@@ -12,45 +12,71 @@ permissions:
 
 env:
   IMAGE_NAME: mqtt-presence
-  TAG_NAME: test    #github.ref_name
+  TAG_NAME: 0.2.6    #github.ref_name
 
 jobs:  
-  docker:
-    name: 🐳 Build & Push Docker Image
-    runs-on: ubuntu-latest
-    #needs: release
+ release:
+    name: 🛠️ Build & Release
+    runs-on: windows-latest
 
     steps:
-      - name: 📥 Checkout code
+      - name: ✨ Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐳 Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: ⚖️ Set up Python
+        uses: actions/setup-python@v5
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          python-version: '3.11'
 
-      - name: 🔐 Log in to GitHub Container Registry (GHCR)
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.CR_PAT }}
-
-      - name: 🐳 Build and tag Docker image
+      - name: 📥 Install Poetry
         run: |
-          docker build -t mqtt-presence:base .
-          docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          docker tag mqtt-presence:base ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
-          docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          docker tag mqtt-presence:base ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
+          python -m pip install --upgrade pip
+          pip install poetry toml pathlib
 
-      - name: 📤 Push to Docker Hub
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
+      - name: 📝 Update pyproject.toml version from tag
+        run: python scripts/update_version.py ${{ env.IMAGE_NAME }}
 
-      - name: 📤 Push to GitHub Container Registry
+      - name: 📦 Install dependencies
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          docker push ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
+          poetry self add poetry-plugin-export
+          poetry install --with dev
+          poetry run pip install pyinstaller
+
+      - name: 🧪 Run tests
+        run: poetry run pytest tests
+
+      - name: 🧠 Lint code
+        run: poetry run pylint mqtt_presence
+
+      - name: 🛠️ Build package
+        run: poetry build
+
+      - name: 🏗️ Build .exe with PyInstaller
+        run: |
+          poetry run pyinstaller mqtt-presence.spec
+
+
+      - name: 🏷️ Rename executable with version
+        run: |
+          $tag = ${{ env.IMAGE_NAME }}
+          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
+
+      - name: 🏗️ Install Inno Setup
+        run: |
+          choco install innosetup --yes
+        shell: pwsh
+
+      - name: 📦 Build Inno Setup installer
+        run: |
+          $tag = ${{ env.IMAGE_NAME }}
+          $exeName = "mqtt-presence-$tag.exe"
+          $issFile = "installer/mqtt-presence.iss"
+          $version = $tag.TrimStart("v")
+          (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
+          (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
+        shell: pwsh
+
+      - name: 💾 Rename installer
+        run: |
+          Rename-Item -Path "dist/mqtt-presence-setup.exe" -NewName "Test-setup.exe"
