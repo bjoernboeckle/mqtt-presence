@@ -15,7 +15,7 @@ env:
   TAG_NAME: 0.2.6    #github.ref_name
 
 jobs:  
- release:
+  release:
     name: 🛠️ Build & Release
     runs-on: windows-latest
 
