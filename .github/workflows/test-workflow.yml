@@ -12,7 +12,7 @@ permissions:
 
 env:
   IMAGE_NAME: mqtt-presence
-  TAG_NAME: 0.2.6    #github.ref_name
+  TAG_NAME: v0.2.6    #github.ref_name
 
 jobs:  
   release:
