@@ -34,7 +34,7 @@ jobs:
           pip install poetry toml pathlib
 
       - name: 📝 Update pyproject.toml version from tag
-        run: python scripts/update_version.py ${{ env.IMAGE_NAME }}
+        run: python scripts/update_version.py ${{ env.TAG_NAME }}
 
       - name: 📦 Install dependencies
         run: |
