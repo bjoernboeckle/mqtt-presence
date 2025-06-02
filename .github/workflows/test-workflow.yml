@@ -71,7 +71,7 @@ jobs:
           $tag = "${{ env.TAG_NAME }}"
           $exeName = "mqtt-presence-$tag.exe"
           $issFile = "installer/mqtt-presence.iss"
-          $version = "${{ env.TAG_NAME }}.TrimStart("v")"
+          $version = ${{ env.TAG_NAME }}.TrimStart("v")
           (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
           (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
