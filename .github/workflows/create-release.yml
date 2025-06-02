@@ -57,13 +57,31 @@ jobs:
           $tag = "${{ github.ref_name }}"
           Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
 
-      - name: 💾 Upload artifacts to GitHub Release
+      - name: 🏗️ Install Inno Setup
+        run: |
+          choco install innosetup --yes
+        shell: pwsh
+
+      - name: 📦 Build Inno Setup installer
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $exeName = "mqtt-presence-$tag.exe"
+          $issFile = "installer/mqtt-presence-setup.iss"
+          $version = $tag.TrimStart("v")
+          (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
+          (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
+        shell: pwsh
+
+      - name: 💾 Upload artifacts and installer to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/mqtt-presence-${{ github.ref_name }}.exe
             dist/*.whl
             dist/*.tar.gz
+            dist/mqtt-presence-"${{ github.ref_name }}"-setup.exe
+
 
       ## Needs ubuntu
       #- name: 🚀 Publish to PyPI or TestPyPI via Trusted Publisher

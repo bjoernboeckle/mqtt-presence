@@ -82,4 +82,5 @@ jobs:
 
       - name: 💾 Rename installer
         run: |
-          Rename-Item -Path "dist/mqtt-presence-setup.exe" -NewName "Test-setup.exe"
+          $tag = "${{ env.TAG_NAME }}"
+          Rename-Item -Path "dist/mqtt-presence-$tag-setup.exe" -NewName "Test-$tag-setup.exe"
