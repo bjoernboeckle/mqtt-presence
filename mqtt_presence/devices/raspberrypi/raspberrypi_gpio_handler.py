@@ -13,11 +13,12 @@ RELEASED = "button_short_release"
 HELD = "button_long_press"
 
 class GpioHandler:
-    def __init__(self, gpio : Gpio, action_callback):
+    def __init__(self, gpio : Gpio, device_key, device_callback):
         self.gpio = gpio
         self._gpio_zero = None
-        self.gpio_key = f"gpio_{self.gpio.number}"
-        self._action_callback = action_callback
+        self._data_key = f"gpio_{self.gpio.number}"
+        self._device_callback = device_callback
+        self._device_key = device_key
         self.led_state = -1
 
         logger.info("✏️ Init Gpio %s - %s", gpio.number, gpio.mode)
@@ -31,9 +32,9 @@ class GpioHandler:
         elif gpio.mode == GpioMode.BUTTON:
             button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
             self._gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
-            self._gpio_zero.when_pressed  = partial(self._button_callback, self.gpio_key, PRESSED)
-            self._gpio_zero.when_released  = partial(self._button_callback, self.gpio_key, RELEASED)
-            self._gpio_zero.when_held  = partial(self._button_callback, self.gpio_key, HELD)
+            self._gpio_zero.when_pressed  = partial(self._button_callback, PRESSED)
+            self._gpio_zero.when_released  = partial(self._button_callback, RELEASED)
+            self._gpio_zero.when_held  = partial(self._button_callback, HELD)
         else:
             logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
         #except Exception as e:
@@ -54,8 +55,8 @@ class GpioHandler:
 
 
 
-    def _button_callback(self, gpio_key, function):
-        self._action_callback(gpio_key, function)
+    def _button_callback(self, function):
+        self._device_callback(self._device_key, self._data_key, function)
         command = self.get_button_function(function, self.gpio.button)
         if (command is not None):
             if command ==  GpioButton_Function.REBOOT: 
@@ -88,9 +89,9 @@ class GpioHandler:
 
     def create_data(self, device_data: dict[str, DeviceData]):
         if self.gpio.mode == GpioMode.LED:
-            device_data[self.gpio_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=Homeassistant(type=HomeassistantType.SWITCH))
+            device_data[self._data_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=Homeassistant(type=HomeassistantType.SWITCH))
         elif self.gpio.mode == GpioMode.BUTTON:
-            device_data[self.gpio_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
+            device_data[self._data_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
         
 
     def update_data(self, device_data: dict[str, str], mqtt_online: bool = None):
@@ -100,7 +101,7 @@ class GpioHandler:
                     self.set_led(1 if mqtt_online else 0)
                 if self.gpio.led.led_function == GpioLed_Function.RUNNING:
                     self.set_led(1)
-            device_data[self.gpio_key].data = "OFF" if self.get_led() == 0 else "ON"
+            device_data[self._data_key].data = "OFF" if self.get_led() == 0 else "ON"
 
 
 
@@ -111,7 +112,7 @@ class GpioHandler:
             elif (function == "off"): self.set_led(0)
             elif (function == "switch"):
                 self.set_led(0 if payload == "off" else 1)
-                self._action_callback(None, function)
+                self._device_callback(self._device_key, self._data_key, function)
 
 
     def close(self):

@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class RaspberryPiDevice(Device):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, device_key):
+        super().__init__(device_key)
         self._gpio_handlers: List[GpioHandler] = []
         self.online = False
 
@@ -37,7 +37,7 @@ class RaspberryPiDevice(Device):
 
             self._gpio_handlers = []
             for gpio in settings.gpios:
-                gpio_handler = GpioHandler(gpio, topic_callback)
+                gpio_handler = GpioHandler(gpio, self.device_key, topic_callback)
                 if gpio is not None:
                     self._gpio_handlers.append(gpio_handler)
             logger.info("🍓 Created %s gpios", len(self._gpio_handlers))

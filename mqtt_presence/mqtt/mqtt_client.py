@@ -43,8 +43,8 @@ class MQTTClient:
 
 
 
-    def handle_action(self, topic, function):
-        publish_topic = f"{self._topic_prefix}/{topic}/action"
+    def handle_action(self, device_key, data_key, function):
+        publish_topic = f"{self._topic_prefix}/{data_key}/action"
         logger.info("🚀 Publish: %s: %s", publish_topic, function)
         self._client.publish(publish_topic, payload=function, retain=True)
 
@@ -79,12 +79,13 @@ class MQTTClient:
         return False if self._client is None else self._client.is_connected()
 
 
-    def disconnect(self):
+    def disconnect(self, ignore_state: bool = False):
         with self._lock:
             if self._client is not None:
                 if self.is_connected():
                     logger.info("🚪 Stopping mqtt...")
-                    self._publish_available("offline")
+                    if not ignore_state:
+                        self._publish_available("offline")
                 self._client.loop_stop()
                 self._client.disconnect()
                 self._devices_data = Devices()
@@ -92,7 +93,25 @@ class MQTTClient:
                 self._client = None
 
 
+    
 
+    def remove_topics(self):
+        if not self.is_connected():
+            return
+        with self._lock: 
+            self._client
+            self.clean_discovery_topics(True)
+            self._publish_available(None)
+            for device_key, device in self._devices.devices.items():
+                for data_key, _device_data in device.data.items():
+                    #component = device_data.homeassistant.type if device_data.homeassistant else None
+                    topic = f"{self._topic_prefix}/{device_key}/{data_key}/state"
+                    logger.info("🧹 Removing old topic: %s", topic)
+                    self._client.publish(topic, payload=None, retain=True)
+
+
+
+            
 
     def publish_mqtt_data(self, force: bool = False):
         with self._lock: 
@@ -219,8 +238,8 @@ class MQTTClient:
         for device_key, device in self._devices.devices.items():
             for data_key, device_data in device.data.items():
                 component = device_data.homeassistant.type if device_data.homeassistant else None
-                relative_topic = f"{device_key}/{data_key}/command"
                 if component == HomeassistantType.BUTTON or component == HomeassistantType.SWITCH:
+                    relative_topic = f"{device_key}/{data_key}/command"
                     self._client.subscribe(f"{self._topic_prefix}/{relative_topic}")
 
 

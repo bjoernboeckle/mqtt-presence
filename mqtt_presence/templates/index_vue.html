@@ -1,4 +1,4 @@
-    <!doctype html>
+<!doctype html>
 <html lang="de">
 
 <head>
@@ -9,30 +9,61 @@
     <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
 
     <style>
-          .no-top-border td {
+        .no-top-border td {
             border-top: none !important;
         }
+
         .no-bottom-border td {
             border-bottom: none !important;
         }
-        
+
         .gpio-settings-row {
-            font-size: 0.85rem; /* kleiner als Bootstrap's .small */
-        } 
-        
+            font-size: 0.85rem;
+        }
+
         .gpio-settings-row .form-control,
         .gpio-settings-row .form-select,
         .gpio-settings-row .form-check-label {
             font-size: 0.85rem;
             padding: 0.25rem 0.4rem;
             height: auto;
-        }        
-</style>        
-    
+        }
+
+        .busy-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 1050;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: all;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        body.busy-cursor {
+            cursor: wait;
+        }
+    </style>
+
 </head>
 
 <body class="bg-light">
     <div id="app" class="container py-5" v-if="config && config.mqtt && config.mqtt.broker">
+
+        <div v-if="busy" class="busy-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        
         <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
         <div class="mb-4 text-center">{{description}}</div>
 
@@ -114,8 +145,14 @@
                     activeTab: "appconfig",
                     statusOnline: true,
                     password: "",
-                    statusRunning: false
+                    statusRunning: false,
+                    busy: false
                 };
+            },
+            watch: {
+                busy(val) {
+                    document.body.classList.toggle('busy-cursor', val);
+                }
             },
             computed: {
                 webserverStatusIcon() {
@@ -150,16 +187,19 @@
                     }
                 },
                 fetchConfig() {
+                    this.busy = true
                     fetch("/config")
                         .then(res => res.json())
                         .then(data => {
                             this.config = data.config;
+                            this.busy = false
                         })
                         .catch(err => {
                             this.statusOnline = false
                             console.error("config fetch failed:", err);
+                            this.busy = false
                         });
-                },                
+                },
                 fetchStatus() {
                     if (this.statusRunning)
                         return
@@ -204,6 +244,7 @@
                         .catch(() => alert("Failed to send command"));
                 },
                 saveConfig() {
+                    this.busy = true
                     this.config.devices.raspberryPi.gpios.forEach((gpio, index) => {
                         if (gpio.mode === "led")
                             gpio.button = null
@@ -214,12 +255,15 @@
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ "config": this.config, "password": this.password })
-                    })
-                        .then(response  => {
-                            console.log(response)
-                            this.fetchConfig()
-                        } )// alert("Configuration applied" ))
-                        .catch(error  => alert("Failed to apply configuration" + error));
+                    }).then(response => {
+                        console.log(response)
+                        this.busy = false
+                        this.fetchConfig()
+                    })// 
+                        .catch(error => {
+                            alert("Failed to apply configuration" + error)
+                            this.busy = false
+                        });
                 }
             }
         }).mount("#app");

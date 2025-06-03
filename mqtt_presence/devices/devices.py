@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 class Devices:
     def __init__(self):
-            self.raspberrypi = RaspberryPiDevice()
-            self.pc_utils = PcUtils()
+            self.raspberrypi = RaspberryPiDevice("raspberrypi")
+            self.pc_utils = PcUtils("pc_utils")
             self._devices: dict[str, Device] = {
-                "raspberrypi": self.raspberrypi,
-                "pc_utils": self.pc_utils
+                self.raspberrypi.device_key: self.raspberrypi,
+                self.pc_utils.device_key: self.pc_utils
             }
             #self._devices_data: dict[str, dict[str, DeviceData]] = []
 

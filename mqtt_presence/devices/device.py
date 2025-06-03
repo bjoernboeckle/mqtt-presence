@@ -6,8 +6,9 @@ from mqtt_presence.devices.device_data import DeviceData
 
 
 class Device(ABC):
-    def __init__(self):
+    def __init__(self, device_key):
         self._enabled = True
+        self._device_key = device_key
         self._data: dict[str, DeviceData] = {}
         self._filtered_data: dict[str, DeviceData] = {}
 
@@ -24,6 +25,9 @@ class Device(ABC):
     def update_data(self, mqtt_online: bool = None):
         pass
 
+    @property
+    def device_key(self) -> str:
+        return self._device_key
 
     @property
     def enabled(self) -> bool:

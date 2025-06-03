@@ -61,34 +61,42 @@ class MQTTPresenceApp():
     def force_update(self):
         self._sleep_event.set()
 
-    def update_new_config(self, config : Configuration, password: str = None):
-        self._config_handler.save_config(config, password)
-        self.restart()
+    def update_new_config(self, new_config : Configuration, password: str = None):
+        if new_config.mqtt.broker.prefix != self.config.mqtt.broker.prefix and self.mqtt_client.is_connected():
+            # try to remove topics, since prefix was changed
+            self.stop(True)
+            self.mqtt_client.remove_topics()
+            self.mqtt_client.disconnect(True)
+            sleep_event = threading.Event()
+            sleep_event.wait(4)
+        else:
+            self.stop()
+
+        logger.info("🔄 ReStarting...")
+        self._config_handler.save_config(new_config, password)
+        self.start()
 
 
     def start(self):
         #show platform
         Tools.log_platform()
         self.config = self._config_handler.load_config()
-        self._devices.init(self.config, self._action_callback)
+        self._devices.init(self.config, self._device_callback)
         self._should_run = True
         self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
         self._thread.start()
 
 
-    def restart(self):
-        logger.info("🔄 ReStarting...")
-        self.stop()
-        self.start()
 
 
-
-    def stop(self):
+    def stop(self, keep_connected: bool = False):
         self._should_run = False
         self._sleep_event.set()
-        self._thread.join()
-        self._thread = None
-        self._mqtt_client.disconnect()
+        if self._thread is not None:
+            self._thread.join()
+            self._thread = None
+        if not keep_connected:
+            self._mqtt_client.disconnect()
         self._devices.exit()
 
 
@@ -102,10 +110,10 @@ class MQTTPresenceApp():
 
 
 
-    def _action_callback(self, topic: str, function: str):
-        logger.info("🚪 Callback: %s: %s", topic, function)
-        if topic is not None:
-            self._mqtt_client.handle_action(topic, function)
+    def _device_callback(self, device_key: str, data_key: str, function: str):
+        logger.info("🚪 Callback Device %s: %s: %s", device_key, data_key, function)
+        if data_key is not None:
+            self._mqtt_client.handle_action(device_key, data_key, function)
         self.force_update()
 
 
@@ -126,7 +134,7 @@ class MQTTPresenceApp():
             if self.config.mqtt.enabled:
                 # handle mqtt (auto)connection
                 if not self._mqtt_client.is_connected():
-                    should_cleanup = self.config.mqtt.homeassistant and  self.config.mqtt.homeassistant.enableAutoCleanup
+                    should_cleanup = self.config.mqtt.homeassistant and self.config.mqtt.homeassistant.enableAutoCleanup
                     password = self._config_handler.get_password()
                     self._mqtt_client.connect(self.config, password)
                 else:

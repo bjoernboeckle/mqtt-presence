@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class PcUtils(Device):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, device_key):
+        super().__init__(device_key)
 
     def exit(self):
         pass
