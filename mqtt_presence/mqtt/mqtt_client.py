@@ -44,9 +44,9 @@ class MQTTClient:
 
 
     def handle_action(self, device_key, data_key, function):
-        publish_topic = f"{self._topic_prefix}/{data_key}/action"
-        logger.info("🚀 Publish: %s: %s", publish_topic, function)
-        self._client.publish(publish_topic, payload=function, retain=True)
+        topic = f"{self._topic_prefix}/{device_key}/{data_key}/action"
+        logger.info("🚀 Publish: %s: %s", topic, function)
+        self._client.publish(topic, payload=function, retain=True)
 
 
     def connect(self, config: Configuration, password: str):

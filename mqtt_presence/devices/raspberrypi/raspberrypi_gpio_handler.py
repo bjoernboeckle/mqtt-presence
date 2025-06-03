@@ -112,7 +112,7 @@ class GpioHandler:
             elif (function == "off"): self.set_led(0)
             elif (function == "switch"):
                 self.set_led(0 if payload == "off" else 1)
-                self._device_callback(self._device_key, self._data_key, function)
+            #self._device_callback(self._device_key, self._data_key, function)
 
 
     def close(self):
