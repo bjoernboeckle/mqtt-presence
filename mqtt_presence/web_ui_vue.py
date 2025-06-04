@@ -7,9 +7,7 @@ from waitress import serve
 from mqtt_presence.utils import Tools
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
-from mqtt_presence.devices.device_data import DeviceData
-from mqtt_presence.devices.raspberrypi.raspberrypi_device import RaspberryPiDevice
-from mqtt_presence.devices.device import Device
+
 
 logger = logging.getLogger(__name__)
 
@@ -97,11 +95,11 @@ class WebUIVue:
             data_key = data.get('data_key')
             function = data.get('function')
             logger.info("✏️  Web Device command: %s %s - %s", device_key, data_key, function)
-            self.mqtt_app.devices.handle_command(device_key, data_key, function) 
+            self.mqtt_app.devices.handle_command(device_key, data_key, function)
             return '', 204
 
 
-  
+
 
 
 
