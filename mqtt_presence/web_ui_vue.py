@@ -54,7 +54,7 @@ class WebUIVue:
         @self.app.route("/")
         def index():
             config: Configuration = self.mqtt_app.config
-            devices_data = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.devices.get_devices_data())
+            devices_data = self.mqtt_app.devices.devices_data
             return render_template("index_vue.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
@@ -62,7 +62,8 @@ class WebUIVue:
                 "config": ConfigYamlHelper.dataclass_to_serializable(config),
                 "mqtt_status": self.mqtt_app.mqtt_client.is_connected(),
                 "raspberryPi_status": self.mqtt_app.devices.devices["raspberrypi"].online,
-                "devices_data": devices_data})
+                "devices_data": devices_data
+            })
 
 
         @self.app.route("/config")
@@ -75,7 +76,7 @@ class WebUIVue:
 
         @self.app.route("/status")
         def status():
-            devices_data = ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.devices.get_devices_data())
+            devices_data = self.mqtt_app.devices.devices_data
             return jsonify({
                 "mqtt_status": self.mqtt_app.mqtt_client.is_connected(),
                 "raspberryPi_status": self.mqtt_app.devices.devices["raspberrypi"].online,
@@ -95,24 +96,12 @@ class WebUIVue:
             device_key = data.get('device_key')
             data_key = data.get('data_key')
             function = data.get('function')
-
             logger.info("✏️  Web Device command: %s %s - %s", device_key, data_key, function)
-            device: Device = self.mqtt_app.devices.devices[device_key]
-            device_data: DeviceData = device.data[data_key]
-            if device_data.action is not None:
-                device_data.action(function)
+            self.mqtt_app.devices.handle_command(device_key, data_key, function) 
             return '', 204
 
 
-        @self.app.route('/raspberryPi/gpio/led', methods=['POST'])
-        def raspberrypi_gpio_led():
-            gpio = request.json.get('function')
-            raspi :RaspberryPiDevice = self.mqtt_app.devices.devices["raspberrypi"]
-            handler = raspi.get_gpio_handler_by_number(gpio.get("number"))
-            if handler is not None:
-                handler.set_led(gpio.get("command"))
-            self.mqtt_app.force_update()
-            return '', 204
+  
 
 
 

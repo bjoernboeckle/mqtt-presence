@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Optional, Dict
 
 import logging
 
@@ -16,14 +16,18 @@ class Devices:
     def __init__(self):
             self.raspberrypi = RaspberryPiDevice("raspberrypi")
             self.pc_utils = PcUtils("pc_utils")
-            self._devices: dict[str, Device] = {
+            self._devices: Dict[str, Device] = {
                 self.raspberrypi.device_key: self.raspberrypi,
                 self.pc_utils.device_key: self.pc_utils
             }
-            #self._devices_data: dict[str, dict[str, DeviceData]] = []
+            self.devices_data = {
+                self.raspberrypi.device_key: self.raspberrypi.data,
+                self.pc_utils.device_key: self.pc_utils.data
+            }            
+
 
     @property
-    def devices(self) -> dict[str, Device]:
+    def devices(self) -> Dict[str, Device]:
         return self._devices            
 
 
@@ -31,15 +35,6 @@ class Devices:
     def init(self, config: Configuration, topic_callback):
         for device in self._devices.values():
             device.init(config, topic_callback)
-        
-        #self._devices_data = {
-        #    "RaspberryPiDevice": self.raspberrypi,
-        #    "PcUtils": self.pc_utils
-        #}
-        #self._devices_data = {
-        #    type(device).__name__: device.device_data
-        #    for device in self._devices
-        #}
 
 
     def exit(self):
@@ -47,19 +42,11 @@ class Devices:
             device.exit()
 
 
-    def update_data(self, update_filered: bool = False, mqtt_online: bool = None):
+    def update_data(self,  mqtt_online: Optional[bool] = None):
         for device in self._devices.values():
             device.update_data(mqtt_online)
-            if update_filered:
-                device.update_filterd_data()
 
 
-    def get_devices_data(self) -> dict[str, dict[str, DeviceData]]:
-        return {
-            "raspberrypi": self.raspberrypi.filtered_data,
-            "pc_utils": self.pc_utils.filtered_data
-        }
-        #return {
-        #    type(device).__name__: device.device_data
-        #    for device in self._devices
-        #}
+    def handle_command(self, device_key: str, data_key: str, function: str):
+        device: Device = self.devices[device_key]
+        device.handle_command(data_key, function)

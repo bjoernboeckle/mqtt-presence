@@ -1,5 +1,6 @@
 import logging
 from functools import partial
+from typing import Optional
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioLed, GpioButton_Function, GpioLed_Mode, GpioLed_Function
 from mqtt_presence.devices.device_data import DeviceData, DeviceType
@@ -22,7 +23,7 @@ class GpioHandler:
         self.led_state = -1
 
         logger.info("✏️ Init Gpio %s - %s", gpio.number, gpio.mode)
-        from gpiozero import Button, LED
+        from gpiozero import Button, LED # type: ignore
         if gpio.mode == GpioMode.LED:
             self.led_state = -1
             led: GpioLed = gpio.led if gpio.led is not None else GpioLed()
@@ -42,7 +43,7 @@ class GpioHandler:
 
 
 
-    def get_button_function(self, func, button: GpioButton):
+    def get_button_function(self, func, button: Optional[GpioButton]):
         if button is None:
             return None
         if button.function_held is not None and func == HELD:
@@ -66,7 +67,7 @@ class GpioHandler:
 
 
     def get_led(self) -> int:
-        if self._gpio_zero is not None:
+        if self._gpio_zero is not None and self.gpio.led is not None:
             if self.gpio.led.led_mode == GpioLed_Mode.BLINK:
                 return self.led_state
             return self._gpio_zero.value
@@ -89,33 +90,44 @@ class GpioHandler:
 
     def create_data(self, device_data: dict[str, DeviceData]):
         if self.gpio.mode == GpioMode.LED:
-            device_data[self._data_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), type = DeviceType.SWITCH)
+            device_data[self._data_key] = DeviceData(friendly_name=self.gpio.friendly_name, type = DeviceType.SWITCH, icon="led-variant-outline")       #f"Led {self.gpio.number}"
         elif self.gpio.mode == GpioMode.BUTTON:
-            device_data[self._data_key] = DeviceData(f"GPIO {self.gpio.number} action", type = DeviceType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD])
+            device_data[self._data_key] = DeviceData(friendly_name=self.gpio.friendly_name, type = DeviceType.DEVICE_AUTOMATION, icon="button-cursor", actions = [PRESSED, RELEASED, HELD])  #friendly_name=f"GPIO {self.gpio.number} action"
         
 
-    def update_data(self, device_data: dict[str, str], mqtt_online: bool = None):
+    def update_data(self, device_data: dict[str, DeviceData], mqtt_online: Optional[bool] = None):
         if self.gpio.mode == GpioMode.LED:
             if self.gpio.led is not None:
                 if  mqtt_online is not None and self.gpio.led.led_function == GpioLed_Function.MQTT_ONLINE:                   
                     self.set_led(1 if mqtt_online else 0)
                 if self.gpio.led.led_function == GpioLed_Function.RUNNING:
                     self.set_led(1)
-            device_data[self._data_key].data = "OFF" if self.get_led() == 0 else "ON"
+            device_data[self._data_key].data = "off" if self.get_led() == 0 else "on"
 
 
 
-    def command(self, function, payload):
-        logger.info("✏️ GPIO handler %s command %s - %s", self.gpio.number, function , payload)
+ 
+
+    def command(self, function):
+        logger.info("✏️ GPIO command %s function  %s", self.gpio.number,  function)
         if (self.gpio.mode == GpioMode.LED):
-            if (function == "on"): self.set_led(1)
-            elif (function == "off"): self.set_led(0)
-            elif (function == "switch"):
-                self.set_led(0 if payload == "off" else 1)
-            #self._device_callback(self._device_key, self._data_key, function)
+            self.set_led(0 if function == "off" else 1)
+            self._device_callback()  # just trigger update
+        elif (self.gpio.mode == GpioMode.BUTTON):        
+            if function == PRESSED:
+                self._button_callback(PRESSED)
+            elif function == RELEASED:
+                self._button_callback(RELEASED)
+            elif function == HELD:
+                self._button_callback(HELD)
+            
 
 
     def close(self):
         logger.info("✏️ Close Gpio %s", self.gpio.number)
         if (self._gpio_zero is not None):
             self._gpio_zero.close()
+
+    @property
+    def data_key(self) -> str:
+        return self._data_key

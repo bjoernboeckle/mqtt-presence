@@ -1,7 +1,7 @@
 import json
 import logging
 import threading
-from typing import List
+from typing import List, Optional
 import paho.mqtt.client as mqtt
 from collections import defaultdict
 
@@ -23,16 +23,16 @@ AVAILABLE_STATUS_OFFLINE = "offline"
 
 class MQTTClient:
     def __init__(self, mqtt_callback):
-        self._available_topic = DeviceData("Online state", data=AVAILABLE_STATUS_ONLINE, type = DeviceType.BINARY_SENSOR)
-        self._devices: Devices = Devices
+        self._available_topic = DeviceData(friendly_name="Online state", data=AVAILABLE_STATUS_ONLINE, type = DeviceType.BINARY_SENSOR)
+        self._devices: Devices = Devices()
         self._devices_data_old: dict[str, dict[str, str]] = defaultdict(dict)
-        self._config: Configuration = None
+        self._config: Configuration = Configuration()
         self._mqtt_callback = mqtt_callback
-        self._client: mqtt = None
+        self._client: Optional[mqtt.Client] = None
         self._lock = threading.RLock()
-        self._discovery_prefix: str = None
-        self._node_id: str = None
-        self._topic_prefix: str = None
+        self._discovery_prefix: str = ""
+        self._node_id: str = ""
+        self._topic_prefix: str = ""
         self._published_topics : List[str] = []
 
 
@@ -43,7 +43,10 @@ class MQTTClient:
 
 
 
-    def handle_action(self, device_key, data_key, function):
+    def handle_action(self, device_key: str, data_key: str, function: str):
+        if self._client is None or not self._client.is_connected():
+            logger.warning("❌ MQTT client is not connected, cannot handle action")
+            return
         topic = f"{self._topic_prefix}/{device_key}/{data_key}/action"
         logger.info("🚀 Publish: %s: %s", topic, function)
         self._client.publish(topic, payload=function, retain=True)
@@ -216,8 +219,7 @@ class MQTTClient:
                 for data_key, device_data in device.data.items():
                     relative_topic = f"{device_key}/{data_key}"
                     if device_data.type is not None and topic_without_prefix == f"{relative_topic}/command":
-                        device_data.action(payload)
-                        self._mqtt_callback("on_message_action")
+                        device.handle_command(data_key, payload)
 
 
 
@@ -270,8 +272,8 @@ class MQTTClient:
         elif device_data.type == DeviceType.SWITCH:
             payload["state_topic"] = f"{topic}/state"
             payload["command_topic"] = f"{topic}/command"
-            payload["payload_off"] = "OFF"
-            payload["payload_on"] = "ON"
+            payload["payload_off"] = "off"
+            payload["payload_on"] = "on"
         elif device_data.type == DeviceType.BINARY_SENSOR:
             payload["state_topic"] = f"{topic}/state"
             payload["payload_on"] = "online"

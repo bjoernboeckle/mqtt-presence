@@ -142,7 +142,7 @@ class ConfigYamlHelper:
 
 
 class ConfigHandler:
-    def __init__(self, data_path: str = None):
+    def __init__(self, data_path: Optional[str] = None):
         self.data_path = Path(data_path or Tools.get_data_path(NAME))
         self._secret_file = str(self.data_path / SECRET_KEY_FILE)
         self._config_file = str(self.data_path / CONFIG_DATA_FILE)
@@ -258,7 +258,7 @@ class ConfigHandler:
         return ConfigYamlHelper.convert_to_config(yaml_data.get("app", {}))
 
 
-    def save_config(self, config: Configuration, password: str, add_default_comment: bool = False):
+    def save_config(self, config: Configuration, password: Optional[str], add_default_comment: Optional[bool] = False):
         try:
             config_path = Path(self._config_file)
 
@@ -274,7 +274,7 @@ class ConfigHandler:
 
 
 
-    def _save_config(self, path: str, config: Configuration, password: str, original_yaml: Optional[dict] = None, add_default_comment: bool = False):
+    def _save_config(self, path: str, config: Configuration, password: Optional[str], original_yaml: Optional[dict] = None, add_default_comment: Optional[bool] = False):
         """
         Save a Configuration dataclass to a YAML file.
         If original_yaml is provided, it will be used to preserve comments and formatting.
@@ -327,7 +327,7 @@ class ConfigHandler:
 
 
 
-    def save_password(self, password: str):
+    def save_password(self, password: Optional[str]):
         """
         Save the encrypted password to the password file.
         If the password is empty, the file is cleared.

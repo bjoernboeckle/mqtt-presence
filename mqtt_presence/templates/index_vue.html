@@ -65,7 +65,7 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-        
+
         <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
         <div class="mb-4 text-center">{{description}}</div>
 
@@ -243,14 +243,28 @@
                     gpio = this.config.devices.raspberryPi.gpios[index]
                     this.ensureValidGpioSettings(gpio)
                 },
+                onToggleSwitch(device_key, key, value) {
+                    // Optional: update local status if required
+                    //this.devices_data.raspberrypi[key].data = value;
+                    this.sendCommand('/device/command', {
+                        device_key: device_key,
+                        data_key: key,
+                        function: value ? 'on' : 'off'
+                    });
+                },
                 sendCommand(endpoint, data) {
-                    console.log(data)
+                    //console.log(data)
+                    this.busy = true
                     fetch(endpoint, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(data)
-                    }) //.then(() => alert("Comman send"))
-                        .catch(() => alert("Failed to send command"));
+                    }).then(() => {
+                        this.busy = false
+                    }).catch(() => {
+                        this.busy = false
+                        alert("Failed to send command");
+                    })
                 },
                 saveConfig() {
                     this.busy = true
@@ -268,11 +282,10 @@
                         console.log(response)
                         this.busy = false
                         this.fetchConfig()
-                    })// 
-                        .catch(error => {
-                            alert("Failed to apply configuration" + error)
-                            this.busy = false
-                        });
+                    }).catch(error => {
+                        alert("Failed to apply configuration" + error)
+                        this.busy = false
+                    });
                 }
             }
         }).mount("#app");

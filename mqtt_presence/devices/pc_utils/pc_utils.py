@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 import psutil
 
 from functools import partial
@@ -21,7 +22,7 @@ class PcUtils(Device):
         pass
 
 
-    def init(self, config: Configuration, _topic_callback):
+    def init(self, config: Configuration, topic_callback):
         self.settings: PcUtilsSettings = config.devices.pc_utils
         self.data.clear()
         if not self.settings.enabled:
@@ -30,44 +31,46 @@ class PcUtils(Device):
         if self.settings.enableInfos:
             self.data.update( {
                 # MQTT buttons
-                "test": DeviceData("Test button", action = partial(self._device_command, "test"), type = DeviceType.BUTTON, icon="test-tube"),
+                "test": DeviceData(friendly_name="Test button", type = DeviceType.BUTTON, icon="test-tube"),
                 # MQTT sensors
-                "cpu_freq": DeviceData("CPU Frequency", unit = "MHz", type = DeviceType.SENSOR, icon = "sine-wave"),
-                "memory_usage": DeviceData("RAM Usage", unit = "%", type = DeviceType.SENSOR, icon = "memory" ),
-                "cpu_load": DeviceData("CPU Load (1 min avg)", unit = "%", type = DeviceType.SENSOR, icon = "gauge" ),
-                "disk_usage_root": DeviceData("Disk Usage", unit = "%", type = DeviceType.SENSOR, icon = "harddisk"),
-                "disk_free_root": DeviceData("Disk Free Space", unit = "GB", type = DeviceType.SENSOR, icon = "harddisk" ),
-                "net_bytes_sent": DeviceData("Network Bytes Sent", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
-                "net_bytes_recv": DeviceData("Network Bytes Received", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
-                "cpu_temp": DeviceData("CPU Temperature", unit = "°C", type = DeviceType.SENSOR, icon = "thermometer" )
+                "cpu_freq": DeviceData(friendly_name="CPU Frequency", unit = "MHz", type = DeviceType.SENSOR, icon = "sine-wave"),
+                "memory_usage": DeviceData(friendly_name="RAM Usage", unit = "%", type = DeviceType.SENSOR, icon = "memory" ),
+                "cpu_load": DeviceData(friendly_name="CPU Load (1 min avg)", unit = "%", type = DeviceType.SENSOR, icon = "gauge" ),
+                "disk_usage_root": DeviceData(friendly_name="Disk Usage", unit = "%", type = DeviceType.SENSOR, icon = "harddisk"),
+                "disk_free_root": DeviceData(friendly_name="Disk Free Space", unit = "GB", type = DeviceType.SENSOR, icon = "harddisk" ),
+                "net_bytes_sent": DeviceData(friendly_name="Network Bytes Sent", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
+                "net_bytes_recv": DeviceData(friendly_name="Network Bytes Received", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
+                "cpu_temp": DeviceData(friendly_name="CPU Temperature", unit = "°C", type = DeviceType.SENSOR, icon = "thermometer" )
             })
         if self.settings.enableShutdown:
-            self.data["shutdown"] = DeviceData("Shutdown PC", action=partial(self._device_command, "shutdown"), type = DeviceType.BUTTON, icon="power")
+            self.data["shutdown"] = DeviceData(friendly_name="Shutdown PC", type = DeviceType.BUTTON, icon="power")
         if self.settings.enableReboot:
-            self.data["reboot"] = DeviceData("Reboot PC", action=partial(self._device_command, "reboot"), type = DeviceType.BUTTON, icon="restart")
+            self.data["reboot"] = DeviceData(friendly_name="Reboot PC", type = DeviceType.BUTTON, icon="restart")
 
 
-    def update_data(self, _mqtt_online: bool = False):
+    def update_data(self, mqtt_online: Optional[bool] = False):
         if self.settings.enabled and self.settings.enableInfos:
-            self.data["cpu_freq"].data = self._get_cpu_freq()
-            self.data["memory_usage"].data = self._get_memory_usage_percent()
-            self.data["cpu_load"].data = self._get_memory_usage_percent()
-            self.data["disk_usage_root"].data = self._get_disk_usage_root_percent()
-            self.data["disk_free_root"].data = self._get_disk_free_root_gb()
-            self.data["net_bytes_sent"].data = self._get_net_bytes_sent()
-            self.data["net_bytes_recv"].data = self._get_net_bytes_recv()
-            self.data["cpu_temp"].data = self._get_cpu_temp_psutil()
+            self.data["cpu_freq"].data = str(self._get_cpu_freq())
+            self.data["memory_usage"].data = str(self._get_memory_usage_percent())
+            self.data["cpu_load"].data = str(self._get_memory_usage_percent())
+            self.data["disk_usage_root"].data = str(self._get_disk_usage_root_percent())
+            self.data["disk_free_root"].data = str(self._get_disk_free_root_gb())
+            self.data["net_bytes_sent"].data = str(self._get_net_bytes_sent())
+            self.data["net_bytes_recv"].data = str(self._get_net_bytes_recv())
+            self.data["cpu_temp"].data = str(self._get_cpu_temp_psutil())
 
 
-
-    def _device_command(self, function, payload):
-        logger.info("✏️  Device command: %s - %s", function, payload)
-        if function == "shutdown": 
+    def handle_command(self, data_key: str, function: str):
+        logger.info("✏️  Device command: %s - %s", data_key, function)
+        if data_key == "shutdown": 
             Tools.shutdown()
-        elif function == "reboot": 
+        elif data_key == "reboot": 
             Tools.reboot()
-        elif ( function == "test"): logger.info("🧪 Test command")
-        else: logger.warning("⚠️  Unknown Device command: %s - %s", function, payload)
+        elif ( data_key == "test"): 
+            logger.info("🧪 Test command")
+        else:
+            logger.warning("⚠️  Unknown Device command: %s - %s", data_key, function)
+
 
 
     def _get_cpu_freq(self):
@@ -107,14 +110,13 @@ class PcUtils(Device):
 
     
     def _get_cpu_temp_psutil(self):
+        if not hasattr(psutil, "sensors_temperatures"):
+            return None
         try:
-            temps = psutil.sensors_temperatures()
-            if not temps:
-                return None
-            for _, entries in temps.items():
+            for _, entries in psutil.sensors_temperatures().items(): # type: ignore
                 for entry in entries:
                     if entry.label in ("Package id 0", "", None):
                         return entry.current
-        except AttributeError:
+        except Exception:
             return None
         return None

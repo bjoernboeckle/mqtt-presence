@@ -1,5 +1,6 @@
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.devices.device_data import DeviceData
@@ -10,7 +11,6 @@ class Device(ABC):
         self._enabled = True
         self._device_key = device_key
         self._data: dict[str, DeviceData] = {}
-        self._filtered_data: dict[str, DeviceData] = {}
 
     @abstractmethod
     def init(self, config: Configuration, topic_callback):
@@ -22,7 +22,11 @@ class Device(ABC):
 
 
     @abstractmethod
-    def update_data(self, mqtt_online: bool = None):
+    def update_data(self, mqtt_online: Optional[bool] = None):
+        pass
+
+    @abstractmethod
+    def handle_command(self, data_key: str, function: str):
         pass
 
     @property
@@ -40,15 +44,3 @@ class Device(ABC):
     @property
     def data(self) -> dict[str, DeviceData]:
         return self._data
-    
-    @property
-    def filtered_data(self) -> dict[str, DeviceData]:
-        return self._filtered_data
-    
-
-    def update_filterd_data(self):
-        self._filtered_data = {
-            key: { "data": value.data, "friendly_name": value.friendly_name, "unit": value.unit, "type": value.type, "icon": value.icon  }
-            for key, value in self._data.items()
-            #if value.data is not None
-        }
