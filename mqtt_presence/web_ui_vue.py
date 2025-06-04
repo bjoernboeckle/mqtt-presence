@@ -9,6 +9,7 @@ from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
 from mqtt_presence.devices.device_data import DeviceData
 from mqtt_presence.devices.raspberrypi.raspberrypi_device import RaspberryPiDevice
+from mqtt_presence.devices.device import Device
 
 logger = logging.getLogger(__name__)
 
@@ -88,14 +89,18 @@ class WebUIVue:
 
 
 
-        @self.app.route('/pcutils/command', methods=['POST'])
-        def pcutils_command():
-            pcutils_data: dict[str, DeviceData] = self.mqtt_app.devices.pc_utils.data
+        @self.app.route('/device/command', methods=['POST'])
+        def device_command():
             data = request.json
-            for key, device_data in pcutils_data.items():
-                if key == data.get('function'):
-                    if device_data.action is not None:
-                        device_data.action("")
+            device_key = data.get('device_key')
+            data_key = data.get('data_key')
+            function = data.get('function')
+
+            logger.info("✏️  Web Device command: %s %s - %s", device_key, data_key, function)
+            device: Device = self.mqtt_app.devices.devices[device_key]
+            device_data: DeviceData = device.data[data_key]
+            if device_data.action is not None:
+                device_data.action(function)
             return '', 204
 
 
@@ -108,7 +113,6 @@ class WebUIVue:
                 handler.set_led(gpio.get("command"))
             self.mqtt_app.force_update()
             return '', 204
-
 
 
 

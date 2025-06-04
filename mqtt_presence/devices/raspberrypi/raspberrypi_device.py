@@ -3,7 +3,7 @@ from typing import List
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.raspberrypi.raspberrypi_gpio_handler import GpioHandler
-from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
+from mqtt_presence.devices.device_data import DeviceData
 from mqtt_presence.devices.device import Device
 from mqtt_presence.config.configuration import Configuration
 

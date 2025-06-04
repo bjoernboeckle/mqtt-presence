@@ -3,7 +3,7 @@ import psutil
 
 from functools import partial
 
-from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
+from mqtt_presence.devices.device_data import DeviceData, DeviceType
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
@@ -30,22 +30,21 @@ class PcUtils(Device):
         if self.settings.enableInfos:
             self.data.update( {
                 # MQTT buttons
-                #"test": DeviceData("Teste button", action = partial(self._device_command, "test"), homeassistant=Homeassistant(HomeassistantType.BUTTON)),
+                "test": DeviceData("Test button", action = partial(self._device_command, "test"), type = DeviceType.BUTTON, icon="test-tube"),
                 # MQTT sensors
-                "cpu_freq": DeviceData("CPU Frequency", unit = "MHz", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "sine-wave")),
-                "memory_usage": DeviceData("RAM Usage", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "memory" )),
-                "cpu_load": DeviceData("CPU Load (1 min avg)", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "gauge" )),
-                "disk_usage_root": DeviceData("Disk Usage", unit = "%", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "harddisk")),
-                "disk_free_root": DeviceData("Disk Free Space", unit = "GB", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "harddisk" )),
-                "net_bytes_sent": DeviceData("Network Bytes Sent", unit = "B", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "network" )),
-                "net_bytes_recv": DeviceData("Network Bytes Received", unit = "B", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "network" )),
-                "cpu_temp": DeviceData("CPU Temperature", unit = "°C", homeassistant=Homeassistant(type=HomeassistantType.SENSOR, icon = "thermometer" ))
+                "cpu_freq": DeviceData("CPU Frequency", unit = "MHz", type = DeviceType.SENSOR, icon = "sine-wave"),
+                "memory_usage": DeviceData("RAM Usage", unit = "%", type = DeviceType.SENSOR, icon = "memory" ),
+                "cpu_load": DeviceData("CPU Load (1 min avg)", unit = "%", type = DeviceType.SENSOR, icon = "gauge" ),
+                "disk_usage_root": DeviceData("Disk Usage", unit = "%", type = DeviceType.SENSOR, icon = "harddisk"),
+                "disk_free_root": DeviceData("Disk Free Space", unit = "GB", type = DeviceType.SENSOR, icon = "harddisk" ),
+                "net_bytes_sent": DeviceData("Network Bytes Sent", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
+                "net_bytes_recv": DeviceData("Network Bytes Received", unit = "B", type = DeviceType.SENSOR, icon = "network" ),
+                "cpu_temp": DeviceData("CPU Temperature", unit = "°C", type = DeviceType.SENSOR, icon = "thermometer" )
             })
         if self.settings.enableShutdown:
-            self.data["shutdown"] = DeviceData("Shutdown PC", action=partial(self._device_command, "shutdown"), homeassistant=Homeassistant(HomeassistantType.BUTTON))
+            self.data["shutdown"] = DeviceData("Shutdown PC", action=partial(self._device_command, "shutdown"), type = DeviceType.BUTTON, icon="power")
         if self.settings.enableReboot:
-            self.data["reboot"] = DeviceData("Reboot PC", action=partial(self._device_command, "reboot"), homeassistant=Homeassistant(HomeassistantType.BUTTON))
-
+            self.data["reboot"] = DeviceData("Reboot PC", action=partial(self._device_command, "reboot"), type = DeviceType.BUTTON, icon="restart")
 
 
     def update_data(self, _mqtt_online: bool = False):
@@ -63,9 +62,9 @@ class PcUtils(Device):
 
     def _device_command(self, function, payload):
         logger.info("✏️  Device command: %s - %s", function, payload)
-        if ( function == "shutdown"): 
+        if function == "shutdown": 
             Tools.shutdown()
-        elif ( function == "reboot"): 
+        elif function == "reboot": 
             Tools.reboot()
         elif ( function == "test"): logger.info("🧪 Test command")
         else: logger.warning("⚠️  Unknown Device command: %s - %s", function, payload)

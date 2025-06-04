@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <title>MQTT Presence</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link href="https://cdn.materialdesignicons.com/7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
 
@@ -172,6 +174,12 @@
                 setInterval(this.fetchStatus, 2000);
             },
             methods: {
+                mdiClass(icon) {
+                    if (icon?.startsWith('mdi:')) {
+                        return 'mdi ' + icon.replace('mdi:', 'mdi-');
+                    }
+                    return 'mdi mdi-' + icon;
+                },
                 ensureValidGpioSettings(gpio) {
 
                     gpio.button = gpio.button ? gpio.button : {
@@ -235,11 +243,12 @@
                     gpio = this.config.devices.raspberryPi.gpios[index]
                     this.ensureValidGpioSettings(gpio)
                 },
-                sendCommand(endpoint, func) {
+                sendCommand(endpoint, data) {
+                    console.log(data)
                     fetch(endpoint, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ "function": func })
+                        body: JSON.stringify(data)
                     }) //.then(() => alert("Comman send"))
                         .catch(() => alert("Failed to send command"));
                 },

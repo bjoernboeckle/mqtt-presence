@@ -19,7 +19,7 @@ from mqtt_presence.version import NAME
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
-from mqtt_presence.devices.device_data import HomeassistantType, DeviceData
+from mqtt_presence.devices.device_data import DeviceType, DeviceData
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class ConfigYamlHelper:
 
     @staticmethod
     def convert_to_config(config_serializable) -> Configuration:
-        def _deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode, HomeassistantType]) -> Any:
+        def _deserialize_enum(value: Any, enum_classes: list = [GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode, DeviceType]) -> Any:
             """Recursively converts string values to their corresponding Enums."""
             if isinstance(value, str):
                 for enum_class in enum_classes:

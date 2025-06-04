@@ -48,7 +48,7 @@ class Device(ABC):
 
     def update_filterd_data(self):
         self._filtered_data = {
-            key: { "data": value.data, "friendly_name": value.friendly_name, "unit": value.unit }
+            key: { "data": value.data, "friendly_name": value.friendly_name, "unit": value.unit, "type": value.type, "icon": value.icon  }
             for key, value in self._data.items()
-            if value.data is not None
+            #if value.data is not None
         }

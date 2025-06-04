@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional, List
 from functools import partial
 
-class HomeassistantType(Enum):
+class DeviceType(Enum):
     BINARY_SENSOR = "binary_sensor"
     SENSOR = "sensor"
     BUTTON = "button"
@@ -11,11 +11,6 @@ class HomeassistantType(Enum):
     DEVICE_AUTOMATION = "device_automation"
 
 
-@dataclass
-class Homeassistant:
-    type: HomeassistantType = HomeassistantType.BINARY_SENSOR
-    icon: str = None
-    actions: List[str] = None
 
 
 @dataclass
@@ -24,8 +19,9 @@ class DeviceData:
     unit: Optional[str] = None
     action: Optional[partial] = field(default=None, repr=False, compare=False)
     data: Optional[str] = None
-    homeassistant: Optional[Homeassistant] = None
-
+    icon: Optional[str] = None
+    type: Optional[DeviceType] = DeviceType.BINARY_SENSOR
+    actions: Optional[List[str]] = None
 
 
 @dataclass

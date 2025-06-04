@@ -1,4 +1,21 @@
 <div>
+<!--
+    <div class="row align-items-center mb-3"  v-for="([key, item]) in Object.entries(devices_data.pc_utils).filter(([k, i]) => i.type==='button')" :key="key">
+        <div class="col d-flex align-items-center">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="enable_shutdown"
+                    v-model.bool="config.devices.pc_utils.enableShutdown">
+                <label class="form-check-label ms-2" for="enable_shutdown">Enable shutdown</label>
+            </div>
+        </div>
+        <div class="col-auto" v-if="config.devices.pc_utils?.enableShutdown">
+            <button class="btn btn-primary px-4" @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': key, 'function': 'press' })">
+                <i :class="mdiClass(item.icon)" v-text="' ' + item.friendly_name"></i>
+            </button>
+        </div>
+    </div>
+-->
+
     <!-- Shutdown -->
     <div class="row align-items-center mb-3">
         <div class="col d-flex align-items-center">
@@ -9,7 +26,7 @@
             </div>
         </div>
         <div class="col-auto" v-if="config.devices.pc_utils?.enableShutdown">
-            <button class="btn btn-danger px-4" id="shutdownButton" @click="sendCommand('/pcutils/command', 'shutdown')">
+            <button class="btn btn-danger px-4" id="shutdownButton" @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'shutdown', 'function': 'press' })">
                 🔌 Shutdown
             </button>
         </div>
@@ -25,13 +42,22 @@
             </div>
         </div>
         <div class="col-auto" v-if="config.devices.pc_utils.enableReboot">
-            <button class="btn btn-warning px-4" id="restartButton" @click="sendCommand('/pcutils/command', 'restart')">
+            <button class="btn btn-warning px-4" id="restartButton" @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'reboot', 'function': 'press' })">
                 ♻️ Restart
             </button>
         </div>
     </div>
 
-
+    <!-- Test -->
+    <div class="row align-items-center mb-3">
+        <div class="col d-flex align-items-center">
+        </div>
+        <div class="col-auto" v-if="config.devices.pc_utils.enableReboot">
+            <button class="btn btn-info px-4" id="restartButton" @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'test', 'function': 'press' } )">
+                <i class="mdi mdi-lightbulb-on-outline">  Test</i>
+            </button>
+        </div>
+    </div>
 
     <!-- CPU Utilization Table -->
     <div class="form-check form-switch mb-4">
@@ -48,7 +74,7 @@
             </thead>
             <tbody>
                 <tr v-for="(item, key) in devices_data.pc_utils" :key="key">
-                    <td v-text="item.friendly_name ? item.friendly_name : key"></td>
+                    <td ><i :class="mdiClass(item.icon)" v-text="' ' + (item.friendly_name ? item.friendly_name : key)"></i></td>
                     <td v-text="item.data !== null ? item.data + ' ' + (item.unit ?? '') : 'N/A'">
                     </td>
                 </tr>

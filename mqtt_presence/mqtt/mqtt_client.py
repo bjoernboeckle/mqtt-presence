@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 from collections import defaultdict
 
 from mqtt_presence.config.configuration import Configuration
-from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
+from mqtt_presence.devices.device_data import DeviceData, DeviceType
 from mqtt_presence.devices.devices import Devices
 from mqtt_presence.devices.device import Device
 
@@ -23,7 +23,7 @@ AVAILABLE_STATUS_OFFLINE = "offline"
 
 class MQTTClient:
     def __init__(self, mqtt_callback):
-        self._available_topic = DeviceData("Online state", data=AVAILABLE_STATUS_ONLINE, homeassistant=Homeassistant(type=HomeassistantType.BINARY_SENSOR))
+        self._available_topic = DeviceData("Online state", data=AVAILABLE_STATUS_ONLINE, type = DeviceType.BINARY_SENSOR)
         self._devices: Devices = Devices
         self._devices_data_old: dict[str, dict[str, str]] = defaultdict(dict)
         self._config: Configuration = None
@@ -104,7 +104,6 @@ class MQTTClient:
             self._publish_available(None)
             for device_key, device in self._devices.devices.items():
                 for data_key, _device_data in device.data.items():
-                    #component = device_data.homeassistant.type if device_data.homeassistant else None
                     topic = f"{self._topic_prefix}/{device_key}/{data_key}/state"
                     logger.info("🧹 Removing old topic: %s", topic)
                     self._client.publish(topic, payload=None, retain=True)
@@ -117,8 +116,7 @@ class MQTTClient:
         with self._lock: 
             for device_key, device in self._devices.devices.items():
                 for data_key, device_data in device.data.items():
-                    component = device_data.homeassistant.type if device_data.homeassistant else None
-                    if component==HomeassistantType.SENSOR or component==HomeassistantType.SWITCH or component==HomeassistantType.BINARY_SENSOR:
+                    if device_data.type==DeviceType.SENSOR or device_data.type==DeviceType.SWITCH or device_data.type==DeviceType.BINARY_SENSOR:
                         value = None
                         topic = f"{self._topic_prefix}/{device_key}/{data_key}/state"
                         try:
@@ -127,9 +125,9 @@ class MQTTClient:
                             if value is not None and (force or old_value is None or value != old_value):
                                 self._devices_data_old[device_key][data_key] = value
                                 self._client.publish(topic, payload=str(value), retain=True)
-                                logger.debug("📡 Published %s: %s = %s",component.value, device_data.friendly_name, value)
+                                logger.debug("📡 Published %s: %s = %s",device_data.type.value, device_data.friendly_name, value)
                         except Exception as exception:      # pylint: disable=broad-exception-caught
-                            logger.error("Failed to get %s data %s: %s  (%s, %s)", component.value, topic, exception, value, old_value)
+                            logger.error("Failed to get %s data %s: %s  (%s, %s)", device_data.type.value, topic, exception, value, old_value)
 
 
 
@@ -139,38 +137,36 @@ class MQTTClient:
 
             device_data = self._available_topic
             data_key = AVAILABLE_SENSOR_TOPIC
-            component = device_data.homeassistant.type if device_data.homeassistant else None
-            if (component is not None):
-                discovery_topic = f"{self._discovery_prefix}/{component.value}/{self._node_id}/config"
+            if (device_data.type is not None):
+                discovery_topic = f"{self._discovery_prefix}/{device_data.type.value}/{self._node_id}/config"
                 topic = f"{self._topic_prefix}/{data_key}"
-                payload = self._get_discovery_payload(topic, data_key, device_data, component.value)
+                payload = self._get_discovery_payload(topic, data_key, device_data)
                 self._client.publish(discovery_topic, json.dumps(payload), retain=True)
                 self._published_topics.append(discovery_topic)
-                logger.info("🧠 Discovery published for %s: %s(%s)", component.value,  data_key, device_data.friendly_name)
+                logger.info("🧠 Discovery published for %s: %s(%s)", device_data.type.value,  data_key, device_data.friendly_name)
 
             for device_key, device in self._devices.devices.items():
                 for data_key, device_data in device.data.items():
-                    component = device_data.homeassistant.type if device_data.homeassistant else None
-                    if component is not None:
+                    if device_data.type is not None:
                         topic = f"{self._topic_prefix}/{device_key}/{data_key}"
                         unique_id = f"{device_key}_{data_key}"
-                        if device_data.homeassistant.actions is not None:
-                            for action in device_data.homeassistant.actions:
-                                discovery_topic = f"{self._discovery_prefix}/{component.value}/{self._node_id}/action_{unique_id}_{action}/config"
-                                payload = self._get_discovery_payload(topic, unique_id, device_data, component.value)
+                        if device_data.actions is not None:
+                            for action in device_data.actions:
+                                discovery_topic = f"{self._discovery_prefix}/{device_data.type.value}/{self._node_id}/action_{unique_id}_{action}/config"
+                                payload = self._get_discovery_payload(topic, unique_id, device_data)
                                 payload["type"] = action
                                 payload["subtype"] = f"{unique_id}_{action}"
                                 payload["unique_id"] = f"{unique_id}_{action}"
                                 payload["payload"] = action
                                 self._client.publish(discovery_topic, json.dumps(payload), retain=True)
                                 self._published_topics.append(discovery_topic)
-                                logger.info("🧠 %s %s Discovery published for %s: %s", action, component.value, data_key, device_data.friendly_name)
+                                logger.info("🧠 %s %s Discovery published for %s: %s", action, device_data.type.value, data_key, device_data.friendly_name)
                         else:
-                            discovery_topic = f"{self._discovery_prefix}/{component.value}/{self._node_id}/{unique_id}/config"
-                            payload = self._get_discovery_payload(topic, unique_id, device_data, component.value)
+                            discovery_topic = f"{self._discovery_prefix}/{device_data.type.value}/{self._node_id}/{unique_id}/config"
+                            payload = self._get_discovery_payload(topic, unique_id, device_data)
                             self._client.publish(discovery_topic, json.dumps(payload), retain=True)
                             self._published_topics.append(discovery_topic)
-                            logger.info("🧠 Discovery published for %s: %s(%s)", component.value, data_key, device_data.friendly_name)
+                            logger.info("🧠 Discovery published for %s: %s(%s)", device_data.type.value, data_key, device_data.friendly_name)
 
 
 
@@ -218,9 +214,8 @@ class MQTTClient:
             logger.info("📩 Received command: %s → %s", msg.topic, payload)
             for device_key, device in self._devices.devices.items():
                 for data_key, device_data in device.data.items():
-                    component = device_data.homeassistant.type if device_data.homeassistant else None
                     relative_topic = f"{device_key}/{data_key}"
-                    if component is not None and topic_without_prefix == f"{relative_topic}/command":
+                    if device_data.type is not None and topic_without_prefix == f"{relative_topic}/command":
                         device_data.action(payload)
                         self._mqtt_callback("on_message_action")
 
@@ -237,8 +232,7 @@ class MQTTClient:
 
         for device_key, device in self._devices.devices.items():
             for data_key, device_data in device.data.items():
-                component = device_data.homeassistant.type if device_data.homeassistant else None
-                if component == HomeassistantType.BUTTON or component == HomeassistantType.SWITCH:
+                if device_data.type == DeviceType.BUTTON or device_data.type == DeviceType.SWITCH:
                     relative_topic = f"{device_key}/{data_key}/command"
                     self._client.subscribe(f"{self._topic_prefix}/{relative_topic}")
 
@@ -250,7 +244,7 @@ class MQTTClient:
 
 
 
-    def _get_discovery_payload(self, topic, unique_id, device_data: DeviceData, component):
+    def _get_discovery_payload(self, topic, unique_id, device_data: DeviceData):
         device_info = {
             "identifiers": [self._node_id],
             "name": self._config.mqtt.homeassistant.device_name,
@@ -265,27 +259,27 @@ class MQTTClient:
                 "unique_id": f"{self._node_id}_{unique_id}",
                 "device": device_info
         }
-        if device_data.homeassistant.icon is not None:
-            payload["icon"] = f"mdi:{device_data.homeassistant.icon}"
+        if device_data.icon is not None:
+            payload["icon"] = f"mdi:{device_data.icon}"
         if device_data.unit is not None:
             payload["unit_of_measurement"] = device_data.unit
 
-        if component == "button":
+        if device_data.type == DeviceType.BUTTON:
             payload["command_topic"] = f"{topic}/command"
             payload["payload_press"] = "press"
-        elif component == "switch":
+        elif device_data.type == DeviceType.SWITCH:
             payload["state_topic"] = f"{topic}/state"
             payload["command_topic"] = f"{topic}/command"
             payload["payload_off"] = "OFF"
             payload["payload_on"] = "ON"
-        elif component == "binary_sensor":
+        elif device_data.type == DeviceType.BINARY_SENSOR:
             payload["state_topic"] = f"{topic}/state"
             payload["payload_on"] = "online"
             payload["payload_off"] = "offline"
             payload["device_class"] = "connectivity"
-        elif component == "sensor":
+        elif device_data.type == DeviceType.SENSOR:
             payload["state_topic"] = f"{topic}/state"
-        elif component == "device_automation":
+        elif device_data.type == DeviceType.DEVICE_AUTOMATION:
             payload["automation_type"] = "trigger"
             payload["topic"] = f"{topic}/action"
         return payload

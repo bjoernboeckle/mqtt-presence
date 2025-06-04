@@ -2,7 +2,7 @@ import logging
 from functools import partial
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioLed, GpioButton_Function, GpioLed_Mode, GpioLed_Function
-from mqtt_presence.devices.device_data import DeviceData, Homeassistant, HomeassistantType
+from mqtt_presence.devices.device_data import DeviceData, DeviceType
 from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
@@ -89,9 +89,9 @@ class GpioHandler:
 
     def create_data(self, device_data: dict[str, DeviceData]):
         if self.gpio.mode == GpioMode.LED:
-            device_data[self._data_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), homeassistant=Homeassistant(type=HomeassistantType.SWITCH))
+            device_data[self._data_key] = DeviceData(f"Led {self.gpio.number}", action=partial(self.command, "switch"), type = DeviceType.SWITCH)
         elif self.gpio.mode == GpioMode.BUTTON:
-            device_data[self._data_key] = DeviceData(f"GPIO {self.gpio.number} action", homeassistant=Homeassistant(type=HomeassistantType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD]))
+            device_data[self._data_key] = DeviceData(f"GPIO {self.gpio.number} action", type = DeviceType.DEVICE_AUTOMATION, actions = [PRESSED, RELEASED, HELD])
         
 
     def update_data(self, device_data: dict[str, str], mqtt_online: bool = None):
