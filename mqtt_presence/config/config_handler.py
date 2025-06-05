@@ -19,7 +19,7 @@ from mqtt_presence.version import NAME
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import GpioMode, GpioButton_Function, GpioLed_Function, GpioLed_Mode
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
-from mqtt_presence.devices.device_data import DeviceType, DeviceData
+from mqtt_presence.devices.device_data import DeviceType
 
 logger = logging.getLogger(__name__)
 

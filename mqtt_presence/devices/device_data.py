@@ -3,6 +3,15 @@ from enum import Enum
 from typing import Optional, List
 from functools import partial
 
+
+
+class DeviceKey(str, Enum):
+    PC_UTILS = "pc_utils"
+    RASPBERRY_PI = "raspberrypi"
+
+
+
+
 class DeviceType(str, Enum):
     BINARY_SENSOR = "binary_sensor"
     SENSOR = "sensor"

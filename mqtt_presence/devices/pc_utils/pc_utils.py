@@ -9,21 +9,24 @@ from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
 from mqtt_presence.devices.device import Device
-
+from mqtt_presence.devices.device_data import DeviceKey
 
 logger = logging.getLogger(__name__)
 
 
 class PcUtils(Device):
-    def __init__(self, device_key):
-        super().__init__(device_key)
+    def __init__(self, devcie_key: DeviceKey):
+        super().__init__(devcie_key)
+
 
     def exit(self):
-        pass
+        super().exit()
 
 
-    def init(self, config: Configuration, topic_callback):
+
+    def init(self, config: Configuration, device_callback):
         self.settings: PcUtilsSettings = config.devices.pc_utils
+        self._status = True
         self.data.clear()
         if not self.settings.enabled:
             return

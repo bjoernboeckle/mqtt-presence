@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 from collections import defaultdict
 
 from mqtt_presence.config.configuration import Configuration
-from mqtt_presence.devices.device_data import DeviceData, DeviceType
+from mqtt_presence.devices.device_data import DeviceData, DeviceType, DeviceKey
 from mqtt_presence.devices.devices import Devices
 from mqtt_presence.devices.device import Device
 
@@ -36,14 +36,14 @@ class MQTTClient:
         self._published_topics : List[str] = []
 
 
-    def set_devices_data(self, devices: Devices):
+    def set_devices(self, devices: Devices):
         self._devices = devices
         self._devices_data_old.clear()
         self._publish_available(AVAILABLE_STATUS_ONLINE)
 
 
 
-    def handle_action(self, device_key: str, data_key: str, function: str):
+    def handle_action(self, device_key: DeviceKey, data_key: str, function: str):
         if self._client is None or not self._client.is_connected():
             logger.warning("❌ MQTT client is not connected, cannot handle action")
             return
@@ -91,7 +91,6 @@ class MQTTClient:
                         self._publish_available("offline")
                 self._client.loop_stop()
                 self._client.disconnect()
-                self._devices_data = Devices()
                 self._devices_data_old.clear()
                 self._client = None
 

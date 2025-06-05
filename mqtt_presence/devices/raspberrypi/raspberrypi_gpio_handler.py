@@ -3,7 +3,7 @@ from functools import partial
 from typing import Optional
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import Gpio, GpioMode, GpioButton, GpioLed, GpioButton_Function, GpioLed_Mode, GpioLed_Function
-from mqtt_presence.devices.device_data import DeviceData, DeviceType
+from mqtt_presence.devices.device_data import DeviceData, DeviceType, DeviceKey
 from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
@@ -14,12 +14,11 @@ RELEASED = "button_short_release"
 HELD = "button_long_press"
 
 class GpioHandler:
-    def __init__(self, gpio : Gpio, device_key, device_callback):
+    def __init__(self, gpio : Gpio, device_key: DeviceKey, device_callback):
         self.gpio = gpio
         self._gpio_zero = None
         self._data_key = f"gpio_{self.gpio.number}"
         self._device_callback = device_callback
-        self._device_key = device_key
         self.led_state = -1
 
         logger.info("✏️ Init Gpio %s - %s", gpio.number, gpio.mode)
@@ -33,9 +32,9 @@ class GpioHandler:
         elif gpio.mode == GpioMode.BUTTON:
             button: GpioButton = gpio.button if gpio.button is not None else GpioButton()
             self._gpio_zero = Button(gpio.number, bounce_time=button.bounce_s, pull_up=button.pull_up)
-            self._gpio_zero.when_pressed  = partial(self._button_callback, PRESSED)
-            self._gpio_zero.when_released  = partial(self._button_callback, RELEASED)
-            self._gpio_zero.when_held  = partial(self._button_callback, HELD)
+            self._gpio_zero.when_pressed  = partial(self._button_callback, device_key, PRESSED)
+            self._gpio_zero.when_released  = partial(self._button_callback, device_key, RELEASED)
+            self._gpio_zero.when_held  = partial(self._button_callback, device_key, HELD)
         else:
             logger.warning("⚠️ Not supported gpio mode %s", gpio.mode)
         #except Exception as e:
@@ -56,8 +55,8 @@ class GpioHandler:
 
 
 
-    def _button_callback(self, function):
-        self._device_callback(self._device_key, self._data_key, function)
+    def _button_callback(self, device_key: DeviceKey, function):
+        self._device_callback(device_key, self._data_key, function)
         command = self.get_button_function(function, self.gpio.button)
         if (command is not None):
             if command ==  GpioButton_Function.REBOOT: 
@@ -108,18 +107,18 @@ class GpioHandler:
 
  
 
-    def command(self, function):
+    def command(self, device_key: DeviceKey, data_key: str, function: str):
         logger.info("✏️ GPIO command %s function  %s", self.gpio.number,  function)
         if (self.gpio.mode == GpioMode.LED):
             self.set_led(0 if function == "off" else 1)
             self._device_callback()  # just trigger update
         elif (self.gpio.mode == GpioMode.BUTTON):        
             if function == PRESSED:
-                self._button_callback(PRESSED)
+                self._button_callback(device_key, PRESSED)
             elif function == RELEASED:
-                self._button_callback(RELEASED)
+                self._button_callback(device_key, RELEASED)
             elif function == HELD:
-                self._button_callback(HELD)
+                self._button_callback(device_key, HELD)
             
 
 

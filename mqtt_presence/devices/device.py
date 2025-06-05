@@ -3,22 +3,26 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from mqtt_presence.config.configuration import Configuration
-from mqtt_presence.devices.device_data import DeviceData
+from mqtt_presence.devices.device_data import DeviceData, DeviceKey
 
 
 class Device(ABC):
-    def __init__(self, device_key):
-        self._enabled = True
-        self._device_key = device_key
+    def __init__(self, devcie_key: DeviceKey):
+        self._enabled: bool = True
+        self._status: bool = False
+        self._error_msg: str = ""
+        self._device_key: DeviceKey = devcie_key
         self._data: dict[str, DeviceData] = {}
 
     @abstractmethod
-    def init(self, config: Configuration, topic_callback):
+    def init(self, config: Configuration, device_callback):
         pass
 
     @abstractmethod
     def exit(self):
-        pass
+        self.data.clear()
+        self._status = False
+        self._error_msg = ""
 
 
     @abstractmethod
@@ -29,8 +33,9 @@ class Device(ABC):
     def handle_command(self, data_key: str, function: str):
         pass
 
+
     @property
-    def device_key(self) -> str:
+    def device_key(self) -> DeviceKey:
         return self._device_key
 
     @property
@@ -44,3 +49,11 @@ class Device(ABC):
     @property
     def data(self) -> dict[str, DeviceData]:
         return self._data
+
+    @property
+    def status(self) -> bool:
+        return self._status
+
+    @property
+    def error_msg(self) -> str:
+        return self._error_msg

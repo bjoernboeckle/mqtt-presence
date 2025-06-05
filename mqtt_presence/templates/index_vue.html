@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <title>MQTT Presence</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-    <link href="https://cdn.materialdesignicons.com/7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='materialdesignicons/css/materialdesignicons.min.css') }}">
 
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vue.global.prod.js') }}"></script>
 
     <style>
         .no-top-border td {
@@ -71,63 +71,69 @@
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <h4 class="card-title mb-4">Configuration</h4>
-
-                <!-- Tabs -->
-                <ul class="nav nav-tabs" role="tablist">
-                    <!-- app configs -->
-                    <li class="nav-item">
-                        {% raw %}
-                        <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }"
-                            @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
-                        {% endraw %}
-                    </li>
-                    <!-- MQTT -->
-                    <li class="nav-item" v-if="config.mqtt.enabled">
-                        {% raw %}
-                        <a href="#" class="nav-link" :class="{ active: activeTab==='mqtt' }"
-                            @click.prevent="activeTab='mqtt'">MQTT {{mqttStatusIcon}}</a>
-                        {% endraw %}
-                    </li>
-                    <!-- PC utilities -->
-                    <li class="nav-item" v-if="config.devices.pc_utils.enabled">
-                        {% raw %}
-                        <a href="#" class="nav-link" :class="{ active: activeTab==='pcutils' }"
-                            @click.prevent="activeTab='pcutils'">PC utilities {{pcUtilsStatusIcon}}</a>
-                        {% endraw %}
-                    </li>
-                    <!-- RaspberryPi -->
-                    <li class="nav-item" v-if="config.devices.raspberryPi.enabled">
-                        {% raw %}
-                        <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }"
-                            @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
-                        {% endraw %}
-                    </li>
-                </ul>
-                <div class="tab-content mt-3">
-                    <!-- app configs -->
-                    <div v-show="activeTab==='appconfig'">
-                        {% include "tab_appconfig.html" %}
-                    </div>
-                    <!-- MQTT -->
-                    <div v-show="activeTab==='mqtt'">
-                        {% include "tab_mqtt.html" %}
-                    </div>
-                    <!-- PC utils -->
-                    <div v-show="activeTab==='pcutils'">
-                        {% include "tab_pcutils.html" %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <button @click="saveConfig" class="btn btn-sm btn-success">💾 Apply configuration</button>
+                    <h4 class="card-title mb-0">Configuration</h4>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <!-- app configs -->
+                            <li class="nav-item">
+                                {% raw %}
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }"
+                                    @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
+                                {% endraw %}
+                            </li>
+                            <!-- MQTT -->
+                            <li class="nav-item" v-if="config.mqtt.enabled">
+                                {% raw %}
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='mqtt' }"
+                                    @click.prevent="activeTab='mqtt'">MQTT {{mqttStatusIcon}}</a>
+                                {% endraw %}
+                            </li>
+                            <!-- PC utilities -->
+                            <li class="nav-item" v-if="config.devices.pc_utils.enabled">
+                                {% raw %}
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='pcutils' }"
+                                    @click.prevent="activeTab='pcutils'">PC utilities {{pcUtilsStatusIcon}}</a>
+                                {% endraw %}
+                            </li>
+                            <!-- RaspberryPi -->
+                            <li class="nav-item" v-if="config.devices.raspberryPi.enabled">
+                                {% raw %}
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }"
+                                    @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
+                                {% endraw %}
+                            </li>
+                        </ul>
                     </div>
 
-                    <!-- Raspberry Pi -->
-                    <div v-show="activeTab==='raspberrypi'">
-                        {% include "tab_raspberrypi.html" %}
+                    <div class="card-body">
+
+                        <div class="tab-content mt-3">
+                            <!-- app configs -->
+                            <div v-show="activeTab==='appconfig'">
+                                {% include "tab_appconfig.html" %}
+                            </div>
+                            <!-- MQTT -->
+                            <div v-show="activeTab==='mqtt'">
+                                {% include "tab_mqtt.html" %}
+                            </div>
+                            <!-- PC utils -->
+                            <div v-show="activeTab==='pcutils'">
+                                {% include "tab_pcutils.html" %}
+                            </div>
+
+                            <!-- Raspberry Pi -->
+                            <div v-show="activeTab==='raspberrypi'">
+                                {% include "tab_raspberrypi.html" %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Save Button -->
-        <div class="text-start">
-            <button @click="saveConfig" class="btn btn-success mt-3">💾 Apply configuration</button>
         </div>
     </div>
     <script>
@@ -141,10 +147,10 @@
                     version: "{{ version }}",
                     description: "{{ description }}",
                     config: config,
-                    mqtt_status: JSON.parse('{{ mqtt_status | tojson }}'),
-                    raspberryPi_status: JSON.parse('{{ raspberryPi_status | tojson }}'),
-                    devices_data: JSON.parse('{{ devices_data | tojson | safe | replace("'", "\\'") }}'),
+                    status: JSON.parse('{{ status | tojson | safe | replace("'", "\\'") }}'),
+
                     activeTab: "appconfig",
+                    activeTabRaspi: "raspistatus",
                     statusOnline: true,
                     password: "",
                     statusRunning: false,
@@ -161,13 +167,21 @@
                     return (this.statusOnline ? '🟢' : '🔴');
                 },
                 mqttStatusIcon() {
-                    return (this.statusOnline ? (this.mqtt_status ? '🟢' : '🔴') : '⚪');
+                    return (this.statusOnline ? (this.status.mqtt.status ? '🟢' : '🔴') : '⚪');
                 },
                 pcUtilsStatusIcon() {
                     return (this.statusOnline ? '🟢' : '⚪');
                 },
                 raspberryPiStatusIcon() {
-                    return (this.statusOnline ? (this.raspberryPi_status ? '🟢' : '🔴') : '⚪');
+                    return (this.statusOnline ? (this.status.devices.raspberrypi.status ? '🟢' : '🔴') : '⚪');
+                },
+                raspberrySwitches() {
+                    return Object.entries(this.status.devices.raspberrypi.data || {})
+                        .filter(([_, i]) => i.type === 'switch');
+                },
+                raspberryButtons() {
+                    return Object.entries(this.status.devices.raspberrypi.data || {})
+                        .filter(([_, i]) => i.type === 'device_automation');
                 }
             },
             mounted() {
@@ -215,10 +229,8 @@
                     fetch("/status")
                         .then(res => res.json())
                         .then(data => {
-                            this.mqtt_status = data.mqtt_status,
-                                this.raspberryPi_status = data.raspberryPi_status,
-                                this.devices_data = data.devices_data;
-                            this.statusOnline = true
+                            this.status = data.status,
+                                this.statusOnline = true
                             this.statusRunning = false
                         })
                         .catch(err => {

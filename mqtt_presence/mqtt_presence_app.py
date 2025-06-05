@@ -8,7 +8,7 @@ from mqtt_presence.config.config_handler import ConfigHandler
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.utils import Tools
 from mqtt_presence.version import NAME, VERSION, AUTHORS, REPOSITORY, DESCRIPTION
-
+from mqtt_presence.devices.device_data import DeviceKey
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +51,22 @@ class MQTTPresenceApp():
     def config_handler(self) -> ConfigHandler:
         return self._config_handler
 
-    @property
-    def mqtt_client(self) -> MQTTClient:
-        return self._mqtt_client
+    #@property
+    #def mqtt_client(self) -> MQTTClient:
+    #    return self._mqtt_client
 
     @property
     def devices(self) -> Devices:
         return self._devices
+
+
+    def get_status(self):
+        return {
+                "mqtt": {
+                    "status": self._mqtt_client.is_connected()
+                },
+                "devices": self.devices.get_device_status()
+            }        
 
     def force_update(self):
         logger.info("Force Update called")
@@ -83,7 +92,7 @@ class MQTTPresenceApp():
         #show platform
         Tools.log_platform()
         self.config = self._config_handler.load_config()
-        self._devices.init(self.config, self._device_callback)
+        self.devices.init(self.config, self._device_callback)
         self._should_run = True
         self._thread = threading.Thread(target=self._run_app_loop, daemon=True)
         self._thread.start()
@@ -99,20 +108,19 @@ class MQTTPresenceApp():
             self._thread = None
         if not keep_connected:
             self._mqtt_client.disconnect()
-        self._devices.exit()
+        self.devices.exit()
 
 
     def _on_connect(self):
-        #device_topics = self._devices.create_topics()
-        self._devices.update_data(mqtt_online = self._mqtt_client.is_connected())
-        self._mqtt_client.set_devices_data(self._devices)
+        self.devices.update_data(mqtt_online = self._mqtt_client.is_connected())
+        self._mqtt_client.set_devices(self.devices)
         self._mqtt_client.publish_mqtt_data(True)
         if self.config.mqtt.homeassistant.enabled:
             self._mqtt_client.publish_discovery()
 
 
 
-    def _device_callback(self, device_key: Optional[str] = None, data_key: Optional[str] = None, function: Optional[str] = None):
+    def _device_callback(self, device_key: Optional[DeviceKey] = None, data_key: Optional[str] = None, function: Optional[str] = None):
         logger.info("🚪 Callback Device %s: %s: %s", device_key, data_key, function)
         if device_key is not None and data_key is not None and function is not None:
             self._mqtt_client.handle_action(device_key, data_key, function)
@@ -134,7 +142,7 @@ class MQTTPresenceApp():
         should_cleanup: bool = False
         while self._should_run:
             self._sleep_event.clear()                                   # Reset the event for the next cycle
-            self._devices.update_data(mqtt_online = self._mqtt_client.is_connected())
+            self.devices.update_data(mqtt_online = self._mqtt_client.is_connected())
             if self.config.mqtt.enabled:
                 # handle mqtt (auto)connection
                 if not self._mqtt_client.is_connected():

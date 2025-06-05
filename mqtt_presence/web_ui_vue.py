@@ -7,7 +7,7 @@ from waitress import serve
 from mqtt_presence.utils import Tools
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
-
+from mqtt_presence.devices.device_data import DeviceKey
 
 logger = logging.getLogger(__name__)
 
@@ -52,15 +52,12 @@ class WebUIVue:
         @self.app.route("/")
         def index():
             config: Configuration = self.mqtt_app.config
-            devices_data = self.mqtt_app.devices.devices_data
             return render_template("index_vue.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
                 "description": self.mqtt_app.DESCRIPTION,
                 "config": ConfigYamlHelper.dataclass_to_serializable(config),
-                "mqtt_status": self.mqtt_app.mqtt_client.is_connected(),
-                "raspberryPi_status": self.mqtt_app.devices.devices["raspberrypi"].online,
-                "devices_data": devices_data
+                "status": self.mqtt_app.get_status()
             })
 
 
@@ -74,12 +71,7 @@ class WebUIVue:
 
         @self.app.route("/status")
         def status():
-            devices_data = self.mqtt_app.devices.devices_data
-            return jsonify({
-                "mqtt_status": self.mqtt_app.mqtt_client.is_connected(),
-                "raspberryPi_status": self.mqtt_app.devices.devices["raspberrypi"].online,
-                "devices_data": devices_data
-            })
+            return jsonify({"status": self.mqtt_app.get_status()}), 200
 
 
         @self.app.route("/health")
@@ -91,15 +83,12 @@ class WebUIVue:
         @self.app.route('/device/command', methods=['POST'])
         def device_command():
             data = request.json
-            device_key = data.get('device_key')
+            device_key: DeviceKey = data.get('device_key')
             data_key = data.get('data_key')
             function = data.get('function')
             logger.info("✏️  Web Device command: %s %s - %s", device_key, data_key, function)
             self.mqtt_app.devices.handle_command(device_key, data_key, function)
             return '', 204
-
-
-
 
 
 
