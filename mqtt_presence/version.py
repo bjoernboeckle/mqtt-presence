@@ -1,6 +1,6 @@
-VERSION = "0.2.6a1"
+VERSION = "0.2.6"
 NAME = "mqtt-presence"
-DESCRIPTION = "Lightweight MQTT-based presence detection with shutdown and Raspberry Pi support"
+DESCRIPTION = "Lightweight MQTT-based presence detection with shutdown and Raspberry Pi GPio support"
 REPOSITORY = "https://github.com/bjoernboeckle/mqtt-presence"
 DOCUMENTATION = "https://github.com/bjoernboeckle/mqtt-presence/wiki"
 AUTHORS = "['Bjoern Boeckle <bjoern@boeckle-net.de>']"

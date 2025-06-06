@@ -11,7 +11,7 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/bjoernboeckle/mqtt-presence"
 documentation = "https://github.com/bjoernboeckle/mqtt-presence/wiki"
-keywords = [ "mqtt", "presence", "shutdown", "home-assistant", "smart-home", "mqtt-discovery", "mqtt-client", "mqtt-online", "mqtt-online-state", "gpio", raspberrypi-gpio]
+keywords = [ "mqtt", "presence", "shutdown", "home-assistant", "smart-home", "mqtt-discovery", "mqtt-client", "mqtt-online", "mqtt-online-state", "gpio", "raspberrypi-gpio",]
 [[tool.poetry.packages]]
 include = "mqtt_presence"
 
@@ -34,7 +34,6 @@ platformdirs = "*"
 psutil = "*"
 "ruamel.yaml" = "^0.18.6"
 dacite = "^1.8.1"
-
 
 [tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"

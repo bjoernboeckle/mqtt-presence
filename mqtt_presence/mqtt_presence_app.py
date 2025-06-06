@@ -51,9 +51,6 @@ class MQTTPresenceApp():
     def config_handler(self) -> ConfigHandler:
         return self._config_handler
 
-    #@property
-    #def mqtt_client(self) -> MQTTClient:
-    #    return self._mqtt_client
 
     @property
     def devices(self) -> Devices:
@@ -66,18 +63,18 @@ class MQTTPresenceApp():
                     "status": self._mqtt_client.is_connected()
                 },
                 "devices": self.devices.get_device_status()
-            }        
+            }
 
     def force_update(self):
         logger.info("Force Update called")
         self._sleep_event.set()
 
     def update_new_config(self, new_config : Configuration, password: Optional[str] = None):
-        if new_config.mqtt.broker.prefix != self.config.mqtt.broker.prefix and self.mqtt_client.is_connected():
+        if new_config.mqtt.broker.prefix != self.config.mqtt.broker.prefix and self._mqtt_client.is_connected():
             # try to remove topics, since prefix was changed
             self.stop(True)
-            self.mqtt_client.remove_topics()
-            self.mqtt_client.disconnect(True)
+            self._mqtt_client.remove_topics()
+            self._mqtt_client.disconnect(True)
             sleep_event = threading.Event()
             sleep_event.wait(4)
         else:

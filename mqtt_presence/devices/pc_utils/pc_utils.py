@@ -35,7 +35,7 @@ class PcUtils(Device):
         if self.settings.enableInfos:
             self.data.update( {
                 # MQTT buttons
-                "test": DeviceData(friendly_name="Test button", type = DeviceType.BUTTON, icon="test-tube"),
+                #"test": DeviceData(friendly_name="Test button", type = DeviceType.BUTTON, icon="test-tube"),
                 # MQTT sensors
                 "cpu_freq": DeviceData(friendly_name="CPU Frequency", unit = "MHz", type = DeviceType.SENSOR, icon = "sine-wave"),
                 "memory_usage": DeviceData(friendly_name="RAM Usage", unit = "%", type = DeviceType.SENSOR, icon = "memory" ),
