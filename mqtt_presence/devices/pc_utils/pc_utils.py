@@ -25,12 +25,13 @@ class PcUtils(Device):
 
 
     def init(self, config: Configuration, device_callback):
+        super().init(config, device_callback)
         self.settings: PcUtilsSettings = config.devices.pc_utils
-        self._status = True
-        self.data.clear()
         if not self.settings.enabled:
+            self._error_msg = "PC Utils device is disabled in the configuration. Apply to enable it."
             return
 
+        self._status = True
         if self.settings.enableInfos:
             self.data.update( {
                 # MQTT buttons

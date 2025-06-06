@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <title>MQTT Presence</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='materialdesignicons/css/materialdesignicons.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='materialdesignicons/css/materialdesignicons.min.css') }}">
 
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/vue.global.prod.js') }}"></script>
@@ -27,7 +28,7 @@
         .gpio-settings-row .form-select,
         .gpio-settings-row .form-check-label {
             font-size: 0.85rem;
-            padding: 0.25rem 0.4rem;
+            
             height: auto;
         }
 
@@ -72,7 +73,6 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <button @click="saveConfig" class="btn btn-sm btn-success">💾 Apply configuration</button>
                     <h4 class="card-title mb-0">Configuration</h4>
                 </div>
                 <div class="card">
@@ -128,13 +128,14 @@
 
                             <!-- Raspberry Pi -->
                             <div v-show="activeTab==='raspberrypi'">
-                                {% include "tab_raspberrypi.html" %}
+                                {% include "tab_raspberrypi/tab_raspberrypi.html" %}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <button @click="saveConfig" class="btn btn-sm btn-success">💾 Apply configuration</button>
     </div>
     <script>
 
@@ -170,7 +171,7 @@
                     return (this.statusOnline ? (this.status.mqtt.status ? '🟢' : '🔴') : '⚪');
                 },
                 pcUtilsStatusIcon() {
-                    return (this.statusOnline ? '🟢' : '⚪');
+                    return (this.statusOnline ? (this.status.devices.pc_utils.status ? '🟢' : '🔴') : '⚪');
                 },
                 raspberryPiStatusIcon() {
                     return (this.statusOnline ? (this.status.devices.raspberrypi.status ? '🟢' : '🔴') : '⚪');

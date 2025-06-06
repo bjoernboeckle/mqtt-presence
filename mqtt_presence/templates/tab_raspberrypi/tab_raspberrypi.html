@@ -1,0 +1,40 @@
+{% raw %}
+<div class="card">
+  <div class="header">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item">
+        <a
+          href="#"
+          class="nav-link"
+          :class="{ active: activeTabRaspi === 'raspistatus' }"
+          @click.prevent="activeTabRaspi = 'raspistatus'"
+        >
+          Raspberry Pi Status {{ raspberryPiStatusIcon }}
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          href="#"
+          class="nav-link"
+          :class="{ active: activeTabRaspi === 'raspiconfig' }"
+          @click.prevent="activeTabRaspi = 'raspiconfig'"
+        >
+          Config
+        </a>
+      </li>
+    </ul>
+  </div>
+{% endraw %}
+
+  <!-- Status --> 
+  <div class="body p-2" v-show="activeTabRaspi === 'raspistatus'">
+    {% include "tab_raspberrypi/tab_raspberrypi_status.html" %}
+  </div>
+
+  <!-- Config -->
+  <div class="body" v-show="activeTabRaspi === 'raspiconfig'">
+    {% include "tab_raspberrypi/tab_raspberrypi_config.html" %}
+  </div>
+</div>
+

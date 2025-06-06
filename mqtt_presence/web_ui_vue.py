@@ -1,11 +1,9 @@
 import logging
-import requests
 
 from flask import Flask, request, render_template, jsonify
 from waitress import serve
 
 from mqtt_presence.utils import Tools
-from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.config.config_handler import ConfigYamlHelper
 from mqtt_presence.devices.device_data import DeviceKey
 
@@ -26,18 +24,6 @@ class WebUIVue:
         pass
 
 
-
-    def is_server_running(self):
-        try:
-            response = requests.get(f"http://localhost:{self.mqtt_app.config.webServer.port}/health", timeout=2)
-            if response.status_code == 200:
-                return True
-        except requests.ConnectionError:
-            return False
-        return False
-
-
-
     def run_ui(self):
         # use waitress or flask self run
         logging.info("Starting web ui at %s:%s", self.mqtt_app.config.webServer.host, self.mqtt_app.config.webServer.port)
@@ -51,21 +37,19 @@ class WebUIVue:
     def setup_routes(self):
         @self.app.route("/")
         def index():
-            config: Configuration = self.mqtt_app.config
             return render_template("index_vue.html", **{
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
                 "description": self.mqtt_app.DESCRIPTION,
-                "config": ConfigYamlHelper.dataclass_to_serializable(config),
+                "config": ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config),
                 "status": self.mqtt_app.get_status()
             })
 
 
         @self.app.route("/config")
         def get_config():
-            config: Configuration = self.mqtt_app.config
             return jsonify({
-                    "config":ConfigYamlHelper.dataclass_to_serializable(config)
+                    "config":ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config)
                     })
 
 
@@ -73,10 +57,6 @@ class WebUIVue:
         def status():
             return jsonify({"status": self.mqtt_app.get_status()}), 200
 
-
-        @self.app.route("/health")
-        def health():
-            return jsonify({"status": "running"}), 200
 
 
 

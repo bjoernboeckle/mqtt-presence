@@ -47,7 +47,7 @@ class MQTTClient:
         if self._client is None or not self._client.is_connected():
             logger.warning("❌ MQTT client is not connected, cannot handle action")
             return
-        topic = f"{self._topic_prefix}/{device_key}/{data_key}/action"
+        topic = f"{self._topic_prefix}/{device_key.value}/{data_key}/action"
         logger.info("🚀 Publish: %s: %s", topic, function)
         self._client.publish(topic, payload=function, retain=True)
 
@@ -106,7 +106,7 @@ class MQTTClient:
             self._publish_available(None)
             for device_key, device in self._devices.devices.items():
                 for data_key, _device_data in device.data.items():
-                    topic = f"{self._topic_prefix}/{device_key}/{data_key}/state"
+                    topic = f"{self._topic_prefix}/{device_key.value}/{data_key}/state"
                     logger.info("🧹 Removing old topic: %s", topic)
                     self._client.publish(topic, payload=None, retain=True)
 
@@ -120,7 +120,7 @@ class MQTTClient:
                 for data_key, device_data in device.data.items():
                     if device_data.type==DeviceType.SENSOR or device_data.type==DeviceType.SWITCH or device_data.type==DeviceType.BINARY_SENSOR:
                         value = None
-                        topic = f"{self._topic_prefix}/{device_key}/{data_key}/state"
+                        topic = f"{self._topic_prefix}/{device_key.value}/{data_key}/state"
                         try:
                             value = device_data.data
                             old_value = self._devices_data_old.get(device_key, {}).get(data_key, None)
@@ -150,8 +150,8 @@ class MQTTClient:
             for device_key, device in self._devices.devices.items():
                 for data_key, device_data in device.data.items():
                     if device_data.type is not None:
-                        topic = f"{self._topic_prefix}/{device_key}/{data_key}"
-                        unique_id = f"{device_key}_{data_key}"
+                        topic = f"{self._topic_prefix}/{device_key.value}/{data_key}"
+                        unique_id = f"{device_key.value}_{data_key}"
                         if device_data.actions is not None:
                             for action in device_data.actions:
                                 discovery_topic = f"{self._discovery_prefix}/{device_data.type.value}/{self._node_id}/action_{unique_id}_{action}/config"
@@ -211,14 +211,14 @@ class MQTTClient:
         if msg.topic.startswith("homeassistant/") and msg.topic.endswith("/config"):
             self._existing_discovery_topics.append(msg.topic)
         else:
-            topic_prefix = self._topic_prefix
-            topic_without_prefix = msg.topic[len(topic_prefix)+1:] if msg.topic.startswith(topic_prefix) else topic_prefix
-            logger.info("📩 Received command: %s → %s", msg.topic, payload)
-            for device_key, device in self._devices.devices.items():
-                for data_key, device_data in device.data.items():
-                    relative_topic = f"{device_key}/{data_key}"
-                    if device_data.type is not None and topic_without_prefix == f"{relative_topic}/command":
-                        device.handle_command(data_key, payload)
+            parts = msg.topic.strip("/").split("/")       # ['..', '...', 'device_key', 'data_key', 'command']
+            if parts[-1] == "command":
+                device_key = parts[-3]
+                data_key = parts[-2]
+                logger.info("📩 Received device command: %s → %s: %s", device_key, data_key, payload)
+                self._devices.handle_command(device_key, data_key, payload)
+            else:
+                logger.info("📩 Received unknown command: %s → %s", msg.topic, payload)
 
 
 
@@ -234,7 +234,7 @@ class MQTTClient:
         for device_key, device in self._devices.devices.items():
             for data_key, device_data in device.data.items():
                 if device_data.type == DeviceType.BUTTON or device_data.type == DeviceType.SWITCH:
-                    relative_topic = f"{device_key}/{data_key}/command"
+                    relative_topic = f"{device_key.value}/{data_key}/command"
                     self._client.subscribe(f"{self._topic_prefix}/{relative_topic}")
 
 

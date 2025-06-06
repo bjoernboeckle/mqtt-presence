@@ -1,0 +1,104 @@
+{% raw %}
+<div class="">
+  <template v-for="(gpio, index) in config.devices.raspberryPi.gpios" :key="index">
+    <div class="d-flex gap-3 mb-3 border rounded p-2">
+      <!-- Linke Spalte: Entfernen-Button -->
+      <div class="d-flex align-items-center justify-content-center" style="width: 40px">
+        <button class="btn btn-sm btn-outline-danger" @click="removeGpio(index)" title="Remove GPIO">
+          ❌
+        </button>
+      </div>
+
+      <!-- Rechte Spalte: Alle Eingabeelemente -->
+      <div class="d-flex flex-wrap align-items-end gap-2 flex-grow-1 gpio-settings-row">
+        <!-- Pin -->
+        <div style="width: 80px">
+          <label class="form-label form-label-sm mb-1">Pin</label>
+          <input type="number" class="form-control form-control-sm" v-model.number="gpio.number" placeholder="Pin" />
+        </div>
+
+        <!-- Mode -->
+        <div>
+          <label class="form-label form-label-sm mb-1">Mode</label>
+          <select class="form-select form-select-sm" v-model="gpio.mode">
+            <option value="led">LED</option>
+            <option value="button">Button</option>
+          </select>
+        </div>
+
+        <!-- Name -->
+        <div>
+          <label class="form-label form-label-sm mb-1">Name</label>
+          <input type="text" class="form-control form-control-sm" v-model="gpio.friendly_name" placeholder="Name" />
+        </div>
+
+        <!-- Button Settings -->
+        <template v-if="gpio.mode === 'button' && gpio.button">
+          <div>
+            <label class="form-label form-label-sm mb-1">Bounce (s)</label>
+            <input type="number" step="0.01" class="form-control form-control-sm"
+              v-model.number="gpio.button.bounce_s" />
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1">Pull-Up</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="gpio.button.pull_up" />
+            </div>
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1">Pressed</label>
+            <select class="form-select form-select-sm" v-model="gpio.button.function_pressed">
+              <option :value="null">None</option>
+              <option value="shutdown">Shutdown</option>
+              <option value="reboot">Reboot</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1">Released</label>
+            <select class="form-select form-select-sm" v-model="gpio.button.function_released">
+              <option :value="null">None</option>
+              <option value="shutdown">Shutdown</option>
+              <option value="reboot">Reboot</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1">Held</label>
+            <select class="form-select form-select-sm" v-model="gpio.button.function_held">
+              <option :value="null">None</option>
+              <option value="shutdown">Shutdown</option>
+              <option value="reboot">Reboot</option>
+            </select>
+          </div>
+        </template>
+
+        <!-- LED Settings -->
+        <template v-if="gpio.mode === 'led' && gpio.led">
+          <div>
+            <label class="form-label form-label-sm mb-1">LED Mode</label>
+            <select class="form-select form-select-sm" v-model="gpio.led.led_mode">
+              <option value="onoff">On/Off</option>
+              <option value="blink">Blink</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1">LED Function</label>
+            <select class="form-select form-select-sm" v-model="gpio.led.led_function">
+              <option :value="null">None</option>
+              <option value="running">App running</option>
+              <option value="mqtt-online">MQTT online</option>
+            </select>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+
+  <!-- Add Button -->
+  <div class="text-start mt-3">
+    <button class="btn btn-sm btn-outline-primary" @click="addGpio">
+      ➕ Add GPIO
+    </button>
+  </div>
+</div>
+
+{% endraw %}

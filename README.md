@@ -17,15 +17,51 @@ It is especially useful in smart home environments such as [Home Assistant](http
 - Publishes device online state and other pc information to MQTT  
 - Receives shutdown and restart commands via MQTT  
 - Supports Home Assistant MQTT Discovery (optional)
-- Cross-platform: Windows, Linux  
-- Provides Web UI and Console UI  
-- Configuration via YAML and JSON files  
+- Allows configuration of RaspberryPI GPiOs to control inputs (Buttons) and outputs (LEDs) using mqtt and homeassistant
+- Cross-platform: Windows, Linux  (GPIOs only RaspberryPi)
+- Configuration via YAML using web UI
 
 ---
 
 ## 🚀 Getting Started
 
-### 🪟 Windows
+
+
+### 🐧 Linux
+
+Just use the install / uninstall script.
+mqtt-presence will be installed as system.d service.
+
+```bash
+# Install
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh?$(date +%s)" | bash
+
+# Uninstall
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh?$(date +%s)" | bash -s -- --yes
+```
+
+---
+
+
+### 🐳 Docker
+
+Shutdown/Restart are not supported if running in a container and therefore they are disabled by default.
+
+#### Docker compose
+```yaml
+services:
+  mqtt-presence:
+    image: bjoernboeckle/mqtt-presence:latest
+    container_name: mqtt-presence
+    volumes:
+      - ./config/:/config
+      - ./log/:/log
+    network_mode: host      
+```
+
+---
+
+### 🖥️ Windows
 
 Download  and run the installer exe from the latest release:
 
@@ -35,6 +71,11 @@ Download  and run the installer exe from the latest release:
 mqtt-presence-vx.x.x-setup.exe
 ```
 
+Or use winget (latest version will be installed automatically)
+
+```bash
+winget install mqtt-presence
+```
 
 The prgramm will be installed as a service placed in %ProgrammData%\mqtt-presence.
 After a succefull installation, the web ui can be opened using:
@@ -53,51 +94,8 @@ mqtt-presence-vx.x.x.exe
 ```
 
 
-#### 📝 Or using script
-The install script in github can also be used, which performs the same installation as the installer:
-
-```powershell
-# Install
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.ps1 | iex
-
-# Uninstall
-iwr -useb https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.ps1 | iex
-```
-
 ---
 
-### 🐳 Docker
-
-Shutdown/Restart are not supported if running in a container and therefore they are disabled by default.
-
-#### Docker compose
-```yaml
-services:
-  mqtt-presence:
-    image: bjoernboeckle/mqtt-presence:latest
-    container_name: mqtt-presence
-    volumes:
-      - ./config/:/config
-      - ./log/:/log
-    network_mode: host      
-```
----
-
-
-### 🐧 Linux
-
-Just use the install / uninstall script.
-mqtt-presence will be installed as system.d service.
-
-```bash
-# Install
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh?$(date +%s)" | bash
-
-# Uninstall
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh?$(date +%s)" | bash -s -- --yes
-```
-
----
 
 ### 🐍 As Python Package
 
@@ -132,7 +130,8 @@ mqtt-presence.exe --config CONFIG_PATH --log LOG_PATH   # use CONFIG_PATH as con
 
 ---
 
-## 📟 Web UI
+
+# 📟 Web UI
 
 Access the Web UI in your browser at:
 
@@ -142,7 +141,87 @@ http://<ip-address>:8100
 
 Example: [http://localhost:8100](http://localhost:8100)
 
+
+Apply configuration needs to executed to apply changed settings!
+
+## App config
+
+On this page app base settings can be changed:
+
+
 <img src="docs/images/mqtt-presence-webui.png" alt="mqtt_presence Web UI screenshot" width="800">
+
+
+| Parameter     | Description                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| **Host**      | Web UI listen server 0.0.0.0 to listen on all IP adresses.                             |
+| **Port**      | WebUI port number                                                                      |
+| **update rate**  | Frequency which is used to update data and publishes to mqtt                        |
+| **Enable MQTT**  | Enables / Disabled mqtt, if diabled, GPIOs etc.can still be used in WebUI           |
+| **Enable PC Utilities**  | PC Information will not be send if dsabled                                  |
+| **Enable RaspberryPi**  | Disabled RaspberryPi GPIOs                                                   |
+
+
+
+## MQTT
+
+This pages is used to configure mqtt connection and settings.
+
+<img src="docs/images/mqtt-presence-webui-mqtt.png" alt="mqtt_presence Web UI screenshot" width="800">
+
+
+| Parameter     | Description                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| **Broker**    | IP address of mqtt broker                                                              |
+| **Username**  | Username for mqtt broker                                                               |
+| **Password**  | Password for mqtt user, password will not be save inside the configuration.yaml file   |
+| **Prefix**    | Topic prefix for this client PC                                                        |
+| **Enable Homeasistant<br>Discovery** | used to enable/disable home assitant discovery.<br>Homeassiatnat must have autodiscovery enabled.
+| **Discovery Prefix**  | Discoveryprefix for homeassistant, should be "homeassistant" if bnot changed in HAS |
+| **Device name**  | Device name shown in Homeassistant                                                       |
+
+
+## PC utilities
+
+This pages is used to enable/disable shutdown/resatrt commands and to view current oc status.
+
+<img src="docs/images/mqtt-presence-webui-pc-utils.png" alt="mqtt_presence Web UI screenshot" width="800">
+
+
+| Parameter     | Description                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| **Enable shutdown**  | Shutdown command is is enabled/disabled                                         |
+| **Enable reboot**    | Reboot command is is enabled/disabled                                           |
+| **Enable infos**     | PC infos can be disabled (CPU frequency, ram usage ....                         |
+
+
+
+## Raspberry PI
+
+This interface allows you to add, edit, and remove GPIO pins for your Raspberry Pi in the app. Each GPIO pin can be configured either as an LED or a Button, with various setting options.
+
+Each GPIO entry is displayed as a row.
+
+On the far left is a red ❌ button to remove that GPIO entry.
+To the right are all the input fields for configuring the GPIO.
+
+<img src="docs/images/mqtt-presence-webui-raspberrypi.png" alt="mqtt_presence Web UI screenshot" width="800">
+
+
+| Parameter     | Description                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| **Pin**       | Numeric GPIO pin number on the Raspberry Pi. Example: 17. --> must be unique.          |
+| **Mode**      | GPio is used as **LED** or **Button** (Input or output)                                |
+| **Name**      | A free-text name to easily identify the pin.                                           |
+|  **LED**                                                                                               |
+| **LED Mode**  | **On/Off** or **Blink**, Blink toggles on off in 1 second intervalls if switched on    |
+| **LED Function**  | **None**: LED / output can be used by mqtt or web interface <br> **App running**: LED is on while the app is running <br> **MQTT online**: The LED is on as long as there is an active mqtt connection  |
+|  **Button**                                                                                             |
+| **Bounce**    | Sets a debounce time, to avoid bouncing if a buton is pressed                           |
+| **Pull-up**   | Enables/Disables an internal pull up resistor                                           |
+| **Pressed**<br>**Released**<br>**Held**   | Sets a button function for pressed, released or held:<br>**None**: The button can be used for instance in homeassistant<br>**Shutdown** Shutsdown the PC<br>**Reboot** Reboots the pc                               |
+
+
 
 ---
 
@@ -216,7 +295,7 @@ Manuall changes require a manual restart.
 
 ---
 
-## 🧠 License & Credits
+## 🧠 License
 
-Licensed under the Apache License 2.0. Developed by [Bjoern Boeckle](https://github.com/bjoernboeckle).  
-Special thanks to the Home Assistant community for inspiration and support.
+Licensed under the Apache License 2.0.
+

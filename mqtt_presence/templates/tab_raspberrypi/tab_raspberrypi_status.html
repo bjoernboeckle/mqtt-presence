@@ -1,0 +1,41 @@
+{% raw %}
+
+<div v-if="status.devices.raspberrypi.error_msg">
+  <p>Error</p>
+  <div class="alert alert-danger mb-3">
+    <i class="mdi mdi-alert"></i>
+    <span v-text="status.devices.raspberrypi.error_msg"></span>
+  </div>
+</div>
+<div v-else>
+  <div v-if="raspberrySwitches.length">
+    <div class="fw-bold mb-2">LEDs</div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+      <div class="col" v-for="([key, item]) in raspberrySwitches" :key="key">
+        <div class="form-check form-switch">
+          <i :class="mdiClass(item.icon)"></i>
+          <input class="form-check-input" type="checkbox" :checked="item.data === 'on'"
+            @change="onToggleSwitch('raspberrypi', key, $event.target.checked)" />
+          <label class="form-check-label ms-2" v-text="item.friendly_name"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="raspberryButtons.length">
+    <div class="fw-bold mt-4 mb-2">Buttons</div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+      <div class="col" v-for="([key, item]) in raspberryButtons" :key="key">
+        <button class="btn btn-sm btn-primary w-100 d-flex align-items-center gap-2" @click="sendCommand('/device/command', {
+                    'device_key': 'raspberrypi',
+                    'data_key': key,
+                    'function': item.actions[0]
+                  })">
+          <i :class="mdiClass(item.icon)"></i>
+          <span>{{ item.friendly_name }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endraw %}

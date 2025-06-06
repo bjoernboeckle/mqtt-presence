@@ -1,30 +1,39 @@
 <div>
-    <div class="row align-items-center mb-3">
-        <div class="col-auto d-flex align-items-center">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="enable_shutdown"
-                    v-model.bool="config.devices.pc_utils.enableShutdown">
-                <label class="form-check-label ms-2" for="enable_shutdown">Enable shutdown</label>
-            </div>
-        </div>
-        <div class="col-auto d-flex align-items-center">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="enable_reboot"
-                    v-model.bool="config.devices.pc_utils.enableReboot">
-                <label class="form-check-label ms-2" for="enable_reboot">Enable reboot</label>
-            </div>
-        </div>
-
-        <div class="col-auto d-flex align-items-center">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model.bool="config.devices.pc_utils.enableInfos">
-                <label class="form-check-label ms-2">Enable infos</label>
-            </div>
+    <div v-if="status.devices.pc_utils.error_msg">
+        <p>Error</p>
+        <div class="alert alert-danger mb-3">
+            <i class="mdi mdi-alert"></i>
+            <span v-text="status.devices.pc_utils.error_msg"></span>
         </div>
     </div>
 
+    <div v-else>
+        <div class="row align-items-center mb-3">
+            <div class="col-auto d-flex align-items-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="enable_shutdown"
+                        v-model.bool="config.devices.pc_utils.enableShutdown">
+                    <label class="form-check-label ms-2" for="enable_shutdown">Enable shutdown</label>
+                </div>
+            </div>
+            <div class="col-auto d-flex align-items-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="enable_reboot"
+                        v-model.bool="config.devices.pc_utils.enableReboot">
+                    <label class="form-check-label ms-2" for="enable_reboot">Enable reboot</label>
+                </div>
+            </div>
 
-    <!--
+            <div class="col-auto d-flex align-items-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" v-model.bool="config.devices.pc_utils.enableInfos">
+                    <label class="form-check-label ms-2">Enable infos</label>
+                </div>
+            </div>
+        </div>
+
+
+        <!--
     <div class="row align-items-center mb-3"  v-for="([key, item]) in Object.entries(devices_data.pc_utils).filter(([k, i]) => i.type==='button')" :key="key">
         <div class="col d-flex align-items-center">
             <div class="form-check form-switch">
@@ -41,59 +50,61 @@
     </div>
 -->
 
-    <hr/>
-    <h6>Commands</h6>
+        <hr />
+        <h6>Commands</h6>
 
-    <!-- Shutdown -->
-    <div class="row align-items-center mb-3">
         <!-- Shutdown -->
-        <div class="col-auto" v-if="config.devices.pc_utils?.enableShutdown">
-            <button class="btn btn-danger px-4"
-                @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'shutdown', 'function': 'press' })">
-                🔌 Shutdown
-            </button>
+        <div class="row align-items-center mb-3">
+            <!-- Shutdown -->
+            <div class="col-auto" v-if="config.devices.pc_utils?.enableShutdown">
+                <button class="btn btn-danger px-4"
+                    @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'shutdown', 'function': 'press' })">
+                    🔌 Shutdown
+                </button>
+            </div>
+
+            <!-- Restart -->
+            <div class="col-auto" v-if="config.devices.pc_utils.enableReboot">
+                <button class="btn btn-warning px-4"
+                    @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'reboot', 'function': 'press' })">
+                    ♻️ Restart
+                </button>
+            </div>
+
+            <!-- Test 
+            <div class="col-auto">
+                <button class="btn btn-secondary px-4"
+                    @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'test', 'function': 'press' })">
+                    🧪 Test
+                </button>
+            </div> -->
         </div>
 
-        <!-- Restart -->
-        <div class="col-auto" v-if="config.devices.pc_utils.enableReboot">
-            <button class="btn btn-warning px-4"
-                @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'reboot', 'function': 'press' })">
-                ♻️ Restart
-            </button>
-        </div>      
-        
-        <!-- Test -->
-        <div class="col-auto">
-            <button class="btn btn-secondary px-4"
-                @click="sendCommand('/device/command', {'device_key': 'pc_utils', 'data_key': 'test', 'function': 'press' })">
-                 🧪 Test
-            </button>
-        </div>  
-    </div>
-
-    <!-- CPU Utilization Table
+        <!-- CPU Utilization Table
     <div class="form-check form-switch mb-4">
         <input class="form-check-input" type="checkbox" v-model.bool="config.devices.pc_utils.enableInfos">
         <label class="form-check-label" for="enable_pc_utilities">Enable infos</label>
     </div>-->
-    <div class="table-responsive mt-4" v-if="config.devices.pc_utils.enableInfos">
-        <h6>Infos</h6>
-        <table id="cpu_util_table" class="table table-striped table-hover table-bordered text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Name</th>
-                    <th>Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="([key, item]) in Object.entries(status.devices.pc_utils.data).filter(([k, i]) => i.data!==undefined)" :key="key">
-                    <td><i :class="mdiClass(item.icon)"
-                            v-text="' ' + (item.friendly_name ? item.friendly_name : key)"></i>
-                    </td>
-                    <td v-text="item.data !== null ? item.data + ' ' + (item.unit ?? '') : 'N/A'">
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive mt-4" v-if="config.devices.pc_utils.enableInfos">
+            <h6>Infos</h6>
+            <table id="cpu_util_table" class="table table-striped table-hover table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="([key, item]) in Object.entries(status.devices.pc_utils.data).filter(([k, i]) => i.data!==undefined && i.data!==null && i.data!=='')"
+                        :key="key">
+                        <td><i :class="mdiClass(item.icon)"
+                                v-text="' ' + (item.friendly_name ? item.friendly_name : key)"></i>
+                        </td>
+                        <td v-text="item.data !== null ? item.data + ' ' + (item.unit ?? '') : 'N/A'">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

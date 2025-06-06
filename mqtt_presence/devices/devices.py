@@ -45,8 +45,8 @@ class Devices:
         device.handle_command(data_key, function)
 
 
-    def get_device_status(self):
-         return {
+    def get_device_status(self) -> Dict[DeviceKey, Dict[str, DeviceData]]:
+        return {
                 device_key.value: {
                     "status": device.status,
                     "error_msg": device.error_msg,

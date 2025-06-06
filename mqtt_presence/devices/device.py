@@ -14,15 +14,14 @@ class Device(ABC):
         self._device_key: DeviceKey = devcie_key
         self._data: dict[str, DeviceData] = {}
 
+
     @abstractmethod
     def init(self, config: Configuration, device_callback):
-        pass
+        self._reset_status()
 
     @abstractmethod
     def exit(self):
-        self.data.clear()
-        self._status = False
-        self._error_msg = ""
+        self._reset_status()
 
 
     @abstractmethod
@@ -33,6 +32,10 @@ class Device(ABC):
     def handle_command(self, data_key: str, function: str):
         pass
 
+    def _reset_status(self):
+        self.data.clear()
+        self._status = False
+        self._error_msg = ""
 
     @property
     def device_key(self) -> DeviceKey:
