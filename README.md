@@ -18,6 +18,9 @@ It is especially useful in smart home environments such as [Home Assistant](http
 - Receives shutdown and restart commands via MQTT  
 - Supports Home Assistant MQTT Discovery (optional)
 - Allows configuration of RaspberryPI GPiOs to control inputs (Buttons) and outputs (LEDs) using mqtt and homeassistant
+- Configurable status leds for running and mqtt-status using RaspberryPi GPIOs
+- RaspberryPi GPIO button support for restart and shutdown
+  - Can be used to power down a RaspberryPi with a phyiscal button
 - Cross-platform: Windows, Linux  (GPIOs only RaspberryPi)
 - Configuration via YAML using web UI
 
