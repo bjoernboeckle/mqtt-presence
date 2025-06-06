@@ -31,7 +31,7 @@ class RaspberryPiDevice(Device):
         super().init(config, device_callback)
         settings: RaspberryPiSettings = config.devices.raspberryPi
         if (not settings or settings.enabled is False):
-            self.error_msg = "RaspberryPi device is disabled in the configuration. Apply to enable it."
+            self._error_msg = "RaspberryPi device is disabled in the configuration. Apply to enable it."
             return
         
         try:
