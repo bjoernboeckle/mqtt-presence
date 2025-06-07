@@ -80,10 +80,10 @@ jobs:
         shell: pwsh
 
 
-      - name: 💾 Rename installer
-        run: |
-          $tag = "${{ env.TAG_NAME }}"
-          Rename-Item -Path "dist/mqtt-presence-$tag-setup.exe" -NewName "Test-$tag-setup.exe"
+      #- name: 💾 Rename installer
+      #  run: |
+      #    $tag = "${{ env.TAG_NAME }}"
+      #    Rename-Item -Path "dist/mqtt-presence-$tag-setup.exe" -NewName "Test-$tag-setup.exe"
 
 
 
