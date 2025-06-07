@@ -111,6 +111,63 @@ jobs:
             twine upload dist/*.whl dist/*.tar.gz
           }
 
+
+
+
+      - name: 🧮 Berechne SHA256 für Chocolatey Installer
+        id: hash
+        shell: pwsh
+        run: |
+          $file = "dist/mqtt-presence-${{ github.ref_name }}-setup.exe"
+          $hash = Get-FileHash $file -Algorithm SHA256
+          echo "checksum=$($hash.Hash)" >> $env:GITHUB_OUTPUT
+
+      - name: 🧰 Erzeuge Chocolatey-Install-Skript mit URL & Hash
+        run: |
+          $version = "${{ github.ref_name }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/$version/mqtt-presence-$version-setup.exe"
+          $checksum = "${{ steps.hash.outputs.checksum }}"
+          $script = @"
+          `$ErrorActionPreference = 'Stop'
+
+          `$packageName = 'mqtt-presence'
+          `$installerType = 'exe'
+          `$url = '$url'
+          `$checksum = '$checksum'
+          `$checksumType = 'sha256'
+          `$silentArgs = '/SILENT'
+
+          Install-ChocolateyPackage `$packageName `$installerType `$silentArgs `$url `
+            -Checksum `$checksum `
+            -ChecksumType `$checksumType
+          "@
+          $script | Set-Content installer/tools/chocolateyInstall.ps1
+
+      - name: 📝 Setze Version in mqtt-presence.nuspec
+        run: |
+          $nuspec = "installer/mqtt-presence.nuspec"
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          (Get-Content $nuspec) -replace '<version>.*?</version>', "<version>$version</version>" | Set-Content $nuspec
+
+      - name: 🍫 Installiere Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        shell: pwsh
+
+      - name: 📦 Baue Chocolatey-Paket
+        run: |
+          choco pack installer/mqtt-presence.nuspec
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          mv mqtt-presence.$version.nupkg dist/
+
+      - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          choco push dist/mqtt-presence.$version.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+
+
+
           
   docker:
     name: 🐳 Build & Push Docker Image
