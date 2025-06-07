@@ -131,7 +131,10 @@ jobs:
       - name: 📦 Baue Chocolatey-Paket
         run: |
           choco pack installer/mqtt-presence.nuspec
-          mv mqtt-presence.${{ env.TAG_NAME }}.nupkg dist/
+          $version = "${{ env.TAG_NAME }}".TrimStart("v")
+          mv mqtt-presence.$version.nupkg dist/
 
       - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
-        run: choco push dist/mqtt-presence.${{ env.TAG_NAME }}.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          $version = "${{ env.TAG_NAME }}".TrimStart("v")
+          choco push dist/mqtt-presence.$version.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
