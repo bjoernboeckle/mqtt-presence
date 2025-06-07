@@ -1,4 +1,4 @@
-name: Test Inno Setup
+name: Test Inno Setup + chocolatey
 
 on:
   workflow_dispatch:
@@ -84,3 +84,54 @@ jobs:
         run: |
           $tag = "${{ env.TAG_NAME }}"
           Rename-Item -Path "dist/mqtt-presence-$tag-setup.exe" -NewName "Test-$tag-setup.exe"
+
+
+
+      - name: 🧮 Berechne SHA256 für Installer
+        id: hash
+        shell: pwsh
+        run: |
+          $file = "dist/mqtt-presence-${{ env.TAG_NAME }}-setup.exe"
+          $hash = Get-FileHash $file -Algorithm SHA256
+          echo "checksum=$($hash.Hash)" >> $env:GITHUB_OUTPUT
+
+      - name: 🧰 Erzeuge Chocolatey-Install-Skript mit URL & Hash
+        run: |
+          $version = "${{ env.TAG_NAME }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/$version/mqtt-presence-$version-setup.exe"
+          $checksum = "${{ steps.hash.outputs.checksum }}"
+          $script = @"
+          `$ErrorActionPreference = 'Stop'
+
+          `$packageName = 'mqtt-presence'
+          `$installerType = 'exe'
+          `$url = '$url'
+          `$checksum = '$checksum'
+          `$checksumType = 'sha256'
+          `$silentArgs = '/SILENT'
+
+          Install-ChocolateyPackage `$packageName `$installerType `$silentArgs `$url `
+            -Checksum `$checksum `
+            -ChecksumType `$checksumType
+          "@
+          $script | Set-Content installer/tools/chocolateyInstall.ps1
+
+      - name: 📝 Setze Version in mqtt-presence.nuspec
+        run: |
+          $nuspec = "installer/mqtt-presence.nuspec"
+          $version = "${{ env.TAG_NAME }}".TrimStart("v")
+          (Get-Content $nuspec) -replace '<version>.*?</version>', "<version>$version</version>" | Set-Content $nuspec
+
+      - name: 🍫 Installiere Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        shell: pwsh
+
+      - name: 📦 Baue Chocolatey-Paket
+        run: |
+          choco pack installer/mqtt-presence.nuspec
+          mv mqtt-presence.${{ env.TAG_NAME }}.nupkg dist/
+
+      - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
+        run: choco push dist/mqtt-presence.${{ env.TAG_NAME }}.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
