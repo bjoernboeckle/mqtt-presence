@@ -38,14 +38,14 @@ jobs:
         run: |
           poetry self add poetry-plugin-export
           poetry install --with dev
-        #poetry run pip install pyinstaller
+          poetry run pip install pyinstaller
 
       - name: 🏗️ Install Inno Setup
         run: |
           choco install innosetup --yes
         shell: pwsh
 
-      - name: 🍫 Installiere Chocolatey
+      - name: 🍫 Install Chocolatey
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
           iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
