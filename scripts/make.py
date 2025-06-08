@@ -241,7 +241,7 @@ def build_packages():
 def build_exe(version):
     print("⚙️  Building exe")
     update_version_and_checksum(exe_spec_file, version)    
-    run_command("python -m PyInstaller mqtt-presence.spec")
+    run_command("poetry run python -m PyInstaller mqtt-presence.spec")
 
 
 def build_inno_setup(version):
