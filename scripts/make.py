@@ -189,7 +189,7 @@ def update_version_and_checksum(file_path: Path, version: str, checksum: Optiona
     with open(file_path, "w", encoding="utf-8") as file:
         file.write(content)
 
-    print(f"✏️  {file_path} updated with version {version} {"and checksum " + checksum if checksum is not None else ""}.")
+    print(f"✏️  {file_path} updated with version {version} {'and checksum ' + checksum if checksum is not None else ''}.")
 
 
 
