@@ -1,19 +1,14 @@
-.PHONY: pylint test build clean all
+.PHONY: $(COMMANDS) set-version
+
+COMMANDS := clean pylint pytest build build-exe installer winget chocolatey all
+
+$(COMMANDS):
+	python ./scripts/make.py $@
 
 
-pylint:
-	poetry run pylint mqtt_presence
-
-test:
-	poetry run pytest tests
-
-
-build: test pylint
-	poetry build 
-
-
-clean:
-	rm -rf dist build *.egg-info
-
-
-all: clean build
+set-version:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: Please provide VERSION=<new_version>"; \
+		exit 1; \
+	fi
+	python ./scripts/make.py set-version $(VERSION)

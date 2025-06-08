@@ -24,54 +24,34 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: 📥 Install Poetry
+          
+      - name: 📥 Install Poetry and toml
         run: |
           python -m pip install --upgrade pip
           pip install poetry toml pathlib
-
-      - name: 📝 Update pyproject.toml version from tag
-        run: python scripts/update_version.py ${{ github.ref_name }}
 
       - name: 📦 Install dependencies
         run: |
           poetry self add poetry-plugin-export
           poetry install --with dev
-          poetry run pip install pyinstaller
-
-      - name: 🧪 Run tests
-        run: poetry run pytest tests
-
-      - name: 🧠 Lint code
-        run: poetry run pylint mqtt_presence
-
-      - name: 🛠️ Build package
-        run: poetry build
-
-      - name: 🏗️ Build .exe with PyInstaller
-        run: |
-          poetry run pyinstaller mqtt-presence.spec
-
-      - name: 🏷️ Rename executable with version
-        run: |
-          $tag = "${{ github.ref_name }}"
-          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
+        #poetry run pip install pyinstaller
 
       - name: 🏗️ Install Inno Setup
         run: |
           choco install innosetup --yes
         shell: pwsh
 
-      - name: 📦 Build Inno Setup installer
+      - name: 🍫 Installiere Chocolatey
         run: |
-          $tag = "${{ github.ref_name }}"
-          $exeName = "mqtt-presence-$tag.exe"
-          $issFile = "installer/mqtt-presence-setup.iss"
-          $version = $tag.TrimStart("v")
-          (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
-          (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         shell: pwsh
+
+      - name: 📝 Update pyproject.toml version from tag and create version.py
+        run: python scripts/make.py set-version ${{ github.ref_name }}
+
+      - name: 🛠️ Build all (lint, test, create exe, setup and prepare package distribution files)
+        run: python scripts/make.py all
 
       - name: 💾 Upload artifacts and installer to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -83,13 +63,11 @@ jobs:
             dist/mqtt-presence-${{ github.ref_name }}-setup.exe
 
 
-      ## Needs ubuntu
-      #- name: 🚀 Publish to PyPI or TestPyPI via Trusted Publisher
-      #  if: startsWith(github.ref_name, 'v')
-      #  uses: pypa/gh-action-pypi-publish@release/v1
-      #  with:
-      #    skip-existing: true
-      #    repository-url: ${{ startsWith(github.ref_name, 'v') && contains(github.ref_name, 'a') && 'https://test.pypi.org/legacy/' || '' }}
+      - name: 🍫 Installiere Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        shell: pwsh
 
       - name: 📥 Install Twine
         run: python -m pip install --upgrade twine
@@ -110,56 +88,6 @@ jobs:
             $env:TWINE_PASSWORD = $env:PYPI_TOKEN
             twine upload dist/*.whl dist/*.tar.gz
           }
-
-
-
-
-      - name: 🧮 Berechne SHA256 für Chocolatey Installer
-        id: hash
-        shell: pwsh
-        run: |
-          $file = "dist/mqtt-presence-${{ github.ref_name }}-setup.exe"
-          $hash = Get-FileHash $file -Algorithm SHA256
-          echo "checksum=$($hash.Hash)" >> $env:GITHUB_OUTPUT
-
-      - name: 🧰 Erzeuge Chocolatey-Install-Skript mit URL & Hash
-        run: |
-          $version = "${{ github.ref_name }}"
-          $url = "https://github.com/${{ github.repository }}/releases/download/$version/mqtt-presence-$version-setup.exe"
-          $checksum = "${{ steps.hash.outputs.checksum }}"
-          $script = @"
-          `$ErrorActionPreference = 'Stop'
-
-          `$packageName = 'mqtt-presence'
-          `$installerType = 'exe'
-          `$url = '$url'
-          `$checksum = '$checksum'
-          `$checksumType = 'sha256'
-          `$silentArgs = '/SILENT'
-
-          Install-ChocolateyPackage `$packageName `$installerType `$silentArgs `$url `
-            -Checksum `$checksum `
-            -ChecksumType `$checksumType
-          "@
-          $script | Set-Content installer/tools/chocolateyInstall.ps1
-
-      - name: 📝 Setze Version in mqtt-presence.nuspec
-        run: |
-          $nuspec = "installer/mqtt-presence.nuspec"
-          $version = "${{ github.ref_name }}".TrimStart("v")
-          (Get-Content $nuspec) -replace '<version>.*?</version>', "<version>$version</version>" | Set-Content $nuspec
-
-      - name: 🍫 Installiere Chocolatey
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-        shell: pwsh
-
-      - name: 📦 Baue Chocolatey-Paket
-        run: |
-          choco pack installer/mqtt-presence.nuspec
-          $version = "${{ github.ref_name }}".TrimStart("v")
-          mv mqtt-presence.$version.nupkg dist/
 
       - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
         run: |

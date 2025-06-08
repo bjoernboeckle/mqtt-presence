@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "mqtt-presence"
-#define MyAppVersion "0.2.5"
+#define MyAppVersion "VERSION"
 #define MyAppPublisher "Bjoern Boeckle"
 #define MyAppURL "https://github.com/bjoernboeckle/mqtt-presence"
-#define MyAppExeName "mqtt-presence.exe"
+#define MyAppExeName "APP_NAME"
 
 [Setup]
 AppName={#MyAppName}
@@ -19,11 +19,11 @@ Uninstallable=yes
 OutputBaseFilename={#MyAppName}-v{#MyAppVersion}-setup
 Compression=lzma
 SolidCompression=yes
-LicenseFile=..\LICENSE
-OutputDir=..\dist
+LicenseFile=..\..\LICENSE
+OutputDir=..\..\dist
 
 [Files]
-Source: "../dist/{#MyAppExeName}"; DestDir: "{commonappdata}\{#MyAppName}"; Flags: ignoreversion
+Source: "../../dist/{#MyAppExeName}"; DestDir: "{commonappdata}\{#MyAppName}"; Flags: ignoreversion
 Source: "tools/nssm.exe"; DestDir: "{commonappdata}\{#MyAppName}"; Flags: ignoreversion
 
 [Run]

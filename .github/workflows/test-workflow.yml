@@ -14,6 +14,7 @@ env:
   IMAGE_NAME: mqtt-presence
   TAG_NAME: v0.2.6    #github.ref_name
 
+
 jobs:  
   release:
     name: 🛠️ Build & Release
@@ -27,100 +28,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: 📥 Install Poetry
+          
+      - name: 📥 Install Poetry and toml
         run: |
           python -m pip install --upgrade pip
           pip install poetry toml pathlib
-
-      - name: 📝 Update pyproject.toml version from tag
-        run: python scripts/update_version.py ${{ env.TAG_NAME }}
 
       - name: 📦 Install dependencies
         run: |
           poetry self add poetry-plugin-export
           poetry install --with dev
-          poetry run pip install pyinstaller
-
-      - name: 🧪 Run tests
-        run: poetry run pytest tests
-
-      - name: 🧠 Lint code
-        run: poetry run pylint mqtt_presence
-
-      - name: 🛠️ Build package
-        run: poetry build
-
-      - name: 🏗️ Build .exe with PyInstaller
-        run: |
-          poetry run pyinstaller mqtt-presence.spec
-
-
-      - name: 🏷️ Rename executable with version
-        run: |
-          $tag = "${{ env.TAG_NAME }}"
-          Rename-Item -Path "dist/mqtt-presence.exe" -NewName "mqtt-presence-$tag.exe"
-
+        #poetry run pip install pyinstaller
 
       - name: 🏗️ Install Inno Setup
         run: |
           choco install innosetup --yes
         shell: pwsh
-
-
-      - name: 📦 Build Inno Setup installer
-        run: |
-          $tag = "${{ env.TAG_NAME }}"
-          $exeName = "mqtt-presence-$tag.exe"
-          $issFile = "installer/mqtt-presence-setup.iss"
-          $version = $tag.TrimStart("v")
-          (Get-Content $issFile) -replace "define MyAppVersion .*", "define MyAppVersion `"$version`"" | Set-Content $issFile
-          (Get-Content $issFile) -replace "define MyAppExeName .*", "define MyAppExeName `"$exeName`"" | Set-Content $issFile
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
-        shell: pwsh
-
-
-      #- name: 💾 Rename installer
-      #  run: |
-      #    $tag = "${{ env.TAG_NAME }}"
-      #    Rename-Item -Path "dist/mqtt-presence-$tag-setup.exe" -NewName "Test-$tag-setup.exe"
-
-
-
-      - name: 🧮 Berechne SHA256 für Installer
-        id: hash
-        shell: pwsh
-        run: |
-          $file = "dist/mqtt-presence-${{ env.TAG_NAME }}-setup.exe"
-          $hash = Get-FileHash $file -Algorithm SHA256
-          echo "checksum=$($hash.Hash)" >> $env:GITHUB_OUTPUT
-
-      - name: 🧰 Erzeuge Chocolatey-Install-Skript mit URL & Hash
-        run: |
-          $version = "${{ env.TAG_NAME }}"
-          $url = "https://github.com/${{ github.repository }}/releases/download/$version/mqtt-presence-$version-setup.exe"
-          $checksum = "${{ steps.hash.outputs.checksum }}"
-          $script = @"
-          `$ErrorActionPreference = 'Stop'
-
-          `$packageName = 'mqtt-presence'
-          `$installerType = 'exe'
-          `$url = '$url'
-          `$checksum = '$checksum'
-          `$checksumType = 'sha256'
-          `$silentArgs = '/SILENT'
-
-          Install-ChocolateyPackage `$packageName `$installerType `$silentArgs `$url `
-            -Checksum `$checksum `
-            -ChecksumType `$checksumType
-          "@
-          $script | Set-Content installer/tools/chocolateyInstall.ps1
-
-      - name: 📝 Setze Version in mqtt-presence.nuspec
-        run: |
-          $nuspec = "installer/mqtt-presence.nuspec"
-          $version = "${{ env.TAG_NAME }}".TrimStart("v")
-          (Get-Content $nuspec) -replace '<version>.*?</version>', "<version>$version</version>" | Set-Content $nuspec
 
       - name: 🍫 Installiere Chocolatey
         run: |
@@ -128,13 +51,15 @@ jobs:
           iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         shell: pwsh
 
-      - name: 📦 Baue Chocolatey-Paket
-        run: |
-          choco pack installer/mqtt-presence.nuspec
-          $version = "${{ env.TAG_NAME }}".TrimStart("v")
-          mv mqtt-presence.$version.nupkg dist/
+      - name: 📝 Update pyproject.toml version from tag and create version.py
+        run: python scripts/make.py set-version ${{ env.TAG_NAME }}
 
-      - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
-        run: |
-          $version = "${{ env.TAG_NAME }}".TrimStart("v")
-          choco push dist/mqtt-presence.$version.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+      - name: 🛠️ Build all (lint, test, create exe, setup and prepare package distribution files)
+        run: python scripts/make.py all
+
+         
+    #$version = "${{ env.TAG_NAME }}".TrimStart("v")
+    #  - name: 🚀 Push Chocolatey-Paket zu chocolatey.org
+    #    run: |
+    #      $choco-version = "${{ env.CHOCOLATEY_VERSION }}".TrimStart("v")
+    #      choco push dist/mqtt-presence.$choco-version.nupkg --source https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }}

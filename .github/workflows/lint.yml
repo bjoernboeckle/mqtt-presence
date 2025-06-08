@@ -31,5 +31,5 @@ jobs:
         run: poetry install --no-interaction --no-ansi --with dev
 
       - name: 🧠 Run lint (pylint)
-        run: poetry run pylint mqtt_presence
+        run: python scripts/make.py pylint
 

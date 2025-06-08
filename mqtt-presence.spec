@@ -28,7 +28,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='mqtt-presence',
+    name='mqtt-presence-v0.2.7',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
