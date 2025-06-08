@@ -1,0 +1,12 @@
+# Created using wingetcreate 1.9.4.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.9.0.schema.json
+
+PackageIdentifier: BjoernBoeckle.mqtt-presence
+PackageVersion: 0.2.8
+InstallerType: inno
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/bjoernboeckle/mqtt-presence/releases/download/v0.2.8/mqtt-presence-v0.2.8-setup.exe
+  InstallerSha256: b5dc1ca166861901dabdb4ca053f1a0434037c5e0c530c126e8eea854eb27fa8
+ManifestType: installer
+ManifestVersion: 1.9.0

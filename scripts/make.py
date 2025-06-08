@@ -36,9 +36,9 @@ chocolatey_install = Path("installer/chocolatey/tools/chocolateyinstall.ps1")
 
 
 # winget manifest
-winget_installer = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.installer.yaml")
-winget_locale = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.locale.en-US.yaml")
-winget_main = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.yaml")
+winget_installer = Path("installer/winget/BjoernBoeckle.mqtt-presence.installer.yaml")
+winget_locale = Path("installer/winget/BjoernBoeckle.mqtt-presence.locale.en-US.yaml")
+winget_main = Path("installer/winget/BjoernBoeckle.mqtt-presence.yaml")
 
 
 
