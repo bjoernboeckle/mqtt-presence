@@ -16,8 +16,8 @@ $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 # Community Repo: Use official urls for non-redist binaries or redist where total package size is over 200MB
 # Internal/Organization: Download from internal location (internet sources are unreliable)
 
-$url = 'SETUP_URL'
-$checksum = 'CHECKSUM'
+$url = 'https://github.com/bjoernboeckle/mqtt-presence/releases/download/v0.2.7/mqtt-presence-v0.2.7-setup.exe'
+$checksum = 'cd25b8341a3922f2be176129738a08f0609eaa6b698954e055d1416b31b2fb1c'
 $checksumType = 'sha256'
 
 
