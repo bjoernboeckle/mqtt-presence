@@ -37,7 +37,7 @@ class PcUtils(Device):
                 # MQTT buttons
                 #"test": DeviceData(friendly_name="Test button", type = DeviceType.BUTTON, icon="test-tube"),
                 # MQTT sensors
-                "ip_address": DeviceData(friendly_name="IP Address", type = DeviceType.SENSOR, icon = "ip"),
+                "ip_address": DeviceData(friendly_name="IP Addresses", type = DeviceType.SENSOR, icon = "ip"),
                 "cpu_freq": DeviceData(friendly_name="CPU Frequency", unit = "MHz", type = DeviceType.SENSOR, icon = "sine-wave"),
                 "memory_usage": DeviceData(friendly_name="RAM Usage", unit = "%", type = DeviceType.SENSOR, icon = "memory" ),
                 "cpu_load": DeviceData(friendly_name="CPU Load (1 min avg)", unit = "%", type = DeviceType.SENSOR, icon = "gauge" ),
@@ -55,7 +55,7 @@ class PcUtils(Device):
 
     def update_data(self, mqtt_online: Optional[bool] = False):
         if self.settings.enabled and self.settings.enableInfos:
-            self.data["ip_address"].data = str(self._get_ip_address())
+            self.data["ip_address"].data = ", ".join(self._get_all_ips())
             self.data["cpu_freq"].data = str(self._get_cpu_freq())
             self.data["memory_usage"].data = str(self._get_memory_usage_percent())
             self.data["cpu_load"].data = str(self._get_memory_usage_percent())
@@ -129,3 +129,12 @@ class PcUtils(Device):
 
     def _get_ip_address(self):
         return socket.gethostbyname(socket.gethostname())
+    
+
+    def _get_all_ips(self):
+        ip_list = []
+        for interface, addrs in psutil.net_if_addrs().items():
+            for addr in addrs:
+                if addr.family == socket.AF_INET:  # Nur IPv4-Adressen
+                    ip_list.append(addr.address)
+        return ip_list
