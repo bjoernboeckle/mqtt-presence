@@ -127,9 +127,6 @@ class PcUtils(Device):
             return None
         return None
 
-    def _get_ip_address(self):
-        return socket.gethostbyname(socket.gethostname())
-    
 
     def _get_all_ips(self):
         ip_list = []
