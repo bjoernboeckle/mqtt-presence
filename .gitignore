@@ -180,7 +180,7 @@ secret.key
 raspberrypi.yaml
 configuration.yaml
 password.key
-
+*.nupkg
 
 # Ignore generated version file
 #mqtt_presence/version.py

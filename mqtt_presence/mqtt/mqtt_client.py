@@ -8,8 +8,7 @@ from collections import defaultdict
 from mqtt_presence.config.configuration import Configuration
 from mqtt_presence.devices.device_data import DeviceData, DeviceType, DeviceKey
 from mqtt_presence.devices.devices import Devices
-from mqtt_presence.devices.device import Device
-
+from mqtt_presence.version import VERSION
 from mqtt_presence.utils import Tools
 
 logger = logging.getLogger(__name__)
@@ -246,11 +245,17 @@ class MQTTClient:
 
 
     def _get_discovery_payload(self, topic, unique_id, device_data: DeviceData):
+        model = "MQTT Presence Agent"
+        manufacturer = Tools.get_manufacturer()
+        if not Tools.is_none_or_empty(manufacturer):
+            model =  model + " | " + manufacturer
+        
         device_info = {
             "identifiers": [self._node_id],
             "name": self._config.mqtt.homeassistant.device_name,
             "manufacturer": "mqtt-presence",
-            "model": "Presence Agent"
+            "model": model,
+            "sw_version": VERSION,
         }
         payload = {
                 "name": device_data.friendly_name,
