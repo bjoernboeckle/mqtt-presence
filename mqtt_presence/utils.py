@@ -208,22 +208,21 @@ class Tools:
                 lines = result.stdout.strip().split('\n')
                 if len(lines) >= 2:
                     return ' - '.join(line.strip() for line in lines[1:] if line.strip())
-                
-                else:
-                    return ""
-            except Exception as e:
-                logger.warning(f"❌ Error reading manufacturer (Windows): {e}")
+
+                return ""
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("❌ Error reading manufacturer (Windows): %s", e)
                 return ""
 
         elif system == "Linux":
             try:
-                with open("/sys/class/dmi/id/sys_vendor") as f:
+                with open("/sys/class/dmi/id/sys_vendor", encoding="utf-8") as f:
                     return f.read().strip()
-            except Exception as e:
-                logger.warning(f"❌ Error reading manufacturer (Linux): {e}")
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("❌ Error reading manufacturer (Linux): %s", e)
                 return ""
 
         else:
-            logger.warning(f"❌ Not supported OS: {system}")
-            return ""
-            
+            logger.warning("❌ Not supported OS: %s", system)
+
+        return ""

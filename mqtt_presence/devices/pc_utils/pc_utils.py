@@ -68,11 +68,11 @@ class PcUtils(Device):
 
     def handle_command(self, data_key: str, function: str):
         logger.info("✏️  Device command: %s - %s", data_key, function)
-        if data_key == "shutdown": 
+        if data_key == "shutdown":
             Tools.shutdown()
-        elif data_key == "reboot": 
+        elif data_key == "reboot":
             Tools.reboot()
-        elif ( data_key == "test"): 
+        elif ( data_key == "test"):
             logger.info("🧪 Test command")
         else:
             logger.warning("⚠️  Unknown Device command: %s - %s", data_key, function)
@@ -88,7 +88,7 @@ class PcUtils(Device):
     def _get_memory_usage_percent(self):
         return psutil.virtual_memory().percent
 
-    
+
     def _get_cpu_load_1min(self):
         # 1-Minuten Load Average (nur auf Unix-Systemen sinnvoll, Windows gibt evtl. Fehler)
         try:
@@ -97,24 +97,24 @@ class PcUtils(Device):
             # Fallback auf CPU-Auslastung der letzten Sekunde
             return psutil.cpu_percent(interval=1)
 
-    
+
     def _get_disk_usage_root_percent(self):
         return psutil.disk_usage('/').percent
 
-    
+
     def _get_disk_free_root_gb(self):
         free_bytes = psutil.disk_usage('/').free
         return round(free_bytes / (1024**3), 2)
 
-    
+
     def _get_net_bytes_sent(self):
         return psutil.net_io_counters().bytes_sent
 
-    
+
     def _get_net_bytes_recv(self):
         return psutil.net_io_counters().bytes_recv
 
-    
+
     def _get_cpu_temp_psutil(self):
         if not hasattr(psutil, "sensors_temperatures"):
             return None

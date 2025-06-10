@@ -220,7 +220,6 @@ class MQTTClient:
                 logger.info("📩 Received unknown command: %s → %s", msg.topic, payload)
 
 
-
     def _get_available_topic(self):
         return f"{self._topic_prefix}/{AVAILABLE_SENSOR_TOPIC}/state"
 
