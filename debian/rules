@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	~/.local/bin/poetry build
+
+override_dh_auto_install:
+	python3.11 -m pip install dist/*.whl --root=$(CURDIR)/debian/mqtt-presence --no-deps --prefix=/usr
+
+override_dh_auto_clean:
+	rm -rf dist build *.egg-info

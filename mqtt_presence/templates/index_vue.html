@@ -3,13 +3,15 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MQTT Presence</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-    <link rel="stylesheet"
-        href="{{ url_for('static', filename='materialdesignicons/css/materialdesignicons.min.css') }}">
 
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='materialdesignicons/css/materialdesignicons.min.css') }}">
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/vue.global.prod.js') }}"></script>
+
 
     <style>
         .no-top-border td {
@@ -28,7 +30,7 @@
         .gpio-settings-row .form-select,
         .gpio-settings-row .form-check-label {
             font-size: 0.85rem;
-            
+
             height: auto;
         }
 
@@ -59,7 +61,7 @@
 </head>
 
 <body class="bg-light">
-    <div id="app" class="container py-5" v-if="config && config.mqtt && config.mqtt.broker">
+    <div id="app" class="container-fluid py-5" v-if="config && config.mqtt && config.mqtt.broker">
 
         <div v-if="busy" class="busy-overlay">
             <div class="spinner-border text-primary" role="status">
@@ -67,13 +69,20 @@
             </div>
         </div>
 
-        <h2 class="mb-4 text-center">{{appName}} {{ version }}</h2>
-        <div class="mb-4 text-center">{{description}}</div>
+
+        <div class="d-flex align-items-center">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="App Logo" width="80" height="80" class="me-4">
+            <div class="text-center flex-grow-1">
+                <h2 class="fw-bold fs-3">{{ appName }} {{ version }}</h2>
+                <div class="text-muted fs-6">{{ description }}</div>
+            </div>
+        </div>
+
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="card-title mb-0">Configuration</h4>
+                    <h4 class="card-title mb-0" fs-3>Configuration ({{pc_name}} - {{pc_manufacturer}})</h4>
                 </div>
                 <div class="card">
                     <div class="card-header">
@@ -82,29 +91,25 @@
                             <!-- app configs -->
                             <li class="nav-item">
                                 {% raw %}
-                                <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }"
-                                    @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='appconfig' }" @click.prevent="activeTab='appconfig'">App config {{webserverStatusIcon}}</a>
                                 {% endraw %}
                             </li>
                             <!-- MQTT -->
                             <li class="nav-item" v-if="config.mqtt.enabled">
                                 {% raw %}
-                                <a href="#" class="nav-link" :class="{ active: activeTab==='mqtt' }"
-                                    @click.prevent="activeTab='mqtt'">MQTT {{mqttStatusIcon}}</a>
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='mqtt' }" @click.prevent="activeTab='mqtt'">MQTT {{mqttStatusIcon}}</a>
                                 {% endraw %}
                             </li>
                             <!-- PC utilities -->
                             <li class="nav-item" v-if="config.devices.pc_utils.enabled">
                                 {% raw %}
-                                <a href="#" class="nav-link" :class="{ active: activeTab==='pcutils' }"
-                                    @click.prevent="activeTab='pcutils'">PC utilities {{pcUtilsStatusIcon}}</a>
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='pcutils' }" @click.prevent="activeTab='pcutils'">PC utilities {{pcUtilsStatusIcon}}</a>
                                 {% endraw %}
                             </li>
                             <!-- RaspberryPi -->
                             <li class="nav-item" v-if="config.devices.raspberryPi.enabled">
                                 {% raw %}
-                                <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }"
-                                    @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }" @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
                                 {% endraw %}
                             </li>
                         </ul>
@@ -147,6 +152,8 @@
                     appName: "{{ appName }}",
                     version: "{{ version }}",
                     description: "{{ description }}",
+                    pc_name: "{{pc_name}}",
+                    pc_manufacturer: "{{pc_manufacturer}}",
                     config: config,
                     status: JSON.parse('{{ status | tojson | safe | replace("'", "\\'") }}'),
 

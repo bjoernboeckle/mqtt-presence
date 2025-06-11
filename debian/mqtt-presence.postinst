@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ]; then
+    systemctl daemon-reload
+    systemctl enable mqtt-presence.service
+    systemctl start mqtt-presence.service
+fi
+
+exit 0
