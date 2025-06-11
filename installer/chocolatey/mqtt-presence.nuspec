@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>mqtt-presence</id>
-    <version>0.2.6</version>
+    <version>0.2.7</version>
     <packageSourceUrl>https://github.com/BjoernBoeckle/mqtt-presence</packageSourceUrl>
     <owners>Bjoern Boeckle</owners>
     <title>Mqtt Presence (Install)</title>

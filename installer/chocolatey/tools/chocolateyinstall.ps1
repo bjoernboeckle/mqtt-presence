@@ -1,8 +1,8 @@
 ﻿$ErrorActionPreference = 'Stop';
 $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-$url = 'https://github.com/bjoernboeckle/mqtt-presence/releases/download/v0.2.6/mqtt-presence-v0.2.6-setup.exe'
-$checksum = 'defa7cf1cfee7e66392b995f985489fbd1ef9f6da6d5ce074984170fd4cf1543'
+$url = 'https://github.com/bjoernboeckle/mqtt-presence/releases/download/v0.2.8/mqtt-presence-v0.2.8-setup.exe'
+$checksum = '3052bb856eb9bcbcf0a7e7a2450bc1c8a57f986782080abe1139c092b8d1803a'
 $checksumType = 'sha256'
 
 
