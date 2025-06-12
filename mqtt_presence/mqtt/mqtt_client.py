@@ -33,6 +33,7 @@ class MQTTClient:
         self._node_id: str = ""
         self._topic_prefix: str = ""
         self._published_topics : List[str] = []
+        self._manufacturer = ""
 
 
     def set_devices(self, devices: Devices):
@@ -52,6 +53,7 @@ class MQTTClient:
 
 
     def connect(self, config: Configuration, password: str):
+        self._manufacturer = Tools.get_manufacturer()
         with self._lock:
             self._config = config
             # mqtt data
@@ -245,9 +247,8 @@ class MQTTClient:
 
     def _get_discovery_payload(self, topic, unique_id, device_data: DeviceData):
         model = "MQTT Presence Agent"
-        manufacturer = Tools.get_manufacturer()
-        if not Tools.is_none_or_empty(manufacturer):
-            model =  model + " | " + manufacturer
+        if not Tools.is_none_or_empty(self._manufacturer):
+            model =  model + " | " + self._manufacturer
         
         device_info = {
             "identifiers": [self._node_id],
