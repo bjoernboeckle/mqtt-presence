@@ -5,7 +5,7 @@ set -e
 SERVICE_NAME="mqtt-presence"
 INSTALL_DIR="/opt/$SERVICE_NAME"
 SYSTEMD_SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
-$CONFIG_PATH="/etc/$SERVICE_NAME"
+CONFIG_PATH="/etc/$SERVICE_NAME"
 LOG_PATH="/var/log/$SERVICE_NAME"
 
 # Optional: auto-confirmation
