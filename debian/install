@@ -1,2 +1,0 @@
-usr/local/bin/mqtt-presence usr/bin/
-lib/systemd/system/mqtt-presence.service lib/systemd/system/

@@ -28,6 +28,10 @@ It is especially useful in smart home environments such as [Home Assistant](http
 
 ## 🚀 Getting Started
 
+The prgramm will be installed as a service placed in sytsem directories (details below).
+After a succefull installation, the web ui can be opened using:
+
+http://localhost:8100
 
 
 ### 🐧 Linux
@@ -35,12 +39,14 @@ It is especially useful in smart home environments such as [Home Assistant](http
 Just use the install / uninstall script.
 mqtt-presence will be installed as system.d service.
 
+#### Install
 ```bash
-# Install
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh?$(date +%s)" | bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/install.sh" | bash
+```
 
-# Uninstall
-curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh?$(date +%s)" | bash -s -- --yes
+#### Uninstall
+```bash
+curl -sSL "https://raw.githubusercontent.com/bjoernboeckle/mqtt-presence/main/scripts/uninstall.sh" | bash -s -- --yes
 ```
 
 ---
@@ -79,11 +85,6 @@ Or use winget (latest version will be installed automatically)
 ```bash
 winget install mqtt-presence
 ```
-
-The prgramm will be installed as a service placed in %ProgrammData%\mqtt-presence.
-After a succefull installation, the web ui can be opened using:
-
-http://localhost:8100
 
 > **Note:** Installation and uninstallation require admin rights.
 
