@@ -208,11 +208,8 @@ class Tools:
                 lines = result.stdout.strip().split('\n')
                 if len(lines) >= 2:
                     return ' - '.join(line.strip() for line in lines[1:] if line.strip())
-
-                return ""
             except Exception as e: # pylint: disable=broad-exception-caught
                 logger.warning("❌ Error reading manufacturer (Windows): %s", e)
-                return ""
 
         elif system == "Linux":
             try:
@@ -220,9 +217,8 @@ class Tools:
                     return f.read().strip()
             except Exception as e: # pylint: disable=broad-exception-caught
                 logger.warning("❌ Error reading manufacturer (Linux): %s", e)
-                return ""
 
         else:
             logger.warning("❌ Not supported OS: %s", system)
 
-        return ""
+        return platform.machine()
