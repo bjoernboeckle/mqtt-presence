@@ -41,6 +41,8 @@ class WebUIVue:
                 "appName": self.mqtt_app.NAME.replace("-", " ").title(),
                 "version": self.mqtt_app.VERSION,
                 "description": self.mqtt_app.DESCRIPTION,
+                "pc_name": Tools.get_pc_name(),
+                "pc_manufacturer": Tools.get_manufacturer(),
                 "config": ConfigYamlHelper.dataclass_to_serializable(self.mqtt_app.config),
                 "status": self.mqtt_app.get_status()
             })

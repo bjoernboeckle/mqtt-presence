@@ -1,4 +1,4 @@
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 NAME = "mqtt-presence"
 DESCRIPTION = "Lightweight MQTT-based presence detection with shutdown and Raspberry Pi GPio support"
 REPOSITORY = "https://github.com/bjoernboeckle/mqtt-presence"

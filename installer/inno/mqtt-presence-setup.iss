@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "mqtt-presence"
-#define MyAppVersion "VERSION"
+#define MyAppVersion "0.2.8"
 #define MyAppPublisher "Bjoern Boeckle"
 #define MyAppURL "https://github.com/bjoernboeckle/mqtt-presence"
-#define MyAppExeName "APP_NAME"
+#define MyAppExeName "mqtt-presence-v0.2.8.exe"
 
 [Setup]
 AppName={#MyAppName}

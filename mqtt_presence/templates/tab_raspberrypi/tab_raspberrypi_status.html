@@ -14,8 +14,7 @@
       <div class="col" v-for="([key, item]) in raspberrySwitches" :key="key">
         <div class="form-check form-switch">
           <i :class="mdiClass(item.icon)"></i>
-          <input class="form-check-input" type="checkbox" :checked="item.data === 'on'"
-            @change="onToggleSwitch('raspberrypi', key, $event.target.checked)" />
+          <input class="form-check-input" type="checkbox" :checked="item.data === 'on'" @change="onToggleSwitch('raspberrypi', key, $event.target.checked)" />
           <label class="form-check-label ms-2" v-text="item.friendly_name"></label>
         </div>
       </div>

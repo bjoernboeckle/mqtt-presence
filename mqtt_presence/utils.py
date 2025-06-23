@@ -3,6 +3,7 @@ import platform
 import re
 import socket
 import sys
+import subprocess
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -191,3 +192,33 @@ class Tools:
                 return "docker" in content or "containerd" in content or "kubepods" in content
         except FileNotFoundError:
             return False
+
+
+    @staticmethod
+    def get_manufacturer() -> str:
+        result = ""
+        system = platform.system()
+
+        if system == "Windows":
+            try:
+                result = subprocess.run(
+                    ['wmic', 'computersystem', 'get', 'manufacturer'],
+                    capture_output=True, text=True, check=True
+                )
+                lines = result.stdout.strip().split('\n')
+                if len(lines) >= 2:
+                    return ' - '.join(line.strip() for line in lines[1:] if line.strip())
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("❌ Error reading manufacturer (Windows): %s", e)
+
+        elif system == "Linux":
+            try:
+                with open("/sys/class/dmi/id/sys_vendor", encoding="utf-8") as f:
+                    return f.read().strip()
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("❌ Error reading manufacturer (Linux): %s", e)
+
+        else:
+            logger.warning("❌ Not supported OS: %s", system)
+
+        return platform.machine()

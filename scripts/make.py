@@ -12,8 +12,35 @@ from typing import Optional
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
+class Command:
+    def __init__(self, command_key, parameter_count, parameter_description = None):
+        self.command_key = command_key
+        self.parameter_count = parameter_count
+        self.parameter_description = parameter_description
 
-available_commands = ["clean", "pylint", "pytest","build", "build-exe", "installer", "winget", "chocolatey", "all"]
+    def __str__(self):
+        if self.parameter_description is not None:
+            return f"{self.command_key} {self.parameter_description}"
+        else:
+            return self.command_key
+    
+
+
+available_commands = {
+    key: Command(key, *parameter_info) 
+    for key, parameter_info in {
+        "set-version": (1, "<new version>"),
+        "clean": (0,),
+        "pylint": (0,),
+        "pytest": (0,),
+        "build": (0,),
+        "build-exe": (0,),
+        "installer": (0,),
+        "winget": (0,),
+        "chocolatey": (0,),
+        "all": (0,),
+    }.items()
+}
 
 
 # toml file
@@ -36,9 +63,9 @@ chocolatey_install = Path("installer/chocolatey/tools/chocolateyinstall.ps1")
 
 
 # winget manifest
-winget_installer = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.installer.yaml")
-winget_locale = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.locale.en-US.yaml")
-winget_main = Path("installer/winget/manifest/BjoernBoeckle.mqtt-presence.yaml")
+winget_installer = Path("installer/winget/BjoernBoeckle.mqtt-presence.installer.yaml")
+winget_locale = Path("installer/winget/BjoernBoeckle.mqtt-presence.locale.en-US.yaml")
+winget_main = Path("installer/winget/BjoernBoeckle.mqtt-presence.yaml")
 
 
 
@@ -269,7 +296,7 @@ def prepare_winget(version, description):
 
 
 def print_usage():
-    print(f"❌  Invalid command - Usage: python make.py [ {' | '.join(available_commands)} | set-version <new_version> ]")    
+    print(f"❌  Invalid command - Usage: python make.py [ {' | '.join(str(cmd) for cmd in available_commands.values())} ]")    
 
 
 def handle_set_version(new_version):
@@ -278,6 +305,7 @@ def handle_set_version(new_version):
 
 
 def handle_make():
+    run_set_version = command == "set-version"
     run_clean =  command == "clean" or command == "all"
     run_pylint = command == "pylint" or command == "all"
     run_pytest = command == "pytest" or command == "all"
@@ -288,10 +316,12 @@ def handle_make():
     run_chocolatey = command == "chocolatey" or command == "all"
     
 
-    version = get_version_from_toml(pyproject_file)
-    toml_description = get_description_from_toml(pyproject_file)
+
+    if run_set_version: handle_set_version(sys.argv[2])
 
     # Always ensure latest version infos
+    version = get_version_from_toml(pyproject_file)
+    toml_description = get_description_from_toml(pyproject_file)
     create_version_py(output_version_file, pyproject_file)
 
     if run_clean: clean()
@@ -312,28 +342,15 @@ if __name__ == "__main__":
         sys.exit(1)
 
     command = sys.argv[1]
+    paracount = len(sys.argv) - 2
 
-
-    if command == "set-version":
-        if len(sys.argv) != 3:
-            print_usage()
-            sys.exit(1)
-        else:
-            print("=========================================================================")
-            print(f"Set Version {sys.argv[2]}")
-            handle_set_version(sys.argv[2])
-    else:       
-        if len(sys.argv) != 2:
-            print_usage()
-            sys.exit(1)
-        else:
-            if command in available_commands:
-                print("=========================================================================")
-                print(f"Start Make '{command}'")
-                handle_make()
-            else:
-                print_usage()
-                sys.exit(1)                
- 
-    print("=========================================================================")
-    print("✅  Make successfully completed.")
+    cmd = available_commands.get(command)
+    if cmd is None or cmd.parameter_count != paracount:
+        print_usage()
+        sys.exit(1)
+    else:
+        print("=========================================================================")
+        print(f"Start Make '{command}'")
+        handle_make()                
+        print("=========================================================================")
+        print("✅  Make successfully completed.")
