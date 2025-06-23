@@ -51,7 +51,7 @@ jobs:
 
 
       - name: 📝 Update pyproject.toml version from tag and create version.py
-        run: python scripts/make.py set-version VERSION=${{ env.TAG_NAME }}
+        run: python scripts/make.py set-version ${{ github.ref_name }}
 
 
       - name: 🛠️ Build all (lint, test, create exe, setup and prepare package distribution files)
