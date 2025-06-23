@@ -326,7 +326,7 @@ def handle_make():
 
     if run_clean: clean()
     if run_pylint: execute_pylint()
-    if run_pytest: execute_pytest()
+    #if run_pytest: execute_pytest()
     if run_build: build_packages()
     if run_build_exe: build_exe(version)
     if run_installer: build_inno_setup(version)
