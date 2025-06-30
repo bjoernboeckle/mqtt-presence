@@ -23,6 +23,7 @@ It is especially useful in smart home environments such as [Home Assistant](http
   - Can be used to power down a RaspberryPi with a phyiscal button
 - Cross-platform: Windows, Linux  (GPIOs only RaspberryPi)
 - Configuration via YAML using web UI
+- Various installation options, winget, pip, docker, remote script, windows setup, portable exe
 
 ---
 
