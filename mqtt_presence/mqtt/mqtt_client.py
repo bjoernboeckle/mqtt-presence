@@ -49,7 +49,7 @@ class MQTTClient:
             return
         topic = f"{self._topic_prefix}/{device_key.value}/{data_key}/action"
         logger.info("🚀 Publish: %s: %s", topic, function)
-        self._client.publish(topic, payload=function, retain=True)
+        self._client.publish(topic, payload=function, retain=False)
 
 
     def connect(self, config: Configuration, password: str):
