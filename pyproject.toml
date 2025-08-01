@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mqtt-presence"
-version = "0.2.8"
+version = "0.3.0"
 description = "Lightweight MQTT-based presence detection with shutdown and Raspberry Pi GPio support"
 authors = [ "Bjoern Boeckle <bjoern@boeckle-net.de>",]
 license = "Apache-2.0"
@@ -34,6 +34,7 @@ platformdirs = "*"
 psutil = "*"
 "ruamel.yaml" = "^0.18.6"
 dacite = "^1.8.1"
+pyserial = "^3.5"
 
 [tool.poetry.scripts]
 mqtt-presence = "mqtt_presence.main:main"

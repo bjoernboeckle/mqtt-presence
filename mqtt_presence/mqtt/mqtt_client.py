@@ -119,7 +119,7 @@ class MQTTClient:
         with self._lock: 
             for device_key, device in self._devices.devices.items():
                 for data_key, device_data in device.data.items():
-                    if device_data.type==DeviceType.SENSOR or device_data.type==DeviceType.SWITCH or device_data.type==DeviceType.BINARY_SENSOR:
+                    if device_data.type==DeviceType.SENSOR or device_data.type==DeviceType.SWITCH or device_data.type==DeviceType.BINARY_SENSOR or device_data.type==DeviceType.SELECT:
                         value = None
                         topic = f"{self._topic_prefix}/{device_key.value}/{data_key}/state"
                         try:
@@ -233,7 +233,7 @@ class MQTTClient:
 
         for device_key, device in self._devices.devices.items():
             for data_key, device_data in device.data.items():
-                if device_data.type == DeviceType.BUTTON or device_data.type == DeviceType.SWITCH:
+                if device_data.type == DeviceType.BUTTON or device_data.type == DeviceType.SWITCH or device_data.type == DeviceType.SELECT:
                     relative_topic = f"{device_key.value}/{data_key}/command"
                     self._client.subscribe(f"{self._topic_prefix}/{relative_topic}")
 
@@ -273,6 +273,10 @@ class MQTTClient:
         if device_data.type == DeviceType.BUTTON:
             payload["command_topic"] = f"{topic}/command"
             payload["payload_press"] = "press"
+        elif device_data.type == DeviceType.SELECT:
+            payload["command_topic"] = f"{topic}/command"
+            payload["state_topic"] =  f"{topic}/state"
+            payload["options"] = device_data.options if device_data.options is not None else []
         elif device_data.type == DeviceType.SWITCH:
             payload["state_topic"] = f"{topic}/state"
             payload["command_topic"] = f"{topic}/command"

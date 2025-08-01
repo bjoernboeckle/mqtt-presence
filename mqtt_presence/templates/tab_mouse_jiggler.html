@@ -1,0 +1,63 @@
+<div>
+    <div v-if="status.devices.mouse_jiggler.error_msg">
+        <p>Error</p>
+        <div class="alert alert-danger mb-3">
+            <i class="mdi mdi-alert"></i>
+            <span v-text="status.devices.mouse_jiggler.error_msg"></span>
+        </div>
+    </div>
+
+    <div v-else>
+        <div class="row align-items-center mb-3">
+
+            <div class="mb-3">
+                <label for="jiggler-serial-port" class="form-label">Serial port</label>
+                <input id="jiggler-serial-port" type="text" class="form-control" v-model="config.devices.mouse_jiggler.serial_port">
+            </div>
+            <div class="col-auto d-flex align-items-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="jiggler_mode"
+                        v-model.bool="config.devices.mouse_jiggler.jigglerMode">
+                    <label class="form-check-label ms-2" for="jiggler_mode">Jiggler Mode</label>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <h6>Commands</h6>
+
+        <!-- Buttons -->
+        <div class="row align-items-center mb-3">
+            <!-- Test 
+            <div class="col-auto">
+                <button class="btn btn-secondary px-4"
+                    @click="sendCommand('/device/command', {'device_key': 'mouse_jiggler', 'data_key': 'test', 'function': 'press' })">
+                    🧪 Test
+                </button>
+            </div> -->
+        </div>
+
+
+        <div class="table-responsive mt-4" v-if="config.devices.mouse_jiggler.enableInfos">
+            <h6>Infos</h6>
+            <table id="cpu_util_table" class="table table-striped table-hover table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="([key, item]) in Object.entries(status.devices.mouse_jiggler.data).filter(([k, i]) => i.data!==undefined && i.data!==null && i.data!=='')"
+                        :key="key">
+                        <td><i :class="mdiClass(item.icon)"
+                                v-text="' ' + (item.friendly_name ? item.friendly_name : key)"></i>
+                        </td>
+                        <td v-text="item.data !== null ? item.data + ' ' + (item.unit ?? '') : 'N/A'">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

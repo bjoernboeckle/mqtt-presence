@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_data import RaspberryPiSettings
 from mqtt_presence.devices.pc_utils.pc_utils_data import PcUtilsSettings
+from mqtt_presence.devices.mouse_jiggler.mouse_jiggler_data import MouseJigglerSettings
 
 ########################Webserver##############
 
@@ -44,6 +45,7 @@ class Mqtt:
 class Devices:
     raspberryPi: RaspberryPiSettings = field(default_factory=RaspberryPiSettings)
     pc_utils: PcUtilsSettings = field(default_factory=PcUtilsSettings)
+    mouse_jiggler: MouseJigglerSettings = field(default_factory=MouseJigglerSettings)
 
 
 

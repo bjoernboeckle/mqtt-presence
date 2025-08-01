@@ -5,6 +5,7 @@ import logging
 
 from mqtt_presence.devices.raspberrypi.raspberrypi_device import RaspberryPiDevice
 from mqtt_presence.devices.pc_utils.pc_utils import PcUtils
+from mqtt_presence.devices.mouse_jiggler.mouse_jiggler import MouseJiggler
 from mqtt_presence.devices.device_data import DeviceKey, DeviceData
 from mqtt_presence.devices.device import Device
 from mqtt_presence.config.configuration import Configuration
@@ -16,7 +17,8 @@ class Devices:
     def __init__(self):
             devices = [
                 RaspberryPiDevice(DeviceKey.RASPBERRY_PI),
-                PcUtils(DeviceKey.PC_UTILS)
+                PcUtils(DeviceKey.PC_UTILS),
+                MouseJiggler(DeviceKey.MOUSE_JIGGLER)
             ]
             self._devices: Dict[DeviceKey, Device] = {device.device_key: device for device in devices}
 

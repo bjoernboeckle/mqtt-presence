@@ -26,4 +26,9 @@
             v-model.bool="config.devices.raspberryPi.enabled">
         <label class="form-check-label" for="enable_raspberryPi">Enable Raspberry Pi</label>
     </div>
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" id="enable_mouse_jiggler"
+            v-model.bool="config.devices.mouse_jiggler.enabled">
+        <label class="form-check-label" for="enable_mouse_jiggler">Enable MouseJiggler</label>
+    </div>    
 </div>

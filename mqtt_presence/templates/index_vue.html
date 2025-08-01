@@ -112,6 +112,12 @@
                                 <a href="#" class="nav-link" :class="{ active: activeTab==='raspberrypi' }" @click.prevent="activeTab='raspberrypi'">Raspberry Pi {{raspberryPiStatusIcon}}</a>
                                 {% endraw %}
                             </li>
+                            <!-- MouseJiggler -->
+                            <li class="nav-item" v-if="config.devices.mouse_jiggler.enabled">
+                                {% raw %}
+                                <a href="#" class="nav-link" :class="{ active: activeTab==='mouse_jiggler' }" @click.prevent="activeTab='mouse_jiggler'">Mouse Jiggler {{mouseJigglerStatusIcon}}</a>
+                                {% endraw %}
+                            </li>                            
                         </ul>
                     </div>
 
@@ -130,11 +136,15 @@
                             <div v-show="activeTab==='pcutils'">
                                 {% include "tab_pcutils.html" %}
                             </div>
-
                             <!-- Raspberry Pi -->
                             <div v-show="activeTab==='raspberrypi'">
                                 {% include "tab_raspberrypi/tab_raspberrypi.html" %}
                             </div>
+                            <!-- Mouse Jiggler -->
+                            <div v-show="activeTab==='mouse_jiggler'">
+                                {% include "tab_mouse_jiggler.html" %}
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -182,6 +192,9 @@
                 },
                 raspberryPiStatusIcon() {
                     return (this.statusOnline ? (this.status.devices.raspberrypi.status ? '🟢' : '🔴') : '⚪');
+                },
+                mouseJigglerStatusIcon() {
+                    return (this.statusOnline ? (this.status.devices.mouse_jiggler.status ? '🟢' : '🔴') : '⚪');
                 },
                 raspberrySwitches() {
                     return Object.entries(this.status.devices.raspberrypi.data || {})

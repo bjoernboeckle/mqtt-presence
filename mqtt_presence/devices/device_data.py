@@ -8,6 +8,7 @@ from functools import partial
 class DeviceKey(str, Enum):
     PC_UTILS = "pc_utils"
     RASPBERRY_PI = "raspberrypi"
+    MOUSE_JIGGLER = "mouse_jiggler"
 
 
 
@@ -17,6 +18,7 @@ class DeviceType(str, Enum):
     SENSOR = "sensor"
     BUTTON = "button"
     SWITCH = "switch"
+    SELECT = "select"
     DEVICE_AUTOMATION = "device_automation"
 
 
@@ -29,6 +31,7 @@ class DeviceData:
     icon: Optional[str] = None
     type: Optional[DeviceType] = DeviceType.BINARY_SENSOR
     actions: Optional[List[str]] = None
+    options: Optional[List[str]] = None
 
 
 @dataclass
