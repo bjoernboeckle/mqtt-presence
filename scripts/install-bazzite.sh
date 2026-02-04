@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+
+SERVICE_NAME="mqtt-presence"
+INSTALL_DIR="/opt/$SERVICE_NAME"
+CONFIG_PATH="/etc/$SERVICE_NAME"
+LOG_PATH="/var/log/$SERVICE_NAME"
+VENV_DIR="$INSTALL_DIR/venv"
+SYSTEMD_SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
+
+echo "[1/5] Ensuring directories exist..."
+sudo mkdir -p "$INSTALL_DIR" "$CONFIG_PATH" "$LOG_PATH"
+
+echo "[2/5] Creating virtual environment (if not exists)..."
+if [ ! -d "$VENV_DIR" ]; then
+    sudo python3 -m venv "$VENV_DIR"
+fi
+
+echo "[3/5] Installing or upgrading mqtt-presence..."
+sudo "$VENV_DIR/bin/pip" install --upgrade pip
+sudo "$VENV_DIR/bin/pip" install --upgrade mqtt-presence
+
+echo "[4/5] Creating/updating systemd service..."
+SERVICE_CONTENT="[Unit]
+Description=MQTT Presence Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$VENV_DIR/bin/mqtt-presence --config $CONFIG_PATH --log $LOG_PATH
+WorkingDirectory=$INSTALL_DIR
+Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+"
+
+echo "$SERVICE_CONTENT" | sudo tee "$SYSTEMD_SERVICE_PATH" > /dev/null
+
+echo "[5/5] Enabling and starting service..."
+sudo systemctl daemon-reload
+sudo systemctl enable "$SERVICE_NAME"
+sudo systemctl restart "$SERVICE_NAME"
+
+echo "✅ Done. Service is running. Use 'systemctl status $SERVICE_NAME' to check status."
